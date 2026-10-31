@@ -180,3 +180,35 @@ def test_pile_layer_fractions():
     depths = np.array([2650.0, 2750.0, 2850.0])
     f = mantle.pile.pile_layer_fractions(np.array([[150.0]]), depths, 100.0, 2890.0)[:, 0, 0]
     np.testing.assert_allclose(f, [0.0, 0.6, 1.0])     # pile from 2740 km to the CMB at 2890 km
+
+
+@pytest.mark.parametrize('l, pattern', [(2, lambda lon, lat: 1.5 * np.sin(lat) ** 2 - 0.5),
+                                        (3, lambda lon, lat: np.cos(lat) ** 3 * np.cos(3 * lon))])
+def test_flow_potential_solves_poisson_on_the_sphere(l, pattern):
+    p = mantle.MantleParams(pile_drive='flow')
+    lons, lats = mantle.mantle_grid(p.mantle_grid_spacing_deg)
+    lon, lat = np.meshgrid(np.radians(lons), np.radians(lats))
+    load = pattern(lon, lat)
+    psi = mantle.pile.flow_potential(load, p)
+    np.testing.assert_allclose(psi, load / (l * (l + 1)), atol=0.01 * np.abs(load).max() / (l * (l + 1)))
+
+
+def test_flow_pile_collects_on_the_far_side_from_a_slab():
+    """A slab on the CMB at 32.5°E: the local pile only thins under it; the flow pile also
+    piles up on the opposite side (147.5°W), more than a quarter of the way round (122.5°E)."""
+    far = {}
+    for drive in ('local', 'flow'):
+        p = mantle.MantleParams(llsvp='pile', slab_at_cmb='rest', pile_drive=drive, pile_slab_head_km=3000.0)
+        h0 = mantle.new_llsvp_state(p)
+        slabs = _ns_slab(0.0, depth_km=p.cmb_depth_km)
+        slabs['weight'] = 1000.0                                    # a long-lived slab graveyard
+        h = h0
+        for _ in range(100):
+            h = mantle.update_llsvp(h, slabs, 1.0, p)
+        area = _cell_area(p)
+        assert (h * area).sum() == pytest.approx((h0 * area).sum(), rel=1e-9)
+        lons, lats = mantle.mantle_grid(p.mantle_grid_spacing_deg)
+        eq = h[np.abs(lats) < 5].mean(axis=0)
+        far[drive] = eq[np.argmin(np.abs(lons + 147.5))] / eq[np.argmin(np.abs(lons - 122.5))]
+    assert far['local'] == pytest.approx(1.0, abs=0.05)
+    assert far['flow'] > 1.5

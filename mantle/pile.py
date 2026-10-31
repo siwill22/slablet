@@ -9,8 +9,17 @@ flows down the gradient of a pressure head
 where L is the slab load on the CMB: the slablets in the bottom p.pile_slab_layer_km,
 each counted with weight × exp(-age / slab_thermal_tau_myr), per square degree of
 equatorial area, smoothed with slab_sigma_deg.  So slabs lying on the CMB push the pile
-away, and the pile spreads under its own weight (the h term).  The volume flux across
-a cell face is
+away, and the pile spreads under its own weight (the h term).  That is pile_drive: local.
+At rest h = constant - pile_slab_head_km × L wherever h > 0: a shallow layer over every
+slab-free area.
+
+pile_drive: flow replaces L by ψ, the solution of ∇²ψ = -(L - mean L) on the unit sphere
+(flow_potential): slabs arriving at the base drive a flow away from them, and its potential
+depends on all slabs, not only those overhead.  ψ is weighted towards long wavelengths
+(degree l scaled by 1 / (l (l + 1))), so at rest the pile collects in a few compact piles
+where that flow converges, far from all slabs.
+
+The volume flux across a cell face is
 
     -p.pile_mobility_km_per_myr × h_face × (P_neighbour - P) × G
 
@@ -24,7 +33,7 @@ donor cell's h) with as many sub-steps as keep any cell from losing more than ha
 pile in one.  Any rounding below zero is clipped and the volume rescaled.
 """
 import numpy as np
-from scipy.sparse import coo_matrix, identity
+from scipy.sparse import coo_matrix, diags, identity
 from scipy.sparse.linalg import spsolve
 
 from .sphere import spherical_gaussian_smooth
@@ -65,6 +74,45 @@ def slab_load(slab_tracers, p):
     return spherical_gaussian_smooth(load, lats, lons, p.slab_sigma_deg)
 
 
+PILE_DRIVES = ('local', 'flow')
+_POISSON = {}
+
+
+def flow_potential(load, p):
+    """ψ with ∇²ψ = -(load - its area-weighted mean) on the unit sphere (pile_drive: flow).
+
+    The same finite-volume faces as update_pile: M ψ = area × (load - mean), with M the
+    face-conductance (g) Laplacian and areas in steradians.  M is singular (any constant
+    can be added), so a tiny multiple of the areas is added to its diagonal; the right-hand
+    side has zero sum, so this only fixes ψ's mean at about zero.  ψ is largest under slabs
+    and lowest far from all of them, weighted towards long wavelengths: a degree-l pattern
+    of the load becomes load_l / (l (l + 1)) in ψ."""
+    lons, lats, area_row = _grid(p)
+    nlat, nlon = len(lats), len(lons)
+    key = (nlat, nlon)
+    if key not in _POISSON:
+        from scipy.sparse.linalg import factorized
+        area = np.repeat(area_row, nlon) / CMB_RADIUS_KM ** 2
+        a, b, g = _face_arrays(lats, nlat, nlon, p)
+        M = coo_matrix((np.concatenate([g, g, -g, -g]),
+                        (np.concatenate([a, b, a, b]), np.concatenate([a, b, b, a]))), shape=(len(area), len(area)))
+        _POISSON[key] = (factorized((M + diags(1e-9 * area)).tocsc()), area)
+    solve, area = _POISSON[key]
+    f = load.ravel()
+    rhs = area * (f - (f * area).sum() / area.sum())
+    return solve(rhs).reshape(nlat, nlon)
+
+
+def _face_arrays(lats, nlat, nlon, p):
+    """Cell index pairs (a, b) of every face and the face's geometric factor g."""
+    (ea, eb), (na, nb) = _faces(nlat, nlon)
+    lat_r = np.radians(lats)
+    g_ew = np.repeat(1.0 / np.cos(lat_r), nlon)
+    lat_face = np.radians(lats[:-1] + p.mantle_grid_spacing_deg / 2)
+    g_ns = np.repeat(np.cos(lat_face), nlon)
+    return np.concatenate([ea, na]), np.concatenate([eb, nb]), np.concatenate([g_ew, g_ns])
+
+
 def _faces(nlat, nlon):
     """Index pairs (a, b) of cells sharing a face: east-west faces (one per cell, wrapping
     in longitude), then north-south faces between neighbouring rows."""
@@ -76,19 +124,17 @@ def update_pile(h, slab_tracers, delta_time, p):
     lons, lats, area_row = _grid(p)
     nlat, nlon = len(lats), len(lons)
     area = np.repeat(area_row, nlon)                       # km² per cell, flattened row-major
-    (ea, eb), (na, nb) = _faces(nlat, nlon)
-    lat_r = np.radians(lats)
-    g_ew = np.repeat(1.0 / np.cos(lat_r), nlon)            # east-west faces, one per cell
-    lat_face = np.radians(lats[:-1] + p.mantle_grid_spacing_deg / 2)
-    g_ns = np.repeat(np.cos(lat_face), nlon)               # north-south faces between rows
-    a = np.concatenate([ea, na])
-    b = np.concatenate([eb, nb])
-    g = np.concatenate([g_ew, g_ns])
+    a, b, g = _face_arrays(lats, nlat, nlon, p)
     kappa = p.pile_mobility_km_per_myr
     volume = (h.ravel() * area).sum()
 
     # 1. slab push, explicit and upwind: flux a->b = kappa * h_donor * (P_a - P_b) * g
-    head = p.pile_slab_head_km * slab_load(slab_tracers, p).ravel()
+    if p.pile_drive not in PILE_DRIVES:
+        raise ValueError('pile_drive must be one of {}, not {!r}'.format(PILE_DRIVES, p.pile_drive))
+    load = slab_load(slab_tracers, p)
+    if p.pile_drive == 'flow':
+        load = flow_potential(load, p)
+    head = p.pile_slab_head_km * load.ravel()
     hf = h.ravel().copy()
     dhead = head[a] - head[b]
     rate = kappa * g * np.abs(dhead)                       # km² per Myr per km of donor pile

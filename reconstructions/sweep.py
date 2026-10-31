@@ -18,7 +18,9 @@ the overrides, run time, and for each tomography model and depth band (mid: < 19
 deep: >= 1975 km) the mean slow_iou, fast_iou, r_2_3, r_1_L and the rotation-null percentiles
 of slow_iou and r_2_3.  The shape scores ignore amplitude, so a row also has the model's
 deep / mid ratio of the area-weighted standard deviation of dVs (amp_deep_mid; REVEAL and
-SEMUCB-WM1 both have about 1.5): a nearly empty deep mantle can still correlate well.
+SEMUCB-WM1 both have about 1.5): a nearly empty deep mantle can still correlate well.  With
+llsvp: pile it also has the pile's size: the fraction of the CMB where it is over 100 km thick
+(pile_area_100km), its maximum and 95th-percentile thickness (km).
 
 `skill` summarises a row in one number: the mean, over models, bands and the four scores, of the
 score divided by the same score of the second tomography model against the first (how well two
@@ -102,7 +104,13 @@ def amplitude(cfg, depths=np.arange(1000.0, 2801.0, 100.0)):
     mean = (f * w).sum(axis=(1, 2)) / w.sum()
     sd = np.sqrt((((f - mean[:, None, None]) ** 2) * w).sum(axis=(1, 2)) / w.sum())
     mid, deep = sd[depths < MID_DEEP_KM].mean(), sd[depths >= MID_DEEP_KM].mean()
-    return {'amp_mid': mid, 'amp_deep': deep, 'amp_deep_mid': deep / mid}
+    row = {'amp_mid': mid, 'amp_deep': deep, 'amp_deep_mid': deep / mid}
+    if 'pile_thickness_km' in ds:                 # llsvp: pile; size of the piles at the CMB
+        h = ds.pile_thickness_km.values
+        wh = np.cos(np.radians(ds.lat.values))[:, None] * np.ones(h.shape[1])
+        row.update({'pile_area_100km': (wh * (h > 100)).sum() / wh.sum(), 'pile_h_max': h.max(),
+                    'pile_h_p95': np.percentile(h, 95)})
+    return row
 
 
 def run_variant(sweep, name, over, cfg):

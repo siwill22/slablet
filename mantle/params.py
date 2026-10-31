@@ -45,6 +45,10 @@ class MantleParams:
     pile_mean_thickness_km: float = 150.0   # the pile's volume, as a layer spread over the whole CMB
     pile_mobility_km_per_myr: float = 100.0 # κ: volume flux per unit pile thickness and head gradient
     pile_slab_head_km: float = 10.0         # pressure head (km of pile) per unit slab load L
+    pile_drive: str = 'local'               # local: head = pile_slab_head_km × L (the pile fills every
+                                            # slab-free area); flow: head = pile_slab_head_km × ψ with
+                                            # ∇²ψ = -(L - mean L) on the unit sphere, the potential of the
+                                            # basal flow away from slabs (the pile collects where it converges)
     pile_slab_layer_km: float = 300.0       # slablets this close to the CMB load it
     pile_dVs: float = -1.0                  # dVs % inside the pile
 
