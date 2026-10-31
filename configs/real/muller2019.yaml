@@ -42,12 +42,19 @@ mantle:
   tomo_smooth_depth_km: 150.0
 
 # Present-day comparison (reconstructions/tomography_score.py): shape only, no amplitudes.
+# Each model is scored at the file depth nearest to each of depths_km.
 tomography:
-  name: REVEAL
-  file: /Users/simon/Data/SeismicTomography/Schouten_Supplementary_material/Models/REVEAL_downsampled_anomaly.nc
-  variable: vs_anomaly
-  min_depth_km: 1000
-  max_depth_km: 2800
-  slow_fraction: 0.3    # area share of the sphere called slow in each field, per depth
-  fast_fraction: 0.2
-  lmax: 8
+  - name: REVEAL
+    file: /Users/simon/Data/SeismicTomography/Schouten_Supplementary_material/Models/REVEAL_downsampled_anomaly.nc
+    variable: vs_anomaly
+    depths_km: [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300, 2400, 2500, 2600, 2700, 2800]
+    slow_fraction: 0.3    # area share of the sphere called slow in each field, per depth
+    fast_fraction: 0.2
+    lmax: 8
+  - name: SEMUCB-WM1
+    file: /Users/simon/Data/SeismicTomography/Schouten_Supplementary_material/Models/SEMUCB_WM1_anomaly.nc
+    variable: vs_anomaly
+    depths_km: [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300, 2400, 2500, 2600, 2700, 2800]
+    slow_fraction: 0.3
+    fast_fraction: 0.2
+    lmax: 8

@@ -3,8 +3,9 @@
     conda run -n pygmt17 python reconstructions/tomography_score.py configs/real/muller2022.yaml
 
 Reads <output_dir>/mantle_temp_0000Ma.nc of the run and the config's `tomography:` block
-(file, variable).  Both fields are compared on the run's lon/lat mantle grid, at the
-tomography's depths between min_depth_km and max_depth_km:
+(one model, or a list of them: name, file, variable, and either depths_km, a list matched to
+the nearest depth in the file, or min_depth_km / max_depth_km, all file depths in between).
+--tomo NAME scores one of them only.  Both fields are compared on the run's lon/lat mantle grid:
   - the tomography is block-averaged into the mantle cells with cos(lat) weights (it must be
     on a regular lon/lat grid finer than the mantle grid);
   - the model is interpolated linearly in depth.
@@ -53,7 +54,7 @@ def tomography_on_grid(path, variable, lons_g, lats_g, depths=None):
     la, lo, de = _coord(ds, 'latitude', 'lat'), _coord(ds, 'longitude', 'lon'), _coord(ds, 'depth')
     da = ds[variable]
     if depths is not None:
-        da = da.sel({de: depths})
+        da = da.sel({de: depths}, method='nearest')
     da = da.transpose(de, la, lo)
     lon_in = da[lo].values.astype(float)
     keep = np.ones(len(lon_in), bool)
@@ -109,61 +110,80 @@ def score_one(m, t_slow, t_fast, ct, w, lat2, lon2, slow_fraction, fast_fraction
             'r_1_L': _corr(cm, ct, 1, lmax)}
 
 
-def main():
-    ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    ap.add_argument('config')
-    ap.add_argument('--age', type=float, default=0.0, help='model age to score (Ma; tomography is present day)')
-    args = ap.parse_args()
-    with open(args.config) as f:
-        cfg = yaml.safe_load(f)
-    tc = cfg['tomography']
-    slow_q, fast_q = float(tc.get('slow_fraction', 0.3)), float(tc.get('fast_fraction', 0.2))
-    lmax = int(tc.get('lmax', 8))
-    out_dir = os.path.join(REPO, cfg['output_dir'])
-    run = xr.open_dataset(os.path.join(out_dir, 'mantle_temp_{:04.0f}Ma.nc'.format(args.age)))
-    lons_g, lats_g = run.lon.values, run.lat.values
+def tomography_depths(tc):
+    """The file depths to score: nearest to each of tc['depths_km'], or all between
+    min_depth_km and max_depth_km."""
+    ds = xr.open_dataset(tc['file'])
+    d = ds[_coord(ds, 'depth')].values.astype(float)
+    if 'depths_km' in tc:
+        return np.array([d[np.argmin(np.abs(d - z))] for z in tc['depths_km']])
+    return d[(d >= float(tc.get('min_depth_km', 1000))) & (d <= float(tc.get('max_depth_km', 2800)))]
 
-    tomo_all = xr.open_dataset(tc['file'])
-    de = _coord(tomo_all, 'depth')
-    d = tomo_all[de].values.astype(float)
-    depths = d[(d >= float(tc.get('min_depth_km', 1000))) & (d <= float(tc.get('max_depth_km', 2800)))]
-    tomo, depths = tomography_on_grid(tc['file'], tc['variable'], lons_g, lats_g, depths)
-    model = run.dVs.interp(depth=depths).transpose('depth', 'lat', 'lon').values
 
+def score_depths(model, tomo, depths, lons_g, lats_g, slow_q, fast_q, lmax):
+    """Scores (one row per depth) of model[depth, lat, lon] against tomo[depth, lat, lon], with the
+    longitude-rotation null.  Either field can be a tomography model."""
     lon2, lat2 = np.meshgrid(lons_g, lats_g)
     w = np.cos(np.radians(lat2))
     rows = []
     for k, z in enumerate(depths):
-        valid = np.isfinite(tomo[k])                 # cells with no tomography carry no weight
+        valid = np.isfinite(tomo[k]) & np.isfinite(model[k])   # cells without data carry no weight
         t, wk = np.where(valid, tomo[k], 0.0), w * valid
+        m = np.where(valid, model[k], 0.0)
         t_slow, t_fast = _quantile_mask(t, wk, slow_q, True), _quantile_mask(t, wk, fast_q, False)
         ct = _coeffs(t, lat2, lon2, wk, lmax)
-        per_shift = [score_one(np.roll(model[k], s, axis=1), t_slow, t_fast, ct, wk, lat2, lon2, slow_q, fast_q, lmax)
-                     for s in range(len(lons_g))]
-        null = pd.DataFrame(per_shift)
+        null = pd.DataFrame([score_one(np.roll(m, sh, axis=1), t_slow, t_fast, ct, wk, lat2, lon2,
+                                       slow_q, fast_q, lmax) for sh in range(len(lons_g))])
         row = {'depth_km': z, 'empty_cell_area': 1.0 - wk.sum() / w.sum()}
         for c in null.columns:
             row[c] = null[c].iloc[0]
             row[c + '_pct'] = (null[c].iloc[1:] < null[c].iloc[0]).mean()
             row[c + '_null_mean'] = null[c].iloc[1:].mean()
         rows.append(row)
-    df = pd.DataFrame(rows)
-    name = tc.get('name', os.path.splitext(os.path.basename(tc['file']))[0])
-    path = os.path.join(out_dir, 'tomography_score_{}.csv'.format(name))
-    df.to_csv(path, index=False, float_format='%.4f')
+    return pd.DataFrame(rows)
 
-    print('{} vs {} at {:.0f} Ma, {:.0f}-{:.0f} km ({} depths); random-region IoU: slow {:.3f}, fast {:.3f}'.format(
-        cfg['name'], name, args.age, depths.min(), depths.max(), len(depths),
-        slow_q / (2 - slow_q), fast_q / (2 - fast_q)))
-    bands = [(depths.min(), 1950), (2000, depths.max())]
+
+def print_summary(df, label, slow_q, fast_q):
+    depths = df.depth_km.values
+    print('{}, {:.0f}-{:.0f} km ({} depths); random-region IoU: slow {:.3f}, fast {:.3f}'.format(
+        label, depths.min(), depths.max(), len(depths), slow_q / (2 - slow_q), fast_q / (2 - fast_q)))
     cols = ['slow_iou', 'fast_iou', 'r_2_3', 'r_1_L']
     print('{:>12s} '.format('depths km') + ' '.join('{:>22s}'.format(c + ' (null, pct)') for c in cols))
-    for lo, hi in bands:
+    for lo, hi in [(depths.min(), 1950), (2000, depths.max())]:
         b = df[(df.depth_km >= lo) & (df.depth_km <= hi)]
         print('{:>5.0f}-{:<6.0f} '.format(lo, hi) + ' '.join(
             '{:>8.3f} ({:6.3f}, {:4.2f})'.format(b[c].mean(), b[c + '_null_mean'].mean(), b[c + '_pct'].mean())
             for c in cols))
-    print('written', os.path.relpath(path, REPO))
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
+    ap.add_argument('config')
+    ap.add_argument('--age', type=float, default=0.0, help='model age to score (Ma; tomography is present day)')
+    ap.add_argument('--tomo', help='score only the tomography model with this name')
+    args = ap.parse_args()
+    with open(args.config) as f:
+        cfg = yaml.safe_load(f)
+    models = cfg['tomography'] if isinstance(cfg['tomography'], list) else [cfg['tomography']]
+    if args.tomo:
+        models = [tc for tc in models if tc.get('name') == args.tomo]
+        if not models:
+            raise SystemExit('no tomography model named ' + args.tomo)
+    out_dir = os.path.join(REPO, cfg['output_dir'])
+    run = xr.open_dataset(os.path.join(out_dir, 'mantle_temp_{:04.0f}Ma.nc'.format(args.age)))
+    lons_g, lats_g = run.lon.values, run.lat.values
+
+    for tc in models:
+        slow_q, fast_q = float(tc.get('slow_fraction', 0.3)), float(tc.get('fast_fraction', 0.2))
+        lmax = int(tc.get('lmax', 8))
+        tomo, depths = tomography_on_grid(tc['file'], tc['variable'], lons_g, lats_g, tomography_depths(tc))
+        model = run.dVs.interp(depth=depths).transpose('depth', 'lat', 'lon').values
+        df = score_depths(model, tomo, depths, lons_g, lats_g, slow_q, fast_q, lmax)
+        name = tc.get('name', os.path.splitext(os.path.basename(tc['file']))[0])
+        path = os.path.join(out_dir, 'tomography_score_{}.csv'.format(name))
+        df.to_csv(path, index=False, float_format='%.4f')
+        print_summary(df, '{} vs {} at {:.0f} Ma'.format(cfg['name'], name, args.age), slow_q, fast_q)
+        print('written', os.path.relpath(path, REPO))
 
 
 if __name__ == '__main__':
