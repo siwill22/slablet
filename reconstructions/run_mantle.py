@@ -1,0 +1,94 @@
+"""Drive the simplified mantle model (mantle/) with a real GPlates reconstruction.
+
+    conda run -n pygmt17 python reconstructions/run_mantle.py configs/real/muller2019.yaml
+
+The plate motions are not computed: the reconstruction's subduction zones and their
+convergence rates seed the slab tracers, which then sink, cool the CMB heat field and
+give the dVs field, exactly as in a PlateDriver run (same mantle code, same parameter
+names).  Time runs from start_ma down to end_ma (ages in Ma; present day = 0).
+
+Config keys (see configs/real/muller2019.yaml):
+    name, model_dir, anchor_plate_id, start_ma, end_ma, delta_time, output_every_myr,
+    output_dir, cache_dir, initial_slabs (columns | none), mantle: {MantleParams keys}
+Outputs in output_dir:
+    mantle_temp_<age>Ma.nc   dVs (and cmb_heat), with age_ma and the model as attributes
+    steps.csv                one row per step: trench samples, trench length, slablets, seconds
+    run_info.yaml            the config as run, with the full mantle parameters
+"""
+import argparse
+import dataclasses
+import os
+import sys
+import time
+
+import numpy as np
+import pandas as pd
+import yaml
+
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, REPO)
+
+import mantle                                                    # noqa: E402
+from reconstructions.trench_samples import CachedTrenchSamples   # noqa: E402
+
+KM_PER_DEG = np.radians(1.0) * 6371.0
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
+    ap.add_argument('config')
+    args = ap.parse_args()
+    with open(args.config) as f:
+        cfg = yaml.safe_load(f)
+
+    p = mantle.MantleParams.from_config(cfg.get('mantle', {}))
+    unknown = set(cfg.get('mantle', {})) - {f.name for f in dataclasses.fields(mantle.MantleParams)}
+    if unknown:
+        raise SystemExit('unknown mantle parameters: ' + ', '.join(sorted(unknown)))
+    start, end = float(cfg['start_ma']), float(cfg['end_ma'])
+    dt = float(cfg.get('delta_time', 1.0))
+    every = float(cfg.get('output_every_myr', 10.0))
+    out_dir = os.path.join(REPO, cfg['output_dir'])
+    os.makedirs(out_dir, exist_ok=True)
+    trenches = CachedTrenchSamples(cfg['model_dir'], cfg['name'], os.path.join(REPO, cfg['cache_dir']),
+                                   sample_deg=p.slab_sample_deg,
+                                   anchor_plate_id=int(cfg.get('anchor_plate_id', 0)))
+
+    with open(os.path.join(out_dir, 'run_info.yaml'), 'w') as f:
+        yaml.safe_dump({**cfg, 'mantle': dataclasses.asdict(p)}, f, sort_keys=False)
+
+    def save(age):
+        ds = mantle.dvs_field(slabs, cmb_heat, p)
+        ds.attrs.update({'age_ma': age, 'reconstruction': cfg['name'],
+                         'anchor_plate_id': int(cfg.get('anchor_plate_id', 0))})
+        ds.to_netcdf(os.path.join(out_dir, 'mantle_temp_{:04.0f}Ma.nc'.format(age)),
+                     encoding={v: {'zlib': True, 'complevel': 4} for v in ds.data_vars})
+
+    t_run = time.perf_counter()
+    samples = trenches.samples(start)
+    if cfg.get('initial_slabs', 'columns') == 'columns':
+        slabs = mantle.initial_slab_columns(samples, dt, p)
+    else:
+        slabs = pd.DataFrame(columns=mantle.SLAB_COLUMNS)
+    cmb_heat = mantle.new_cmb_heat(p)
+    rows = []
+    ages = np.round(np.arange(start - dt, end - 1e-9, -dt), 6)
+    for age in ages:
+        t0 = time.perf_counter()
+        samples = trenches.samples(age)
+        slabs = mantle.seed_slabs(mantle.sink_slabs(slabs, dt, p), samples, dt, p)
+        cmb_heat = mantle.update_cmb_heat(cmb_heat, slabs, dt, p)
+        if abs((start - age) / every - round((start - age) / every)) < 1e-6 or age == ages[-1]:
+            save(age)
+        rows.append({'age_ma': age, 'n_trench_samples': len(samples['lon']),
+                     'trench_km': len(samples['lon']) * p.slab_sample_deg * KM_PER_DEG,
+                     'n_slablets': len(slabs), 'seconds': time.perf_counter() - t0})
+    pd.DataFrame(rows).to_csv(os.path.join(out_dir, 'steps.csv'), index=False)
+    print('{}: {:.0f} -> {:.0f} Ma in {:.1f} s ({} times resolved, the rest from the cache); '
+          'present-day trench {:.0f} km; {} slablets'.format(
+              cfg['name'], start, end, time.perf_counter() - t_run, trenches.n_resolved,
+              rows[-1]['trench_km'], len(slabs)))
+
+
+if __name__ == '__main__':
+    main()
