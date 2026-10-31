@@ -47,6 +47,7 @@ def _coord(ds, *names):
 
 def tomography_on_grid(path, variable, lons_g, lats_g, depths=None):
     """Tomography block-averaged (cos-lat weights) into the cells centred on lons_g x lats_g.
+    NaN nodes are skipped; a cell with no finite node is NaN.
     Returns (field[depth, lat, lon], depths)."""
     ds = xr.open_dataset(path)
     la, lo, de = _coord(ds, 'latitude', 'lat'), _coord(ds, 'longitude', 'lon'), _coord(ds, 'depth')
@@ -67,12 +68,13 @@ def tomography_on_grid(path, variable, lons_g, lats_g, depths=None):
     w = np.cos(np.radians(lat))[:, None] * np.ones(len(lon))
     ii, jj = np.broadcast_to(i[:, None], w.shape).ravel(), np.broadcast_to(j[None, :], w.shape).ravel()
     out = np.zeros((vals.shape[0], len(lats_g), len(lons_g)))
-    wsum = np.zeros((len(lats_g), len(lons_g)))
-    np.add.at(wsum, (ii, jj), w.ravel())
     for k in range(vals.shape[0]):
-        acc = np.zeros_like(wsum)
-        np.add.at(acc, (ii, jj), (vals[k] * w).ravel())
-        out[k] = acc / wsum
+        ok = np.isfinite(vals[k])
+        acc, wsum = np.zeros(out.shape[1:]), np.zeros(out.shape[1:])
+        np.add.at(acc, (ii, jj), np.where(ok, vals[k] * w, 0.0).ravel())
+        np.add.at(wsum, (ii, jj), np.where(ok, w, 0.0).ravel())
+        with np.errstate(invalid='ignore', divide='ignore'):
+            out[k] = np.where(wsum > 0, acc / wsum, np.nan)
     return out, da[de].values.astype(float)
 
 
@@ -132,13 +134,14 @@ def main():
     w = np.cos(np.radians(lat2))
     rows = []
     for k, z in enumerate(depths):
-        t = tomo[k]
-        t_slow, t_fast = _quantile_mask(t, w, slow_q, True), _quantile_mask(t, w, fast_q, False)
-        ct = _coeffs(t, lat2, lon2, w, lmax)
-        per_shift = [score_one(np.roll(model[k], s, axis=1), t_slow, t_fast, ct, w, lat2, lon2, slow_q, fast_q, lmax)
+        valid = np.isfinite(tomo[k])                 # cells with no tomography carry no weight
+        t, wk = np.where(valid, tomo[k], 0.0), w * valid
+        t_slow, t_fast = _quantile_mask(t, wk, slow_q, True), _quantile_mask(t, wk, fast_q, False)
+        ct = _coeffs(t, lat2, lon2, wk, lmax)
+        per_shift = [score_one(np.roll(model[k], s, axis=1), t_slow, t_fast, ct, wk, lat2, lon2, slow_q, fast_q, lmax)
                      for s in range(len(lons_g))]
         null = pd.DataFrame(per_shift)
-        row = {'depth_km': z}
+        row = {'depth_km': z, 'empty_cell_area': 1.0 - wk.sum() / w.sum()}
         for c in null.columns:
             row[c] = null[c].iloc[0]
             row[c + '_pct'] = (null[c].iloc[1:] < null[c].iloc[0]).mean()
