@@ -156,6 +156,39 @@ def print_summary(df, label, slow_q, fast_q):
             for c in cols))
 
 
+_TOMO_CACHE = {}
+
+
+def score_run(cfg, age=0.0, only=None, write=True):
+    """Score a finished run against every tomography model in cfg['tomography'] (or the one
+    named `only`).  Returns {name: per-depth DataFrame}; with write, also writes
+    <output_dir>/tomography_score_<name>.csv.  Regridded tomography is kept in memory."""
+    models = cfg['tomography'] if isinstance(cfg['tomography'], list) else [cfg['tomography']]
+    if only:
+        models = [tc for tc in models if tc.get('name') == only]
+        if not models:
+            raise SystemExit('no tomography model named ' + only)
+    out_dir = os.path.join(REPO, cfg['output_dir'])
+    run = xr.open_dataset(os.path.join(out_dir, 'mantle_temp_{:04.0f}Ma.nc'.format(age)))
+    lons_g, lats_g = run.lon.values, run.lat.values
+    out = {}
+    for tc in models:
+        slow_q, fast_q = float(tc.get('slow_fraction', 0.3)), float(tc.get('fast_fraction', 0.2))
+        lmax = int(tc.get('lmax', 8))
+        key = (tc['file'], tc['variable'], tuple(tc.get('depths_km', ())), tc.get('min_depth_km'),
+               tc.get('max_depth_km'), float(lons_g[1] - lons_g[0]))
+        if key not in _TOMO_CACHE:
+            _TOMO_CACHE[key] = tomography_on_grid(tc['file'], tc['variable'], lons_g, lats_g, tomography_depths(tc))
+        tomo, depths = _TOMO_CACHE[key]
+        model = run.dVs.interp(depth=depths).transpose('depth', 'lat', 'lon').values
+        df = score_depths(model, tomo, depths, lons_g, lats_g, slow_q, fast_q, lmax)
+        name = tc.get('name', os.path.splitext(os.path.basename(tc['file']))[0])
+        if write:
+            df.to_csv(os.path.join(out_dir, 'tomography_score_{}.csv'.format(name)), index=False, float_format='%.4f')
+        out[name] = (df, slow_q, fast_q)
+    return out
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('config')
@@ -164,26 +197,10 @@ def main():
     args = ap.parse_args()
     with open(args.config) as f:
         cfg = yaml.safe_load(f)
-    models = cfg['tomography'] if isinstance(cfg['tomography'], list) else [cfg['tomography']]
-    if args.tomo:
-        models = [tc for tc in models if tc.get('name') == args.tomo]
-        if not models:
-            raise SystemExit('no tomography model named ' + args.tomo)
-    out_dir = os.path.join(REPO, cfg['output_dir'])
-    run = xr.open_dataset(os.path.join(out_dir, 'mantle_temp_{:04.0f}Ma.nc'.format(args.age)))
-    lons_g, lats_g = run.lon.values, run.lat.values
-
-    for tc in models:
-        slow_q, fast_q = float(tc.get('slow_fraction', 0.3)), float(tc.get('fast_fraction', 0.2))
-        lmax = int(tc.get('lmax', 8))
-        tomo, depths = tomography_on_grid(tc['file'], tc['variable'], lons_g, lats_g, tomography_depths(tc))
-        model = run.dVs.interp(depth=depths).transpose('depth', 'lat', 'lon').values
-        df = score_depths(model, tomo, depths, lons_g, lats_g, slow_q, fast_q, lmax)
-        name = tc.get('name', os.path.splitext(os.path.basename(tc['file']))[0])
-        path = os.path.join(out_dir, 'tomography_score_{}.csv'.format(name))
-        df.to_csv(path, index=False, float_format='%.4f')
+    for name, (df, slow_q, fast_q) in score_run(cfg, args.age, args.tomo).items():
         print_summary(df, '{} vs {} at {:.0f} Ma'.format(cfg['name'], name, args.age), slow_q, fast_q)
-        print('written', os.path.relpath(path, REPO))
+        print('written', os.path.relpath(os.path.join(REPO, cfg['output_dir'],
+                                                      'tomography_score_{}.csv'.format(name)), REPO))
 
 
 if __name__ == '__main__':

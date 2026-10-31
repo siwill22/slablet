@@ -89,6 +89,8 @@ class CachedTrenchSamples:
         if self._model is None:
             self._model = load_model(*self.files)
         s = trench_samples_at(*self._model, time_ma, self.sample_deg, self.anchor_plate_id)
-        np.savez(path, **s)
+        tmp = '{}.{}.tmp.npz'.format(path[:-4], os.getpid())   # atomic: parallel runs may share the cache
+        np.savez(tmp, **s)
+        os.replace(tmp, path)
         self.n_resolved += 1
         return s

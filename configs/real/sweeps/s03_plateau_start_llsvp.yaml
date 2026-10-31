@@ -1,0 +1,468 @@
+# Plateau points of s02 x start time x LLSVP model (heat / none / pile head 1000 with rest).
+name: s03_plateau_start_llsvp
+base: configs/real/muller2022.yaml
+common:
+  output_every_myr: 100000
+variants:
+  f1_s16_t100_start250_heat:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 100
+  f1_s16_t100_start250_none:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 100
+      llsvp: none
+  f1_s16_t100_start250_pile:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 100
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0
+  f1_s16_t100_start400_heat:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 100
+  f1_s16_t100_start400_none:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 100
+      llsvp: none
+  f1_s16_t100_start400_pile:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 100
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0
+  f1_s16_t100_start1000_heat:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 100
+  f1_s16_t100_start1000_none:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 100
+      llsvp: none
+  f1_s16_t100_start1000_pile:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 100
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0
+  f0.75_s12_t100_start250_heat:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 100
+  f0.75_s12_t100_start250_none:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 100
+      llsvp: none
+  f0.75_s12_t100_start250_pile:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 100
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0
+  f0.75_s12_t100_start400_heat:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 100
+  f0.75_s12_t100_start400_none:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 100
+      llsvp: none
+  f0.75_s12_t100_start400_pile:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 100
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0
+  f0.75_s12_t100_start1000_heat:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 100
+  f0.75_s12_t100_start1000_none:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 100
+      llsvp: none
+  f0.75_s12_t100_start1000_pile:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 100
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0
+  f0.5_s8_t100_start250_heat:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 100
+  f0.5_s8_t100_start250_none:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 100
+      llsvp: none
+  f0.5_s8_t100_start250_pile:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 100
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0
+  f0.5_s8_t100_start400_heat:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 100
+  f0.5_s8_t100_start400_none:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 100
+      llsvp: none
+  f0.5_s8_t100_start400_pile:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 100
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0
+  f0.5_s8_t100_start1000_heat:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 100
+  f0.5_s8_t100_start1000_none:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 100
+      llsvp: none
+  f0.5_s8_t100_start1000_pile:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 100
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0
+  f0.5_s3_t200_start250_heat:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 200
+  f0.5_s3_t200_start250_none:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 200
+      llsvp: none
+  f0.5_s3_t200_start250_pile:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 200
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0
+  f0.5_s3_t200_start400_heat:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 200
+  f0.5_s3_t200_start400_none:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 200
+      llsvp: none
+  f0.5_s3_t200_start400_pile:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 200
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0
+  f0.5_s3_t200_start1000_heat:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 200
+  f0.5_s3_t200_start1000_none:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 200
+      llsvp: none
+  f0.5_s3_t200_start1000_pile:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 200
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0
+  f0.375_s2_t200_start250_heat:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 200
+  f0.375_s2_t200_start250_none:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 200
+      llsvp: none
+  f0.375_s2_t200_start250_pile:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 200
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0
+  f0.375_s2_t200_start400_heat:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 200
+  f0.375_s2_t200_start400_none:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 200
+      llsvp: none
+  f0.375_s2_t200_start400_pile:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 200
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0
+  f0.375_s2_t200_start1000_heat:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 200
+  f0.375_s2_t200_start1000_none:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 200
+      llsvp: none
+  f0.375_s2_t200_start1000_pile:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 200
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0
+  f1_s6_t200_start250_heat:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 200
+  f1_s6_t200_start250_none:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 200
+      llsvp: none
+  f1_s6_t200_start250_pile:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 200
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0
+  f1_s6_t200_start400_heat:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 200
+  f1_s6_t200_start400_none:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 200
+      llsvp: none
+  f1_s6_t200_start400_pile:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 200
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0
+  f1_s6_t200_start1000_heat:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 200
+  f1_s6_t200_start1000_none:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 200
+      llsvp: none
+  f1_s6_t200_start1000_pile:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 200
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0
+  f1_s4_t100_start250_heat:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 100
+  f1_s4_t100_start250_none:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 100
+      llsvp: none
+  f1_s4_t100_start250_pile:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 100
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0
+  f1_s4_t100_start400_heat:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 100
+  f1_s4_t100_start400_none:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 100
+      llsvp: none
+  f1_s4_t100_start400_pile:
+    start_ma: 400
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 100
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0
+  f1_s4_t100_start1000_heat:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 100
+  f1_s4_t100_start1000_none:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 100
+      llsvp: none
+  f1_s4_t100_start1000_pile:
+    start_ma: 1000
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 100
+      llsvp: pile
+      slab_at_cmb: rest
+      pile_slab_head_km: 1000.0

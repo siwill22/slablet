@@ -35,13 +35,8 @@ from reconstructions.trench_samples import CachedTrenchSamples   # noqa: E402
 KM_PER_DEG = np.radians(1.0) * 6371.0
 
 
-def main():
-    ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
-    ap.add_argument('config')
-    args = ap.parse_args()
-    with open(args.config) as f:
-        cfg = yaml.safe_load(f)
-
+def run(cfg, verbose=True):
+    """Run the mantle model for a config dict; returns a summary dict."""
     p = mantle.MantleParams.from_config(cfg.get('mantle', {}))
     unknown = set(cfg.get('mantle', {})) - {f.name for f in dataclasses.fields(mantle.MantleParams)}
     if unknown:
@@ -86,10 +81,22 @@ def main():
                      'trench_km': len(samples['lon']) * p.slab_sample_deg * KM_PER_DEG,
                      'n_slablets': len(slabs), 'seconds': time.perf_counter() - t0})
     pd.DataFrame(rows).to_csv(os.path.join(out_dir, 'steps.csv'), index=False)
-    print('{}: {:.0f} -> {:.0f} Ma in {:.1f} s ({} times resolved, the rest from the cache); '
-          'present-day trench {:.0f} km; {} slablets'.format(
-              cfg['name'], start, end, time.perf_counter() - t_run, trenches.n_resolved,
-              rows[-1]['trench_km'], len(slabs)))
+    summary = {'seconds': time.perf_counter() - t_run, 'n_resolved': trenches.n_resolved,
+               'trench_km': rows[-1]['trench_km'], 'n_slablets': len(slabs)}
+    if verbose:
+        print('{}: {:.0f} -> {:.0f} Ma in {:.1f} s ({} times resolved, the rest from the cache); '
+              'present-day trench {:.0f} km; {} slablets'.format(
+                  cfg['name'], start, end, summary['seconds'], summary['n_resolved'],
+                  summary['trench_km'], summary['n_slablets']))
+    return summary
+
+
+def main():
+    ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
+    ap.add_argument('config')
+    args = ap.parse_args()
+    with open(args.config) as f:
+        run(yaml.safe_load(f))
 
 
 if __name__ == '__main__':
