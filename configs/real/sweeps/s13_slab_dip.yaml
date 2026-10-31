@@ -1,0 +1,22 @@
+# Dipping slabs on the tuned config: dip 25-90 degrees, with and without trench-following, checked against
+# Slab1.0 (upper mantle) and REVEAL / SEMUCB-WM1 (lower mantle).  No pile.
+name: s13_slab_dip
+base: configs/real/muller2022_tuned.yaml
+common: {output_every_myr: 100000}
+variants:
+  vertical: {}
+  follow: {mantle: {slab_trench_follow: true}}
+  dip25: {mantle: {slab_dip_deg: 25}}
+  dip30: {mantle: {slab_dip_deg: 30}}
+  dip35: {mantle: {slab_dip_deg: 35}}
+  dip40: {mantle: {slab_dip_deg: 40}}
+  dip45: {mantle: {slab_dip_deg: 45}}
+  dip50: {mantle: {slab_dip_deg: 50}}
+  dip60: {mantle: {slab_dip_deg: 60}}
+  dip75: {mantle: {slab_dip_deg: 75}}
+  dip30_follow: {mantle: {slab_dip_deg: 30, slab_trench_follow: true}}
+  dip35_follow: {mantle: {slab_dip_deg: 35, slab_trench_follow: true}}
+  dip40_follow: {mantle: {slab_dip_deg: 40, slab_trench_follow: true}}
+  dip45_follow: {mantle: {slab_dip_deg: 45, slab_trench_follow: true}}
+  dip50_follow: {mantle: {slab_dip_deg: 50, slab_trench_follow: true}}
+  dip60_follow: {mantle: {slab_dip_deg: 60, slab_trench_follow: true}}

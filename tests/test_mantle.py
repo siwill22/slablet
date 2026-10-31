@@ -212,3 +212,81 @@ def test_flow_pile_collects_on_the_far_side_from_a_slab():
         far[drive] = eq[np.argmin(np.abs(lons + 147.5))] / eq[np.argmin(np.abs(lons - 122.5))]
     assert far['local'] == pytest.approx(1.0, abs=0.05)
     assert far['flow'] > 1.5
+
+
+def _dip_samples(azimuth=90.0):
+    return {'lon': np.array([0.0]), 'lat': np.array([0.0]), 'convergence_km_per_myr': np.array([50.0]),
+            'downdip_azimuth_deg': np.array([azimuth]), 'trench_east_km_per_myr': np.array([0.0]),
+            'trench_north_km_per_myr': np.array([0.0])}
+
+
+def test_dipping_slab_moves_towards_the_overriding_plate_in_the_upper_mantle_only():
+    p = mantle.MantleParams(slab_dip_deg=45.0)                    # sinks 50 km/Myr in the upper mantle
+    slabs = mantle.seed_slabs(mantle.core.pd.DataFrame(columns=mantle.SLAB_COLUMNS), _dip_samples(), 1.0, p)
+    for _ in range(6):                                            # to 300 km: 300 km east (45 deg)
+        slabs = mantle.sink_slabs(slabs, 1.0, p)
+    first = slabs.iloc[0]
+    assert first.depth_km == pytest.approx(300.0)
+    assert abs(first.lat) < 1e-9
+    km = np.radians(first.lon) * 6371.0
+    assert 300.0 < km < 300.0 * 6371.0 / (6371.0 - 300.0)        # moved at depth: a bit more than 300 km of surface
+    for _ in range(40):
+        slabs = mantle.sink_slabs(slabs, 1.0, p)
+    deep = slabs.iloc[0]
+    assert deep.depth_km > 1000.0
+    lon_at_670 = np.degrees(sum(50.0 / (6371.0 - z) for z in np.arange(0.0, 700.0, 50.0)))
+    assert deep.lon == pytest.approx(lon_at_670, rel=1e-6)       # no horizontal motion below 670 km
+
+
+def test_vertical_slabs_ignore_the_dip_keys():
+    p = mantle.MantleParams()
+    empty = mantle.core.pd.DataFrame(columns=mantle.SLAB_COLUMNS)
+    plain = {k: v for k, v in _dip_samples().items() if k in ('lon', 'lat', 'convergence_km_per_myr')}
+    a = mantle.sink_slabs(mantle.seed_slabs(empty, _dip_samples(), 1.0, p), 1.0, p)
+    b = mantle.sink_slabs(mantle.seed_slabs(empty, plain, 1.0, p), 1.0, p)
+    assert list(a.columns) == list(b.columns) == mantle.SLAB_COLUMNS
+    mantle.core.pd.testing.assert_frame_equal(a, b)
+
+
+def test_resting_slab_warms_at_the_cmb():
+    p = mantle.MantleParams(slab_at_cmb='rest', slab_cmb_tau_myr=20.0, slab_thermal_tau_myr=1e9)
+    slabs = _ns_slab(0.0, depth_km=p.cmb_depth_km)
+    for _ in range(20):
+        slabs = mantle.sink_slabs(slabs, 1.0, p)
+    np.testing.assert_allclose(slabs['weight'].astype(float), np.exp(-1.0))
+
+
+def test_warm_layer_above_the_pile_decays_upward():
+    lons, lats = mantle.mantle_grid(5.0)
+    h = np.zeros((len(lats), len(lons)))
+    h[18, 36] = 400.0                                             # one pile column, top at 2490 km
+    on = mantle.MantleParams(llsvp='pile', pile_halo_km=300.0, pile_halo_dVs=-1.0, pile_halo_h_km=300.0)
+    off = mantle.MantleParams(llsvp='pile')
+    empty = mantle.core.pd.DataFrame(columns=mantle.SLAB_COLUMNS)
+    d = (mantle.dvs_field(empty, h, on).dVs - mantle.dvs_field(empty, h, off).dVs)
+    col = (d.isel(lat=18, lon=36) - d.isel(lat=0, lon=0)).sel(depth=[1950.0, 2250.0, 2450.0]).values
+    np.testing.assert_allclose(col, -np.exp(-np.array([540.0, 240.0, 40.0]) / 300.0), rtol=1e-6)
+
+
+def test_rotate_samples_keeps_directions_and_speeds():
+    from reconstructions.run_mantle import rotate_samples, rotation_matrix
+    s = {**_dip_samples(45.0), 'trench_east_km_per_myr': np.array([10.0]), 'trench_north_km_per_myr': np.array([5.0])}
+    spin = rotate_samples(s, rotation_matrix(90.0, 0.0, 10.0))  # about the spin axis: only longitude changes
+    assert spin['lon'][0] == pytest.approx(10.0) and spin['lat'][0] == pytest.approx(0.0, abs=1e-9)
+    assert spin['downdip_azimuth_deg'][0] == pytest.approx(45.0)
+    tilt = rotate_samples(s, rotation_matrix(0.0, 0.0, 30.0))   # about (0 N, 0 E): the point is on the axis
+    assert tilt['downdip_azimuth_deg'][0] == pytest.approx(15.0)  # directions turn 30 deg anticlockwise
+    assert np.hypot(tilt['trench_east_km_per_myr'], tilt['trench_north_km_per_myr'])[0] == pytest.approx(np.hypot(10, 5))
+
+
+def test_shallow_dip_near_the_trench_then_the_main_dip():
+    p = mantle.MantleParams(slab_dip_deg=45.0, slab_dip_shallow_deg=25.0, slab_dip_shallow_km=100.0)
+    slabs = mantle.seed_slabs(mantle.core.pd.DataFrame(columns=mantle.SLAB_COLUMNS), _dip_samples(), 1.0, p)
+    for _ in range(6):                                            # 0-100 km at 25 deg, 100-300 km at 45 deg
+        slabs = mantle.sink_slabs(slabs, 1.0, p)
+    expected = 100.0 / np.tan(np.radians(25.0)) + 200.0
+    km = np.radians(slabs.iloc[0].lon) * 6371.0
+    assert expected < km < expected * 6371.0 / (6371.0 - 300.0)
+    cols = mantle.initial_slab_columns(_dip_samples(), 1.0, p, depth_km=300.0)
+    deepest = cols.iloc[cols.depth_km.astype(float).argmax()]
+    assert np.radians(deepest.lon) * 6371.0 == pytest.approx(expected, rel=0.06)   # same shape at the start

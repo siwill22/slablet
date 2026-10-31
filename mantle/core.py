@@ -6,6 +6,9 @@ This package never imports either of them, nor pygplates, geopandas or shapely.
 Inputs from a caller are trench samples, a dict of 1-D arrays:
     lon, lat                  degrees, in the mantle frame (slablets sink vertically there)
     convergence_km_per_myr    > 0 where the plates converge (km/Myr = mm/yr)
+and optionally, for dipping slabs (p.slab_dip_deg < 90 or p.slab_trench_follow):
+    downdip_azimuth_deg       direction from the trench towards the overriding plate (NaN: unknown)
+    trench_east_km_per_myr, trench_north_km_per_myr   the trench's own velocity in the mantle frame
 The caller builds them from its own boundaries and is responsible for the frame.
 
 The state is the slab tracer DataFrame (columns SLAB_COLUMNS) and the 2-D LLSVP state
@@ -16,7 +19,7 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 
-from .sphere import lonlat_to_xyz, spherical_gaussian_smooth
+from .sphere import lonlat_to_xyz, move_along_azimuth, spherical_gaussian_smooth
 from . import pile as _pile
 
 # Slablets from trenches converging at least this fast (km/Myr = mm/yr) get full weight;
@@ -27,6 +30,48 @@ SLAB_FULL_WEIGHT_CONVERGENCE_KM_PER_MYR = 10.0
 SLAB_REST_MIN_FRACTION = 1e-3
 
 SLAB_COLUMNS = ['lon', 'lat', 'depth_km', 'age', 'active', 'sink_rate_km_per_myr', 'weight', 'attached']
+# Extra columns, present only when dipping slabs are on and the trench samples carry the
+# optional keys: the down-dip azimuth and the trench velocity at seeding.
+DIP_COLUMNS = {'downdip_azimuth_deg': 'dip_azimuth_deg', 'trench_east_km_per_myr': 'trench_east',
+               'trench_north_km_per_myr': 'trench_north'}
+SURFACE_RADIUS_KM = 6371.0
+
+
+def _dipping(p):
+    return p.slab_dip_deg < 90.0 or p.slab_trench_follow or (p.slab_dip_shallow_km > 0
+                                                             and p.slab_dip_shallow_deg < 90.0)
+
+
+def _cot_dip(depth, p):
+    """1 / tan(dip) at each depth (0 where vertical)."""
+    def cot(d):
+        return 0.0 if d >= 90.0 else 1.0 / np.tan(np.radians(d))
+    return np.where(np.asarray(depth) < p.slab_dip_shallow_km, cot(p.slab_dip_shallow_deg), cot(p.slab_dip_deg))
+
+
+def _down_dip_km(depth, p):
+    """Horizontal distance from the trench of a slab reaching depth (capped at upper_mantle_km)."""
+    d = np.minimum(np.asarray(depth, float), p.upper_mantle_km)
+    s = np.minimum(d, p.slab_dip_shallow_km)
+    return s * _cot_dip(0.0, p) * (p.slab_dip_shallow_km > 0) + (d - s) * _cot_dip(p.upper_mantle_km, p)
+
+
+def _horizontal_step(lon, lat, depth, azimuth, east, north, vertical_km, delta_time, p):
+    """New lon, lat of upper-mantle slablets after one step of dip and trench-following
+    motion (vertical_km: how far each sinks this step).  NaN azimuth: no dip motion."""
+    de = np.zeros(len(lon))
+    dn = np.zeros(len(lon))
+    cot = _cot_dip(depth, p)
+    if np.any(cot > 0):
+        along = np.where(np.isfinite(azimuth), vertical_km * cot, 0.0)
+        az = np.radians(np.nan_to_num(azimuth))
+        de += along * np.sin(az)
+        dn += along * np.cos(az)
+    if p.slab_trench_follow:
+        de += np.nan_to_num(east) * delta_time
+        dn += np.nan_to_num(north) * delta_time
+    return move_along_azimuth(lon, lat, np.degrees(np.arctan2(de, dn)), np.hypot(de, dn),
+                              SURFACE_RADIUS_KM - depth)
 
 
 def empty_samples():
@@ -36,10 +81,15 @@ def empty_samples():
 def sink_slabs(slab_tracers, delta_time, p):
     """Sink existing slablets vertically (lon/lat fixed) for delta_time Myr.
 
+    With dipping slabs on (p.slab_dip_deg < 90 or p.slab_trench_follow) slablets above
+    p.upper_mantle_km also move horizontally: towards the overriding plate by sink / tan(dip)
+    and with their trench's velocity at seeding; below it they sink vertically.
+
     Rate: the slablet's own sink_rate_km_per_myr above p.upper_mantle_km, that rate
     divided by p.slab_slowing_factor below.  Slablets that reach p.cmb_depth_km are removed
     (p.slab_at_cmb = 'remove'), or stop there and stay until their thermal anomaly is below
-    SLAB_REST_MIN_FRACTION of its start ('rest').
+    SLAB_REST_MIN_FRACTION of its start ('rest').  With p.slab_cmb_tau_myr > 0 a resting
+    slablet's weight also decays as exp(-time resting / p.slab_cmb_tau_myr).
     Returns a new DataFrame.
     """
     if p.slab_at_cmb not in ('remove', 'rest'):
@@ -49,6 +99,15 @@ def sink_slabs(slab_tracers, delta_time, p):
         active = slab_tracers['active'].astype(bool)
         upper = active & (slab_tracers['depth_km'] < p.upper_mantle_km)
         lower = active & (slab_tracers['depth_km'] >= p.upper_mantle_km)
+        if _dipping(p) and 'dip_azimuth_deg' in slab_tracers and upper.any():
+            u = slab_tracers.loc[upper]
+            lon, lat = _horizontal_step(
+                u['lon'].values.astype(float), u['lat'].values.astype(float), u['depth_km'].values.astype(float),
+                u['dip_azimuth_deg'].values.astype(float), u['trench_east'].values.astype(float),
+                u['trench_north'].values.astype(float),
+                u['sink_rate_km_per_myr'].values.astype(float) * delta_time, delta_time, p)
+            slab_tracers.loc[upper, 'lon'] = lon
+            slab_tracers.loc[upper, 'lat'] = lat
         slab_tracers.loc[upper, 'depth_km'] += (
             slab_tracers.loc[upper, 'sink_rate_km_per_myr'] * delta_time)
         slab_tracers.loc[lower, 'depth_km'] += (
@@ -57,6 +116,11 @@ def sink_slabs(slab_tracers, delta_time, p):
         if p.slab_at_cmb == 'rest':
             slab_tracers['depth_km'] = np.minimum(slab_tracers['depth_km'].astype(float), p.cmb_depth_km)
             faded = np.exp(-slab_tracers['age'].astype(float) / p.slab_thermal_tau_myr) < SLAB_REST_MIN_FRACTION
+            if p.slab_cmb_tau_myr > 0:
+                resting = slab_tracers['depth_km'].astype(float) >= p.cmb_depth_km
+                slab_tracers.loc[resting, 'weight'] = (slab_tracers.loc[resting, 'weight'].astype(float)
+                                                       * np.exp(-delta_time / p.slab_cmb_tau_myr))
+                faded |= slab_tracers['weight'].astype(float) < SLAB_REST_MIN_FRACTION * delta_time
             slab_tracers = slab_tracers[~faded].reset_index(drop=True)
         else:
             slab_tracers = slab_tracers[slab_tracers['depth_km'] < p.cmb_depth_km].reset_index(drop=True)
@@ -78,6 +142,9 @@ def seed_slabs(slab_tracers, samples, delta_time, p):
         'sink_rate_km_per_myr': np.minimum(convergence * p.slab_sink_rate_factor, p.slab_max_sink_rate),
         'weight': delta_time * np.minimum(1.0, convergence / SLAB_FULL_WEIGHT_CONVERGENCE_KM_PER_MYR),
         'attached': True})
+    if _dipping(p) and 'downdip_azimuth_deg' in samples:
+        for key, col in DIP_COLUMNS.items():
+            new[col] = np.asarray(samples[key], dtype=float)
     return new if len(slab_tracers) == 0 else pd.concat([slab_tracers, new], ignore_index=True)
 
 
@@ -110,12 +177,33 @@ def initial_slab_columns(samples, delta_time, p, depth_km=None):
     r = rate[point]
     t_um = upper_mantle_km / r
     depth = np.where(age <= t_um, r * age, upper_mantle_km + (age - t_um) * r / slowing_factor)
-    return pd.DataFrame({
+    out = pd.DataFrame({
         'lon': s_lon[point], 'lat': s_lat[point],
         'depth_km': np.minimum(depth, depth_km), 'age': age, 'active': True,
         'sink_rate_km_per_myr': r,
         'weight': delta_time * np.minimum(1.0, convergence[point] / SLAB_FULL_WEIGHT_CONVERGENCE_KM_PER_MYR),
         'attached': True})
+    if _dipping(p) and 'downdip_azimuth_deg' in samples:
+        # where the slablet would be had the trench kept its present velocity and dip: moved
+        # down-dip while in the upper mantle; seeded where the trench was age Myr ago and then
+        # carried with it while in the upper mantle, so offset by -v x (age - time in the upper mantle)
+        for key, col in DIP_COLUMNS.items():
+            out[col] = np.asarray(samples[key], dtype=float)[point]
+        az, east, north = (out[c].values for c in DIP_COLUMNS.values())
+        de = np.zeros(len(out))
+        dn = np.zeros(len(out))
+        if _dipping(p):
+            along = np.where(np.isfinite(az), _down_dip_km(out['depth_km'].values, p), 0.0)
+            de += along * np.sin(np.radians(np.nan_to_num(az)))
+            dn += along * np.cos(np.radians(np.nan_to_num(az)))
+        if p.slab_trench_follow:
+            back = np.maximum(0.0, age - t_um)
+            de -= np.nan_to_num(east) * back
+            dn -= np.nan_to_num(north) * back
+        lon, lat = move_along_azimuth(out['lon'].values, out['lat'].values, np.degrees(np.arctan2(de, dn)),
+                                      np.hypot(de, dn), SURFACE_RADIUS_KM - out['depth_km'].values)
+        out['lon'], out['lat'] = lon, lat
+    return out
 
 
 def slab_depth_near(mid_lon, mid_lat, side_xyz, slab_lon, slab_lat, slab_depth,
@@ -288,7 +376,9 @@ def dvs_field(slab_tracers, llsvp_state, p):
       heat  the CMB heat (2D nlat×nlon from update_cmb_heat): a warm negative-dVs anomaly is
             added in the deepest layers, decaying upward as exp(-(distance from CMB / p.cmb_decay_km)²);
       pile  the pile thickness (km): p.pile_dVs is added to the part of each layer inside the
-            pile, which fills each column from the CMB up to its thickness;
+            pile, which fills each column from the CMB up to its thickness; with p.pile_halo_km > 0,
+            p.pile_halo_dVs (scaled down for piles thinner than p.pile_halo_h_km) is added above
+            the pile top, decaying upward as exp(-height / p.pile_halo_km);
       none  nothing is added (llsvp_state is None).
 
     Each depth layer has zero area-weighted mean, like tomography models.
@@ -352,6 +442,12 @@ def dvs_field(slab_tracers, llsvp_state, p):
         print(f'  [mantle] WARNING: cmb_heat shape {cmb_heat.shape} != expected ({nlat},{nlon}) — LLSVP skipped')
     if p.llsvp == 'pile' and llsvp_state is not None:
         field += p.pile_dVs * _pile.pile_layer_fractions(llsvp_state, depths_g, depth_interval_km, max_depth_km)
+        if p.pile_halo_km > 0:                 # warm layer above the pile top
+            top = max_depth_km - llsvp_state
+            above = np.clip(top[None, :, :] - depths_g[:, None, None], 0.0, None)
+            strength = np.clip(llsvp_state / p.pile_halo_h_km, 0.0, 1.0)
+            field += np.where(depths_g[:, None, None] < top[None, :, :],
+                              p.pile_halo_dVs * strength[None, :, :] * np.exp(-above / p.pile_halo_km), 0.0)
 
     field = _remove_area_weighted_mean(field, lats_g)
 

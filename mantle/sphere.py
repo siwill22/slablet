@@ -19,6 +19,16 @@ def xyz_to_lonlat(xyz):
     return lon, lat
 
 
+def move_along_azimuth(lon, lat, azimuth_deg, distance_km, radius_km):
+    """lon, lat (degrees) after moving distance_km along the great circle that starts at
+    azimuth_deg (clockwise from north), on a sphere of radius_km (scalar or per point)."""
+    lat1, lon1 = np.radians(lat), np.radians(lon)
+    az, d = np.radians(azimuth_deg), np.asarray(distance_km, float) / radius_km
+    lat2 = np.arcsin(np.clip(np.sin(lat1) * np.cos(d) + np.cos(lat1) * np.sin(d) * np.cos(az), -1.0, 1.0))
+    lon2 = lon1 + np.arctan2(np.sin(az) * np.sin(d) * np.cos(lat1), np.cos(d) - np.sin(lat1) * np.sin(lat2))
+    return (np.degrees(lon2) + 180.0) % 360.0 - 180.0, np.degrees(lat2)
+
+
 def spherical_gaussian_smooth(field, lats, lons, sigma_deg):
     """Gaussian smoothing on the sphere of one 2-D field (nlat, nlon) or a stack
     (..., nlat, nlon), using great-circle distances and cell-area weights.

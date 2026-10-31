@@ -1,0 +1,36 @@
+# Robustness of the best age-dependent frame rotations of s16 across start times 250-350 Ma, and a version that
+# only rotates trenches older than 100 Ma.  Base muller2022_dip_pile.
+name: s17_frame_robustness
+base: configs/real/muller2022_dip_pile.yaml
+common: {output_every_myr: 100000}
+variants:
+  none_st250: {start_ma: 250}
+  A_st250: {start_ma: 250, frame_rotation: {pole_lat: -51.26, pole_lon: 0.9, deg_per_myr: 0.05}}
+  B_st250: {start_ma: 250, frame_rotation: {pole_lat: -27.39, pole_lon: 20.97, deg_per_myr: 0.05}}
+  C_st250: {start_ma: 250, frame_rotation: {pole_lat: -51.26, pole_lon: 0.9, deg_per_myr: 0.025}}
+  D_st250: {start_ma: 250, frame_rotation: {pole_lat: -15.07, pole_lon: -11.49, deg_per_myr: 0.025}}
+  Aold_st250: {start_ma: 250, frame_rotation: {pole_lat: -51.26, pole_lon: 0.9, deg_per_myr: 0.075, from_ma: 100}}
+  none_st270: {start_ma: 270}
+  A_st270: {start_ma: 270, frame_rotation: {pole_lat: -51.26, pole_lon: 0.9, deg_per_myr: 0.05}}
+  B_st270: {start_ma: 270, frame_rotation: {pole_lat: -27.39, pole_lon: 20.97, deg_per_myr: 0.05}}
+  C_st270: {start_ma: 270, frame_rotation: {pole_lat: -51.26, pole_lon: 0.9, deg_per_myr: 0.025}}
+  D_st270: {start_ma: 270, frame_rotation: {pole_lat: -15.07, pole_lon: -11.49, deg_per_myr: 0.025}}
+  Aold_st270: {start_ma: 270, frame_rotation: {pole_lat: -51.26, pole_lon: 0.9, deg_per_myr: 0.075, from_ma: 100}}
+  none_st300: {start_ma: 300}
+  A_st300: {start_ma: 300, frame_rotation: {pole_lat: -51.26, pole_lon: 0.9, deg_per_myr: 0.05}}
+  B_st300: {start_ma: 300, frame_rotation: {pole_lat: -27.39, pole_lon: 20.97, deg_per_myr: 0.05}}
+  C_st300: {start_ma: 300, frame_rotation: {pole_lat: -51.26, pole_lon: 0.9, deg_per_myr: 0.025}}
+  D_st300: {start_ma: 300, frame_rotation: {pole_lat: -15.07, pole_lon: -11.49, deg_per_myr: 0.025}}
+  Aold_st300: {start_ma: 300, frame_rotation: {pole_lat: -51.26, pole_lon: 0.9, deg_per_myr: 0.075, from_ma: 100}}
+  none_st330: {start_ma: 330}
+  A_st330: {start_ma: 330, frame_rotation: {pole_lat: -51.26, pole_lon: 0.9, deg_per_myr: 0.05}}
+  B_st330: {start_ma: 330, frame_rotation: {pole_lat: -27.39, pole_lon: 20.97, deg_per_myr: 0.05}}
+  C_st330: {start_ma: 330, frame_rotation: {pole_lat: -51.26, pole_lon: 0.9, deg_per_myr: 0.025}}
+  D_st330: {start_ma: 330, frame_rotation: {pole_lat: -15.07, pole_lon: -11.49, deg_per_myr: 0.025}}
+  Aold_st330: {start_ma: 330, frame_rotation: {pole_lat: -51.26, pole_lon: 0.9, deg_per_myr: 0.075, from_ma: 100}}
+  none_st350: {start_ma: 350}
+  A_st350: {start_ma: 350, frame_rotation: {pole_lat: -51.26, pole_lon: 0.9, deg_per_myr: 0.05}}
+  B_st350: {start_ma: 350, frame_rotation: {pole_lat: -27.39, pole_lon: 20.97, deg_per_myr: 0.05}}
+  C_st350: {start_ma: 350, frame_rotation: {pole_lat: -51.26, pole_lon: 0.9, deg_per_myr: 0.025}}
+  D_st350: {start_ma: 350, frame_rotation: {pole_lat: -15.07, pole_lon: -11.49, deg_per_myr: 0.025}}
+  Aold_st350: {start_ma: 350, frame_rotation: {pole_lat: -51.26, pole_lon: 0.9, deg_per_myr: 0.075, from_ma: 100}}

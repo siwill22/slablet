@@ -23,6 +23,15 @@ class MantleParams:
                                             # rest: they stop there and stay until their thermal
                                             # anomaly falls below SLAB_REST_MIN_FRACTION
     initial_slab_depth_km: float = 1320.0   # depth of the slab columns built for the first trenches
+    slab_cmb_tau_myr: float = 0.0           # > 0 (slab_at_cmb: rest): a slablet resting on the CMB also loses
+                                            # weight as exp(-time resting / this), heated from below (0: off)
+    # dipping slabs (need the optional trench-sample keys, see mantle/core.py; PlateDriver has none)
+    slab_dip_deg: float = 90.0              # < 90: above upper_mantle_km a slablet also moves towards the
+                                            # overriding plate at its sink rate / tan(dip) (90: vertical)
+    slab_dip_shallow_deg: float = 90.0      # dip above slab_dip_shallow_km (when that is > 0), e.g. a shallow
+    slab_dip_shallow_km: float = 0.0        # slab near the trench; below it slab_dip_deg (0: one dip)
+    slab_trench_follow: bool = False        # True: above upper_mantle_km a slablet also moves with the
+                                            # velocity its trench had when it was seeded (attached slab)
 
     # 3-D dVs field
     mantle_grid_spacing_deg: float = 5.0
@@ -51,6 +60,10 @@ class MantleParams:
                                             # basal flow away from slabs (the pile collects where it converges)
     pile_slab_layer_km: float = 300.0       # slablets this close to the CMB load it
     pile_dVs: float = -1.0                  # dVs % inside the pile
+    pile_halo_km: float = 0.0               # > 0: warm layer above the pile top, decaying upward as
+                                            # exp(-height above the top / this) (0: off)
+    pile_halo_dVs: float = -1.0             # dVs % of that layer just above a pile at least pile_halo_h_km thick
+    pile_halo_h_km: float = 300.0           # thinner pile: proportionally weaker layer above it
 
     # CMB heat (LLSVP proxy, llsvp: heat)
     cmb_heating_rate: float = 0.02          # heat units per Myr everywhere

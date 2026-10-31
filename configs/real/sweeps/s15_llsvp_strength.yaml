@@ -1,0 +1,333 @@
+# Dip 40 + flow pile: faster CMB warming of slabs (10-50 Myr), stronger pile (-3/-5/-8 %), thicker/stronger
+# warm layer above it; aiming at the tomography tail ratio (~1.1-1.4) as well as shape.
+name: s15_llsvp_strength
+base: configs/real/muller2022_tuned.yaml
+common:
+  output_every_myr: 100000
+  mantle:
+    slab_dip_deg: 40
+variants:
+  ct10_d3_halo400_1.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 10
+      pile_dVs: -3
+      pile_halo_km: 400
+      pile_halo_dVs: -1.0
+  ct10_d3_halo600_1.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 10
+      pile_dVs: -3
+      pile_halo_km: 600
+      pile_halo_dVs: -1.0
+  ct10_d3_halo600_2.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 10
+      pile_dVs: -3
+      pile_halo_km: 600
+      pile_halo_dVs: -2.0
+  ct10_d5_halo400_1.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 10
+      pile_dVs: -5
+      pile_halo_km: 400
+      pile_halo_dVs: -1.0
+  ct10_d5_halo600_1.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 10
+      pile_dVs: -5
+      pile_halo_km: 600
+      pile_halo_dVs: -1.0
+  ct10_d5_halo600_2.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 10
+      pile_dVs: -5
+      pile_halo_km: 600
+      pile_halo_dVs: -2.0
+  ct10_d8_halo400_1.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 10
+      pile_dVs: -8
+      pile_halo_km: 400
+      pile_halo_dVs: -1.0
+  ct10_d8_halo600_1.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 10
+      pile_dVs: -8
+      pile_halo_km: 600
+      pile_halo_dVs: -1.0
+  ct10_d8_halo600_2.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 10
+      pile_dVs: -8
+      pile_halo_km: 600
+      pile_halo_dVs: -2.0
+  ct25_d3_halo400_1.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 25
+      pile_dVs: -3
+      pile_halo_km: 400
+      pile_halo_dVs: -1.0
+  ct25_d3_halo600_1.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 25
+      pile_dVs: -3
+      pile_halo_km: 600
+      pile_halo_dVs: -1.0
+  ct25_d3_halo600_2.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 25
+      pile_dVs: -3
+      pile_halo_km: 600
+      pile_halo_dVs: -2.0
+  ct25_d5_halo400_1.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 25
+      pile_dVs: -5
+      pile_halo_km: 400
+      pile_halo_dVs: -1.0
+  ct25_d5_halo600_1.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 25
+      pile_dVs: -5
+      pile_halo_km: 600
+      pile_halo_dVs: -1.0
+  ct25_d5_halo600_2.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 25
+      pile_dVs: -5
+      pile_halo_km: 600
+      pile_halo_dVs: -2.0
+  ct25_d8_halo400_1.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 25
+      pile_dVs: -8
+      pile_halo_km: 400
+      pile_halo_dVs: -1.0
+  ct25_d8_halo600_1.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 25
+      pile_dVs: -8
+      pile_halo_km: 600
+      pile_halo_dVs: -1.0
+  ct25_d8_halo600_2.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 25
+      pile_dVs: -8
+      pile_halo_km: 600
+      pile_halo_dVs: -2.0
+  ct50_d3_halo400_1.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 50
+      pile_dVs: -3
+      pile_halo_km: 400
+      pile_halo_dVs: -1.0
+  ct50_d3_halo600_1.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 50
+      pile_dVs: -3
+      pile_halo_km: 600
+      pile_halo_dVs: -1.0
+  ct50_d3_halo600_2.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 50
+      pile_dVs: -3
+      pile_halo_km: 600
+      pile_halo_dVs: -2.0
+  ct50_d5_halo400_1.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 50
+      pile_dVs: -5
+      pile_halo_km: 400
+      pile_halo_dVs: -1.0
+  ct50_d5_halo600_1.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 50
+      pile_dVs: -5
+      pile_halo_km: 600
+      pile_halo_dVs: -1.0
+  ct50_d5_halo600_2.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 50
+      pile_dVs: -5
+      pile_halo_km: 600
+      pile_halo_dVs: -2.0
+  ct50_d8_halo400_1.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 50
+      pile_dVs: -8
+      pile_halo_km: 400
+      pile_halo_dVs: -1.0
+  ct50_d8_halo600_1.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 50
+      pile_dVs: -8
+      pile_halo_km: 600
+      pile_halo_dVs: -1.0
+  ct50_d8_halo600_2.0:
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      slab_cmb_tau_myr: 50
+      pile_dVs: -8
+      pile_halo_km: 600
+      pile_halo_dVs: -2.0

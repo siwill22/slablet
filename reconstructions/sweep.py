@@ -20,7 +20,13 @@ of slow_iou and r_2_3.  The shape scores ignore amplitude, so a row also has the
 deep / mid ratio of the area-weighted standard deviation of dVs (amp_deep_mid; REVEAL and
 SEMUCB-WM1 both have about 1.5): a nearly empty deep mantle can still correlate well.  With
 llsvp: pile it also has the pile's size: the fraction of the CMB where it is over 100 km thick
-(pile_area_100km), its maximum and 95th-percentile thickness (km).
+(pile_area_100km), its maximum and 95th-percentile thickness (km).  And the upper-mantle slabs
+against Slab1.0 (reconstructions/slab_check.py): slab1_slab1_to_model_km, slab1_model_to_slab1_km,
+slab1_x_misfit_km and, per depth band, the median distance from the trench (x_model_<top km>,
+x_slab1_<top km>).  And the lower-mantle slabs against two fast-anomaly vote maps (VOTE_MAPS):
+votes_*_fast_iou, *_fast_iou_pct and *_r_1_L, means over depth; and the slow regions against a slow
+vote map of six S models (reconstructions/build_slow_votemap.py): slowvotes_<band>_slow_iou, _r_2_3 and
+_maj_iou (IoU with the cells where at least 4 of the 6 models are slow).
 
 `skill` summarises a row in one number: the mean, over models, bands and the four scores, of the
 score divided by the same score of the second tomography model against the first (how well two
@@ -49,6 +55,7 @@ import yaml
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, REPO)
 
+from reconstructions import slab_check               # noqa: E402
 from reconstructions import tomography_score as ts   # noqa: E402
 from reconstructions.run_mantle import run            # noqa: E402
 
@@ -105,11 +112,64 @@ def amplitude(cfg, depths=np.arange(1000.0, 2801.0, 100.0)):
     sd = np.sqrt((((f - mean[:, None, None]) ** 2) * w).sum(axis=(1, 2)) / w.sum())
     mid, deep = sd[depths < MID_DEEP_KM].mean(), sd[depths >= MID_DEEP_KM].mean()
     row = {'amp_mid': mid, 'amp_deep': deep, 'amp_deep_mid': deep / mid}
+    for z in (2000, 2500, 2750):                  # slow tail / fast tail (REVEAL ~1.1, SEMUCB ~1.2 near the CMB)
+        k = int(np.argmin(np.abs(depths - z)))
+        row['tail_ratio_{}'.format(z)] = -np.percentile(f[k], 1) / np.percentile(f[k], 99)
     if 'pile_thickness_km' in ds:                 # llsvp: pile; size of the piles at the CMB
         h = ds.pile_thickness_km.values
         wh = np.cos(np.radians(ds.lat.values))[:, None] * np.ones(h.shape[1])
         row.update({'pile_area_100km': (wh * (h > 100)).sum() / wh.sum(), 'pile_h_max': h.max(),
                     'pile_h_p95': np.percentile(h, 95)})
+    return row
+
+
+# Fast-anomaly vote maps (reconstructions/build_votemaps.py): they score the model's slabs only.
+VOTE_MAPS = [
+    {'name': 'votes_mixed', 'file': os.path.join(REPO, 'runs_real', 'votemaps', 'votemaps.nc'), 'variable': 'votes',
+     'depths_km': [800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 2000], 'fast_fraction': 0.2, 'lmax': 8},
+    {'name': 'votes_allP', 'file': os.path.join(REPO, 'runs_real', 'votemaps', 'votemaps_allP_20220809.nc'),
+     'variable': 'votes', 'depths_km': [1000, 1250, 1500, 1750, 2000, 2250, 2500], 'fast_fraction': 0.2, 'lmax': 8},
+]
+
+
+SLOW_VOTES = {'name': 'slow_votes', 'file': os.path.join(REPO, 'runs_real', 'votemaps', 'slow_votes_S.nc'),
+              'variable': 'minus_votes', 'depths_km': list(range(1000, 2801, 100)), 'slow_fraction': 0.3, 'lmax': 8}
+SLOW_VOTE_MAJORITY = 4                            # of 6 models (reconstructions/build_slow_votemap.py)
+
+
+def slow_vote_scores(cfg):
+    """The model's slow regions against the S-model slow vote map, mid and deep bands: slow_iou (equal
+    areas), r_2_3, and maj_iou = IoU of the model's slowest 30 % with the cells where at least
+    SLOW_VOTE_MAJORITY models are slow."""
+    if not os.path.exists(SLOW_VOTES['file']):
+        return {}
+    (df, _, _), = ts.score_run({**cfg, 'tomography': [SLOW_VOTES]}, write=False).values()
+    run_ds = xr.open_dataset(os.path.join(REPO, cfg['output_dir'], 'mantle_temp_0000Ma.nc'))
+    votes = xr.open_dataset(SLOW_VOTES['file']).votes
+    w = np.cos(np.radians(run_ds.lat.values))[:, None] * np.ones(len(run_ds.lon))
+    maj = []
+    for z in SLOW_VOTES['depths_km']:
+        m = run_ds.dVs.interp(depth=float(z)).values
+        a = ts._quantile_mask(m, w, 0.3, True)
+        b = votes.sel(depth=float(z)).values >= SLOW_VOTE_MAJORITY
+        maj.append((w * (a & b)).sum() / (w * (a | b)).sum())
+    df = df.assign(maj_iou=maj)
+    row = {}
+    for band, sel in (('mid', df.depth_km < MID_DEEP_KM), ('deep', df.depth_km >= MID_DEEP_KM)):
+        for c in ('slow_iou', 'r_2_3', 'maj_iou'):
+            row['slowvotes_{}_{}'.format(band, c)] = df.loc[sel, c].mean()
+    return row
+
+
+def vote_scores(cfg):
+    """Mean over depths of fast_iou (and its rotation percentile) and r_1_L against each vote map."""
+    vm = [v for v in VOTE_MAPS if os.path.exists(v['file'])]
+    if not vm:
+        return {}
+    row = {}
+    for vname, (df, _, _) in ts.score_run({**cfg, 'tomography': vm}, write=False).items():
+        row.update({vname + '_fast_iou': df.fast_iou.mean(), vname + '_fast_iou_pct': df.fast_iou_pct.mean(),
+                    vname + '_r_1_L': df.r_1_L.mean()})
     return row
 
 
@@ -125,6 +185,13 @@ def run_variant(sweep, name, over, cfg):
             for k, v in band_means(df).items():
                 row['{}_{}'.format(tname, k)] = v
         row.update(amplitude(cfg))
+        row.update(vote_scores(cfg))                 # lower-mantle slabs vs fast vote maps
+        row.update(slow_vote_scores(cfg))            # slow regions vs the S-model slow vote map
+        sc = slab_check.check_run(cfg)               # upper-mantle slabs vs Slab1.0
+        row.update({'slab1_' + k: v for k, v in slab_check.summary(sc).items()})
+        for _, b in sc.iterrows():
+            row['x_model_{:.0f}'.format(b.depth_lo)] = b.model_x_km
+            row['x_slab1_{:.0f}'.format(b.depth_lo)] = b.slab1_x_km
     except Exception as e:                      # keep the sweep going; the error is in the table
         row['error'] = '{}: {}'.format(type(e).__name__, e)
     row['seconds'] = time.perf_counter() - t0
