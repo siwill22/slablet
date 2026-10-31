@@ -8,13 +8,16 @@ Inputs from a caller are trench samples, a dict of 1-D arrays:
     convergence_km_per_myr    > 0 where the plates converge (km/Myr = mm/yr)
 The caller builds them from its own boundaries and is responsible for the frame.
 
-The state is the slab tracer DataFrame (columns SLAB_COLUMNS) and the 2-D cmb_heat array.
+The state is the slab tracer DataFrame (columns SLAB_COLUMNS) and the 2-D LLSVP state
+(new_llsvp_state / update_llsvp): the CMB heat for llsvp: heat, the pile thickness (km)
+for llsvp: pile, None for llsvp: none.
 """
 import numpy as np
 import pandas as pd
 import xarray as xr
 
 from .sphere import lonlat_to_xyz, spherical_gaussian_smooth
+from . import pile as _pile
 
 # Slablets from trenches converging at least this fast (km/Myr = mm/yr) get full weight;
 # slower (near-stalled) boundaries contribute proportionally less.
@@ -172,6 +175,34 @@ def new_cmb_heat(p):
     return np.zeros((len(lats_g), len(lons_g)))
 
 
+LLSVP_MODES = ('heat', 'pile', 'none')
+
+
+def _check_llsvp(p):
+    if p.llsvp not in LLSVP_MODES:
+        raise ValueError('llsvp must be one of {}, not {!r}'.format(LLSVP_MODES, p.llsvp))
+
+
+def new_llsvp_state(p):
+    """Start state of the LLSVP model chosen by p.llsvp."""
+    _check_llsvp(p)
+    if p.llsvp == 'heat':
+        return new_cmb_heat(p)
+    if p.llsvp == 'pile':
+        return _pile.new_pile(p)
+    return None
+
+
+def update_llsvp(state, slab_tracers, delta_time, p):
+    """One step of the LLSVP model chosen by p.llsvp."""
+    _check_llsvp(p)
+    if p.llsvp == 'heat':
+        return update_cmb_heat(state, slab_tracers, delta_time, p)
+    if p.llsvp == 'pile':
+        return _pile.update_pile(state, slab_tracers, delta_time, p)
+    return None
+
+
 def _slab_weights(slab_tracers):
     if 'weight' in slab_tracers.columns:
         return slab_tracers['weight'].values.astype(float)
@@ -244,7 +275,7 @@ def _remove_area_weighted_mean(field, lats):
     return field - means[:, None, None]
 
 
-def dvs_field(slab_tracers, cmb_heat, p):
+def dvs_field(slab_tracers, llsvp_state, p):
     """Bin slab tracers onto a 3D grid and return a dVs/Vs anomaly Dataset.
 
     Each slablet contributes a cold temperature anomaly (p.slab_temp_anomaly_K × its
@@ -253,14 +284,19 @@ def dvs_field(slab_tracers, cmb_heat, p):
     converted to dVs/Vs % (p.slab_dVs_per_K, default -0.001 %/K, so a fresh unit-weight
     slablet gives -0.5% per cell).
 
-    If cmb_heat (a 2D nlat×nlon array from update_cmb_heat) is given, a warm
-    negative-dVs anomaly is added in the deepest layers, decaying upward as
-    exp(-(distance from CMB / p.cmb_decay_km)²).
+    llsvp_state is the state of the LLSVP model (p.llsvp):
+      heat  the CMB heat (2D nlat×nlon from update_cmb_heat): a warm negative-dVs anomaly is
+            added in the deepest layers, decaying upward as exp(-(distance from CMB / p.cmb_decay_km)²);
+      pile  the pile thickness (km): p.pile_dVs is added to the part of each layer inside the
+            pile, which fills each column from the CMB up to its thickness;
+      none  nothing is added (llsvp_state is None).
 
     Each depth layer has zero area-weighted mean, like tomography models.
-    Returns xr.Dataset with variables 'dVs' and optionally 'cmb_heat'
-    (dims: depth, lat, lon).
+    Returns xr.Dataset with variables 'dVs' and 'cmb_heat' (heat) or 'pile_thickness_km'
+    (pile) (dims: depth, lat, lon).
     """
+    _check_llsvp(p)
+    cmb_heat = llsvp_state if p.llsvp == 'heat' else None
     from scipy.ndimage import gaussian_filter1d
 
     spacing_deg, depth_interval_km = p.mantle_grid_spacing_deg, p.mantle_depth_interval_km
@@ -314,6 +350,8 @@ def dvs_field(slab_tracers, cmb_heat, p):
               f'dVs at CMB: {field[-1].min():.4f}–{field[-1].max():.4f} %')
     elif cmb_heat is not None:
         print(f'  [mantle] WARNING: cmb_heat shape {cmb_heat.shape} != expected ({nlat},{nlon}) — LLSVP skipped')
+    if p.llsvp == 'pile' and llsvp_state is not None:
+        field += p.pile_dVs * _pile.pile_layer_fractions(llsvp_state, depths_g, depth_interval_km, max_depth_km)
 
     field = _remove_area_weighted_mean(field, lats_g)
 
@@ -337,4 +375,8 @@ def dvs_field(slab_tracers, cmb_heat, p):
             coords={'lat': lats_g, 'lon': lons_g},
             attrs={'units': 'heat units',
                    'long_name': 'CMB heat accumulation (proxy for LLSVP intensity)'})
+    if p.llsvp == 'pile' and llsvp_state is not None:
+        data_vars['pile_thickness_km'] = xr.DataArray(
+            llsvp_state, dims=['lat', 'lon'], coords={'lat': lats_g, 'lon': lons_g},
+            attrs={'units': 'km', 'long_name': 'thickness of the conserved pile on the CMB (llsvp: pile)'})
     return xr.Dataset(data_vars)

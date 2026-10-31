@@ -12,7 +12,7 @@ Config keys (see configs/real/muller2022.yaml):
     anchor_plate_id, start_ma, end_ma, delta_time, output_every_myr,
     output_dir, cache_dir, initial_slabs (columns | none), mantle: {MantleParams keys}
 Outputs in output_dir:
-    mantle_temp_<age>Ma.nc   dVs (and cmb_heat), with age_ma and the model as attributes
+    mantle_temp_<age>Ma.nc   dVs (and cmb_heat or pile_thickness_km), with age_ma and the model as attributes
     steps.csv                one row per step: trench samples, trench length, slablets, seconds
     run_info.yaml            the config as run, with the full mantle parameters
 """
@@ -60,7 +60,7 @@ def main():
         yaml.safe_dump({**cfg, 'mantle': dataclasses.asdict(p)}, f, sort_keys=False)
 
     def save(age):
-        ds = mantle.dvs_field(slabs, cmb_heat, p)
+        ds = mantle.dvs_field(slabs, llsvp_state, p)
         ds.attrs.update({'age_ma': age, 'reconstruction': cfg['name'],
                          'anchor_plate_id': int(cfg.get('anchor_plate_id', 0))})
         ds.to_netcdf(os.path.join(out_dir, 'mantle_temp_{:04.0f}Ma.nc'.format(age)),
@@ -72,14 +72,14 @@ def main():
         slabs = mantle.initial_slab_columns(samples, dt, p)
     else:
         slabs = pd.DataFrame(columns=mantle.SLAB_COLUMNS)
-    cmb_heat = mantle.new_cmb_heat(p)
+    llsvp_state = mantle.new_llsvp_state(p)      # CMB heat, pile thickness or None (p.llsvp)
     rows = []
     ages = np.round(np.arange(start - dt, end - 1e-9, -dt), 6)
     for age in ages:
         t0 = time.perf_counter()
         samples = trenches.samples(age)
         slabs = mantle.seed_slabs(mantle.sink_slabs(slabs, dt, p), samples, dt, p)
-        cmb_heat = mantle.update_cmb_heat(cmb_heat, slabs, dt, p)
+        llsvp_state = mantle.update_llsvp(llsvp_state, slabs, dt, p)
         if abs((start - age) / every - round((start - age) / every)) < 1e-6 or age == ages[-1]:
             save(age)
         rows.append({'age_ma': age, 'n_trench_samples': len(samples['lon']),

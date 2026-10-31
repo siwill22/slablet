@@ -39,7 +39,16 @@ class MantleParams:
                                              # counts the same at every latitude (False: a slab at 60°
                                              # gets half the area-integrated anomaly of one at the equator)
 
-    # CMB heat (LLSVP proxy)
+    # LLSVPs: heat = the CMB heat proxy below; pile = a conserved pile pushed by slabs
+    # (mantle/pile.py); none = slab field only
+    llsvp: str = 'heat'
+    pile_mean_thickness_km: float = 150.0   # the pile's volume, as a layer spread over the whole CMB
+    pile_mobility_km_per_myr: float = 100.0 # κ: volume flux per unit pile thickness and head gradient
+    pile_slab_head_km: float = 10.0         # pressure head (km of pile) per unit slab load L
+    pile_slab_layer_km: float = 300.0       # slablets this close to the CMB load it
+    pile_dVs: float = -1.0                  # dVs % inside the pile
+
+    # CMB heat (LLSVP proxy, llsvp: heat)
     cmb_heating_rate: float = 0.02          # heat units per Myr everywhere
     cmb_slab_suppression: float = 0.05      # heat units removed per full-weight slablet per Myr at the CMB
     cmb_surface_coupling: float = 0.1       # fraction of that suppression from a slablet at the surface

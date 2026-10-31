@@ -142,3 +142,41 @@ def test_cmb_suppression_can_follow_the_thermal_decay():
         assert (a == b) == expect_equal
         if flag:
             assert b > a                              # the aged slab suppresses less
+
+
+def _cell_area(p):
+    return mantle.pile._grid(p)[2][:, None]
+
+
+def test_pile_conserves_volume_and_moves_away_from_slabs():
+    p = mantle.MantleParams(llsvp='pile', slab_at_cmb='rest')
+    h0 = mantle.new_llsvp_state(p)
+    slabs = _ns_slab(0.0, depth_km=p.cmb_depth_km)                 # a slab lying on the CMB at 32.5°E
+    slabs['weight'] = 100.0                                         # about 100 Myr of subduction
+    h = h0
+    for _ in range(50):
+        h = mantle.update_llsvp(h, slabs, 1.0, p)
+    area = _cell_area(p)
+    assert (h * area).sum() == pytest.approx((h0 * area).sum(), rel=1e-9)
+    assert (h >= 0).all() and np.isfinite(h).all()
+    lons, lats = mantle.mantle_grid(p.mantle_grid_spacing_deg)
+    under = h[np.abs(lats) < 5][:, np.abs(lons - 32.5) < 3].mean()
+    far = h[np.abs(lats) < 5][:, np.abs(((lons - 32.5 + 180) % 360) - 180) > 90].mean()
+    assert under < 0.5 * p.pile_mean_thickness_km < far
+
+
+def test_pile_spreads_back_to_a_uniform_layer_without_slabs():
+    p = mantle.MantleParams(llsvp='pile')
+    h = mantle.new_llsvp_state(p)
+    h[10:20, 10:20] *= 4.0
+    empty = mantle.core.pd.DataFrame(columns=mantle.SLAB_COLUMNS)
+    spread0 = h.std()
+    for _ in range(200):
+        h = mantle.update_llsvp(h, empty, 1.0, p)
+    assert h.std() < 0.3 * spread0
+
+
+def test_pile_layer_fractions():
+    depths = np.array([2650.0, 2750.0, 2850.0])
+    f = mantle.pile.pile_layer_fractions(np.array([[150.0]]), depths, 100.0, 2890.0)[:, 0, 0]
+    np.testing.assert_allclose(f, [0.0, 0.6, 1.0])     # pile from 2740 km to the CMB at 2890 km
