@@ -1,0 +1,128 @@
+# Lower-mantle slab width (slab_sigma_lower_deg) and sinking-rate gradient with depth (slab_lower_rate_gradient,
+# with the slowing factor adjusted to keep the mean rate), on muller2022_dip_pile, starts 250/300/350.
+name: s21_slab_width_rate_profile
+base: configs/real/muller2022_dip_pile.yaml
+common:
+  output_every_myr: 100000
+variants:
+  base_st250:
+    start_ma: 250
+  sigLM4_st250:
+    mantle: &id001
+      slab_sigma_lower_deg: 4
+    start_ma: 250
+  sigLM6_st250:
+    mantle: &id002
+      slab_sigma_lower_deg: 6
+    start_ma: 250
+  sigLM8_st250:
+    mantle: &id003
+      slab_sigma_lower_deg: 8
+    start_ma: 250
+  grad-0.5_st250:
+    mantle: &id004
+      slab_lower_rate_gradient: -0.5
+    start_ma: 250
+  grad0.5_st250:
+    mantle: &id005
+      slab_lower_rate_gradient: 0.5
+    start_ma: 250
+  grad1.0_st250:
+    mantle: &id006
+      slab_lower_rate_gradient: 1.0
+    start_ma: 250
+  grad-0.5_slow2.5_st250:
+    mantle: &id007
+      slab_lower_rate_gradient: -0.5
+      slab_slowing_factor: 2.5
+    start_ma: 250
+  grad0.5_slow3.5_st250:
+    mantle: &id008
+      slab_lower_rate_gradient: 0.5
+      slab_slowing_factor: 3.5
+    start_ma: 250
+  grad1.0_slow4_st250:
+    mantle: &id009
+      slab_lower_rate_gradient: 1.0
+      slab_slowing_factor: 4
+    start_ma: 250
+  sigLM6_grad-0.5_st250:
+    mantle: &id010
+      slab_sigma_lower_deg: 6
+      slab_lower_rate_gradient: -0.5
+    start_ma: 250
+  sigLM6_grad0.5_st250:
+    mantle: &id011
+      slab_sigma_lower_deg: 6
+      slab_lower_rate_gradient: 0.5
+    start_ma: 250
+  base_st300:
+    start_ma: 300
+  sigLM4_st300:
+    mantle: *id001
+    start_ma: 300
+  sigLM6_st300:
+    mantle: *id002
+    start_ma: 300
+  sigLM8_st300:
+    mantle: *id003
+    start_ma: 300
+  grad-0.5_st300:
+    mantle: *id004
+    start_ma: 300
+  grad0.5_st300:
+    mantle: *id005
+    start_ma: 300
+  grad1.0_st300:
+    mantle: *id006
+    start_ma: 300
+  grad-0.5_slow2.5_st300:
+    mantle: *id007
+    start_ma: 300
+  grad0.5_slow3.5_st300:
+    mantle: *id008
+    start_ma: 300
+  grad1.0_slow4_st300:
+    mantle: *id009
+    start_ma: 300
+  sigLM6_grad-0.5_st300:
+    mantle: *id010
+    start_ma: 300
+  sigLM6_grad0.5_st300:
+    mantle: *id011
+    start_ma: 300
+  base_st350:
+    start_ma: 350
+  sigLM4_st350:
+    mantle: *id001
+    start_ma: 350
+  sigLM6_st350:
+    mantle: *id002
+    start_ma: 350
+  sigLM8_st350:
+    mantle: *id003
+    start_ma: 350
+  grad-0.5_st350:
+    mantle: *id004
+    start_ma: 350
+  grad0.5_st350:
+    mantle: *id005
+    start_ma: 350
+  grad1.0_st350:
+    mantle: *id006
+    start_ma: 350
+  grad-0.5_slow2.5_st350:
+    mantle: *id007
+    start_ma: 350
+  grad0.5_slow3.5_st350:
+    mantle: *id008
+    start_ma: 350
+  grad1.0_slow4_st350:
+    mantle: *id009
+    start_ma: 350
+  sigLM6_grad-0.5_st350:
+    mantle: *id010
+    start_ma: 350
+  sigLM6_grad0.5_st350:
+    mantle: *id011
+    start_ma: 350

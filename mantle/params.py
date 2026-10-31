@@ -16,6 +16,8 @@ class MantleParams:
     slab_sample_deg: float = 1.0            # spacing of slablets along trenches (great-circle degrees)
     slab_sink_rate_factor: float = 1.0      # upper-mantle sinking rate = factor × convergence (km/Myr)
     slab_slowing_factor: float = 4.0        # lower-mantle rate = upper-mantle rate / factor
+    slab_lower_rate_gradient: float = 0.0   # lower-mantle rate x (1 + this x fraction of the way from
+                                            # upper_mantle_km to the CMB): < 0 slower with depth (0: uniform)
     slab_max_sink_rate: float = 200.0       # km/Myr; cap on the upper-mantle rate
     upper_mantle_km: float = 670.0
     cmb_depth_km: float = 2890.0            # slablets are removed here (slab_at_cmb: remove)
@@ -41,6 +43,8 @@ class MantleParams:
     slab_dVs_per_K: float = -0.001          # % per K
     slab_sigma_deg: float = 3.0             # horizontal smoothing of the slab field
     slab_sigma_depth_km: float = 150.0      # vertical smoothing of the slab field
+    slab_sigma_lower_deg: float = 0.0       # > 0: horizontal smoothing of the slab field below upper_mantle_km
+                                            # instead of slab_sigma_deg (slabs thicken and fold there; 0: same)
     tomo_smooth_horiz_deg: float = 0.0      # optional blur of the final field (0 = off)
     tomo_smooth_depth_km: float = 0.0
     mantle_bin_area_normalise: bool = False  # True: divide each lon/lat cell's binned slab sum by the

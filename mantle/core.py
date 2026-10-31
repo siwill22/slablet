@@ -86,7 +86,8 @@ def sink_slabs(slab_tracers, delta_time, p):
     and with their trench's velocity at seeding; below it they sink vertically.
 
     Rate: the slablet's own sink_rate_km_per_myr above p.upper_mantle_km, that rate
-    divided by p.slab_slowing_factor below.  Slablets that reach p.cmb_depth_km are removed
+    divided by p.slab_slowing_factor below (times 1 + p.slab_lower_rate_gradient x the fraction
+    of the way to the CMB).  Initial slab columns ignore the gradient.  Slablets that reach p.cmb_depth_km are removed
     (p.slab_at_cmb = 'remove'), or stop there and stay until their thermal anomaly is below
     SLAB_REST_MIN_FRACTION of its start ('rest').  With p.slab_cmb_tau_myr > 0 a resting
     slablet's weight also decays as exp(-time resting / p.slab_cmb_tau_myr).
@@ -110,8 +111,15 @@ def sink_slabs(slab_tracers, delta_time, p):
             slab_tracers.loc[upper, 'lat'] = lat
         slab_tracers.loc[upper, 'depth_km'] += (
             slab_tracers.loc[upper, 'sink_rate_km_per_myr'] * delta_time)
-        slab_tracers.loc[lower, 'depth_km'] += (
-            slab_tracers.loc[lower, 'sink_rate_km_per_myr'] / p.slab_slowing_factor * delta_time)
+        if p.slab_lower_rate_gradient:
+            frac = ((slab_tracers.loc[lower, 'depth_km'].astype(float) - p.upper_mantle_km)
+                    / (p.cmb_depth_km - p.upper_mantle_km)).clip(0.0, 1.0)
+            slab_tracers.loc[lower, 'depth_km'] += (
+                slab_tracers.loc[lower, 'sink_rate_km_per_myr'] / p.slab_slowing_factor
+                * (1.0 + p.slab_lower_rate_gradient * frac) * delta_time)
+        else:
+            slab_tracers.loc[lower, 'depth_km'] += (
+                slab_tracers.loc[lower, 'sink_rate_km_per_myr'] / p.slab_slowing_factor * delta_time)
         slab_tracers.loc[active, 'age'] += delta_time
         if p.slab_at_cmb == 'rest':
             slab_tracers['depth_km'] = np.minimum(slab_tracers['depth_km'].astype(float), p.cmb_depth_km)
@@ -422,7 +430,14 @@ def dvs_field(slab_tracers, llsvp_state, p):
             np.add.at(field, (dep_idx, lat_idx, lon_idx), dVs)
             field = _per_area(field, lats_g, p)
 
-            field = _smooth(field, p.slab_sigma_deg, p.slab_sigma_depth_km)
+            if p.slab_sigma_lower_deg > 0:            # wider slabs below the upper mantle
+                lower_g = depths_g >= p.upper_mantle_km
+                upper_f = np.where(lower_g[:, None, None], 0.0, field)
+                lower_f = np.where(lower_g[:, None, None], field, 0.0)
+                field = (_smooth(upper_f, p.slab_sigma_deg, p.slab_sigma_depth_km)
+                         + _smooth(lower_f, p.slab_sigma_lower_deg, p.slab_sigma_depth_km))
+            else:
+                field = _smooth(field, p.slab_sigma_deg, p.slab_sigma_depth_km)
 
     # Inject LLSVP-like warm anomaly from CMB heat accumulation.
     # Iterate deepest→shallowest; break once decay becomes negligible.
