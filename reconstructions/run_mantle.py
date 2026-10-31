@@ -1,14 +1,15 @@
 """Drive the simplified mantle model (mantle/) with a real GPlates reconstruction.
 
-    conda run -n pygmt17 python reconstructions/run_mantle.py configs/real/muller2019.yaml
+    conda run -n pygmt17 python reconstructions/run_mantle.py configs/real/muller2022.yaml
 
 The plate motions are not computed: the reconstruction's subduction zones and their
 convergence rates seed the slab tracers, which then sink, cool the CMB heat field and
 give the dVs field, exactly as in a PlateDriver run (same mantle code, same parameter
 names).  Time runs from start_ma down to end_ma (ages in Ma; present day = 0).
 
-Config keys (see configs/real/muller2019.yaml):
-    name, model_dir, anchor_plate_id, start_ma, end_ma, delta_time, output_every_myr,
+Config keys (see configs/real/muller2022.yaml):
+    name, model_dir, rotation_files, topology_files (glob patterns relative to model_dir),
+    anchor_plate_id, start_ma, end_ma, delta_time, output_every_myr,
     output_dir, cache_dir, initial_slabs (columns | none), mantle: {MantleParams keys}
 Outputs in output_dir:
     mantle_temp_<age>Ma.nc   dVs (and cmb_heat), with age_ma and the model as attributes
@@ -50,7 +51,8 @@ def main():
     every = float(cfg.get('output_every_myr', 10.0))
     out_dir = os.path.join(REPO, cfg['output_dir'])
     os.makedirs(out_dir, exist_ok=True)
-    trenches = CachedTrenchSamples(cfg['model_dir'], cfg['name'], os.path.join(REPO, cfg['cache_dir']),
+    trenches = CachedTrenchSamples(cfg['model_dir'], cfg['rotation_files'], cfg['topology_files'],
+                                   cfg['name'], os.path.join(REPO, cfg['cache_dir']),
                                    sample_deg=p.slab_sample_deg,
                                    anchor_plate_id=int(cfg.get('anchor_plate_id', 0)))
 
