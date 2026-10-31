@@ -18,7 +18,10 @@ class MantleParams:
     slab_slowing_factor: float = 4.0        # lower-mantle rate = upper-mantle rate / factor
     slab_max_sink_rate: float = 200.0       # km/Myr; cap on the upper-mantle rate
     upper_mantle_km: float = 670.0
-    cmb_depth_km: float = 2890.0            # slablets are removed here
+    cmb_depth_km: float = 2890.0            # slablets are removed here (slab_at_cmb: remove)
+    slab_at_cmb: str = 'remove'             # remove: delete slablets that reach the CMB;
+                                            # rest: they stop there and stay until their thermal
+                                            # anomaly falls below SLAB_REST_MIN_FRACTION
     initial_slab_depth_km: float = 1320.0   # depth of the slab columns built for the first trenches
 
     # 3-D dVs field
@@ -31,6 +34,10 @@ class MantleParams:
     slab_sigma_depth_km: float = 150.0      # vertical smoothing of the slab field
     tomo_smooth_horiz_deg: float = 0.0      # optional blur of the final field (0 = off)
     tomo_smooth_depth_km: float = 0.0
+    mantle_bin_area_normalise: bool = False  # True: divide each lon/lat cell's binned slab sum by the
+                                             # cell's area relative to an equatorial cell, so a slab
+                                             # counts the same at every latitude (False: a slab at 60°
+                                             # gets half the area-integrated anomaly of one at the equator)
 
     # CMB heat (LLSVP proxy)
     cmb_heating_rate: float = 0.02          # heat units per Myr everywhere
@@ -40,6 +47,9 @@ class MantleParams:
     cmb_max_heat: float = 3.0
     cmb_dVs_scale: float = -0.5             # dVs % per heat unit
     cmb_decay_km: float = 400.0             # Gaussian decay of the warm anomaly upward from the CMB
+    cmb_suppression_thermal_decay: bool = False  # True: a slablet suppresses CMB heat in proportion to its
+                                                 # remaining thermal anomaly exp(-age / slab_thermal_tau_myr),
+                                                 # as in the dVs field (False: at full weight whatever its age)
 
     @classmethod
     def from_config(cls, params):

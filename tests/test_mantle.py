@@ -94,3 +94,51 @@ def test_params_read_config_keys_and_ignore_others():
     p = mantle.MantleParams.from_config({'slab_thermal_tau_myr': 4, 'slab_pull': 6, 'cmb_sigma_deg': 7.0})
     assert p.slab_thermal_tau_myr == 4 and p.cmb_sigma_deg == 7.0
     assert p.slab_max_sink_rate == mantle.MantleParams().slab_max_sink_rate
+
+
+def _ns_slab(lat0, depth_km=1050.0, age=0.0):
+    """A north-south slab 20° long, one slablet per great-circle degree, centred on lat0."""
+    lat = np.arange(lat0 - 10, lat0 + 10, 1.0) + 0.5
+    n = len(lat)
+    return mantle.core.pd.DataFrame({'lon': np.full(n, 32.5), 'lat': lat, 'depth_km': depth_km, 'age': age,
+                                     'active': True, 'sink_rate_km_per_myr': 50.0, 'weight': 1.0,
+                                     'attached': True})
+
+
+def _integrated_anomaly(p, lat0):
+    ds = mantle.dvs_field(_ns_slab(lat0), None, p)
+    f = ds.dVs.sel(depth=1050).values
+    f = f - f.min()                                   # undo the zero-mean shift
+    return (f * np.cos(np.radians(ds.lat.values))[:, None]).sum()
+
+
+def test_area_normalised_binning_counts_a_slab_the_same_at_every_latitude():
+    p_off = mantle.MantleParams(slab_thermal_tau_myr=1e9)
+    p_on = mantle.MantleParams(slab_thermal_tau_myr=1e9, mantle_bin_area_normalise=True)
+    ratio_off = _integrated_anomaly(p_off, 60.0) / _integrated_anomaly(p_off, 0.0)
+    ratio_on = _integrated_anomaly(p_on, 60.0) / _integrated_anomaly(p_on, 0.0)
+    assert ratio_off < 0.6                            # the old binning halves a slab at 60°
+    assert ratio_on == pytest.approx(1.0, abs=0.05)
+
+
+def test_slabs_rest_at_the_cmb_until_their_anomaly_fades():
+    p = mantle.MantleParams(slab_at_cmb='rest', slab_thermal_tau_myr=10.0)
+    slabs = _ns_slab(0.0, depth_km=2880.0)
+    out = mantle.sink_slabs(slabs, 1.0, p)
+    assert len(out) == len(slabs) and (out['depth_km'] == p.cmb_depth_km).all()
+    old = mantle.sink_slabs(_ns_slab(0.0, depth_km=2880.0, age=100.0), 1.0, p)   # exp(-101/10) < 1e-3
+    assert len(old) == 0
+    removed = mantle.sink_slabs(slabs, 1.0, mantle.MantleParams())
+    assert len(removed) == 0
+
+
+def test_cmb_suppression_can_follow_the_thermal_decay():
+    young, aged = _ns_slab(0.0, depth_km=2850.0), _ns_slab(0.0, depth_km=2850.0, age=400.0)
+    heat = np.full((36, 72), 1.0)
+    for flag, expect_equal in ((False, True), (True, False)):
+        p = mantle.MantleParams(cmb_suppression_thermal_decay=flag)
+        a = mantle.update_cmb_heat(heat, young, 1.0, p).min()
+        b = mantle.update_cmb_heat(heat, aged, 1.0, p).min()
+        assert (a == b) == expect_equal
+        if flag:
+            assert b > a                              # the aged slab suppresses less

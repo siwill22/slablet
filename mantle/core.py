@@ -20,6 +20,9 @@ from .sphere import lonlat_to_xyz, spherical_gaussian_smooth
 # slower (near-stalled) boundaries contribute proportionally less.
 SLAB_FULL_WEIGHT_CONVERGENCE_KM_PER_MYR = 10.0
 
+# slab_at_cmb: rest removes a resting slablet once exp(-age / tau) falls below this.
+SLAB_REST_MIN_FRACTION = 1e-3
+
 SLAB_COLUMNS = ['lon', 'lat', 'depth_km', 'age', 'active', 'sink_rate_km_per_myr', 'weight', 'attached']
 
 
@@ -31,9 +34,13 @@ def sink_slabs(slab_tracers, delta_time, p):
     """Sink existing slablets vertically (lon/lat fixed) for delta_time Myr.
 
     Rate: the slablet's own sink_rate_km_per_myr above p.upper_mantle_km, that rate
-    divided by p.slab_slowing_factor below.  Slablets that reach p.cmb_depth_km are removed.
+    divided by p.slab_slowing_factor below.  Slablets that reach p.cmb_depth_km are removed
+    (p.slab_at_cmb = 'remove'), or stop there and stay until their thermal anomaly is below
+    SLAB_REST_MIN_FRACTION of its start ('rest').
     Returns a new DataFrame.
     """
+    if p.slab_at_cmb not in ('remove', 'rest'):
+        raise ValueError('slab_at_cmb must be remove or rest, not {!r}'.format(p.slab_at_cmb))
     slab_tracers = slab_tracers.copy()
     if len(slab_tracers) > 0:
         active = slab_tracers['active'].astype(bool)
@@ -44,7 +51,12 @@ def sink_slabs(slab_tracers, delta_time, p):
         slab_tracers.loc[lower, 'depth_km'] += (
             slab_tracers.loc[lower, 'sink_rate_km_per_myr'] / p.slab_slowing_factor * delta_time)
         slab_tracers.loc[active, 'age'] += delta_time
-        slab_tracers = slab_tracers[slab_tracers['depth_km'] < p.cmb_depth_km].reset_index(drop=True)
+        if p.slab_at_cmb == 'rest':
+            slab_tracers['depth_km'] = np.minimum(slab_tracers['depth_km'].astype(float), p.cmb_depth_km)
+            faded = np.exp(-slab_tracers['age'].astype(float) / p.slab_thermal_tau_myr) < SLAB_REST_MIN_FRACTION
+            slab_tracers = slab_tracers[~faded].reset_index(drop=True)
+        else:
+            slab_tracers = slab_tracers[slab_tracers['depth_km'] < p.cmb_depth_km].reset_index(drop=True)
     return slab_tracers
 
 
@@ -166,6 +178,15 @@ def _slab_weights(slab_tracers):
     return np.ones(len(slab_tracers))
 
 
+def _per_area(binned, lats_g, p):
+    """With p.mantle_bin_area_normalise, a lon/lat-binned sum (..., nlat, nlon) divided by
+    each cell's area relative to an equatorial cell (cos of the cell-centre latitude), so the
+    field is an amount per unit area, which is what the area-weighted smoothing assumes."""
+    if not p.mantle_bin_area_normalise:
+        return binned
+    return binned / np.cos(np.radians(lats_g))[:, None]
+
+
 def update_cmb_heat(cmb_heat, slab_tracers, delta_time, p):
     """Accumulate CMB heat each timestep, building LLSVP-like warm regions.
 
@@ -203,12 +224,14 @@ def update_cmb_heat(cmb_heat, slab_tracers, delta_time, p):
 
             coupling = p.cmb_surface_coupling + (1.0 - p.cmb_surface_coupling) * (depths_f / p.cmb_depth_km)
             weights  = p.cmb_slab_suppression * delta_time * coupling * _slab_weights(all_active)
+            if p.cmb_suppression_thermal_decay:
+                weights = weights * np.exp(-all_active['age'].values.astype(float) / p.slab_thermal_tau_myr)
 
             lon_idx = np.clip(np.floor((lons_f + 180) / spacing_deg).astype(int), 0, nlon - 1)
             lat_idx = np.clip(np.floor((lats_f + 90)  / spacing_deg).astype(int), 0, nlat - 1)
             suppress = np.zeros_like(cmb_heat)
             np.add.at(suppress, (lat_idx, lon_idx), weights)
-            cmb_heat = np.maximum(cmb_heat - suppress, 0.0)
+            cmb_heat = np.maximum(cmb_heat - _per_area(suppress, lats_g, p), 0.0)
 
     cmb_heat = spherical_gaussian_smooth(cmb_heat, lats_g, lons_g, p.cmb_sigma_deg * np.sqrt(delta_time))
 
@@ -271,6 +294,7 @@ def dvs_field(slab_tracers, cmb_heat, p):
             dep_idx = np.clip(
                 np.floor(depths_f / depth_interval_km).astype(int), 0, ndepth - 1)
             np.add.at(field, (dep_idx, lat_idx, lon_idx), dVs)
+            field = _per_area(field, lats_g, p)
 
             field = _smooth(field, p.slab_sigma_deg, p.slab_sigma_depth_km)
 

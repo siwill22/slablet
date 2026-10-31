@@ -18,12 +18,16 @@ output_dir: runs_real/muller2019
 cache_dir: runs_real/cache
 
 # Same keys as the PlateDriver config (mantle/params.py).  Values from configs/current_model.yaml
-# except slab_thermal_tau_myr: 4 Myr there fades a slab to ~3% by 670 km, so 200 here.
+# except that the two fixes below are on (off by default so PlateDriver runs reproduce).
+# slab_thermal_tau_myr is open for tuning.
 mantle:
   slab_sink_rate_factor: 1.0
   slab_slowing_factor: 4
   slab_max_sink_rate: 400
-  slab_thermal_tau_myr: 200
+  slab_thermal_tau_myr: 100
+  slab_at_cmb: remove                   # remove | rest
+  mantle_bin_area_normalise: true
+  cmb_suppression_thermal_decay: true
   initial_slab_depth_km: 1320
   mantle_grid_spacing_deg: 5.0
   mantle_depth_interval_km: 100
@@ -36,3 +40,14 @@ mantle:
   cmb_decay_km: 400.0
   tomo_smooth_horiz_deg: 5.0
   tomo_smooth_depth_km: 150.0
+
+# Present-day comparison (reconstructions/tomography_score.py): shape only, no amplitudes.
+tomography:
+  name: REVEAL
+  file: /Users/simon/Data/SeismicTomography/Schouten_Supplementary_material/Models/REVEAL_downsampled_anomaly.nc
+  variable: vs_anomaly
+  min_depth_km: 1000
+  max_depth_km: 2800
+  slow_fraction: 0.3    # area share of the sphere called slow in each field, per depth
+  fast_fraction: 0.2
+  lmax: 8
