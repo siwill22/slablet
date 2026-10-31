@@ -10,7 +10,10 @@ names).  Time runs from start_ma down to end_ma (ages in Ma; present day = 0).
 Config keys (see configs/real/muller2022.yaml):
     name, model_dir, rotation_files, topology_files (glob patterns relative to model_dir),
     anchor_plate_id, start_ma, end_ma, delta_time, output_every_myr,
-    output_dir, cache_dir, initial_slabs (columns | none), mantle: {MantleParams keys}
+    output_dir, cache_dir, initial_slabs (columns | none), mantle: {MantleParams keys},
+    frame_lon_offset_deg, frame_lon_drift_deg_per_myr (optional, default 0: every trench sample
+        is rotated about the spin axis by offset + drift x age degrees, east positive; a test of
+        longitude errors in the frame, not a correction)
 Outputs in output_dir:
     mantle_temp_<age>Ma.nc   dVs (and cmb_heat or pile_thickness_km), with age_ma and the model as attributes
     steps.csv                one row per step: trench samples, trench length, slablets, seconds
@@ -61,8 +64,18 @@ def run(cfg, verbose=True):
         ds.to_netcdf(os.path.join(out_dir, 'mantle_temp_{:04.0f}Ma.nc'.format(age)),
                      encoding={v: {'zlib': True, 'complevel': 4} for v in ds.data_vars})
 
+    lon_offset = float(cfg.get('frame_lon_offset_deg', 0.0))
+    lon_drift = float(cfg.get('frame_lon_drift_deg_per_myr', 0.0))
+
+    def samples_at(age):
+        s = trenches.samples(age)
+        shift = lon_offset + lon_drift * age
+        if shift:
+            s = {**s, 'lon': ((s['lon'] + shift + 180.0) % 360.0) - 180.0}
+        return s
+
     t_run = time.perf_counter()
-    samples = trenches.samples(start)
+    samples = samples_at(start)
     if cfg.get('initial_slabs', 'columns') == 'columns':
         slabs = mantle.initial_slab_columns(samples, dt, p)
     else:
@@ -72,7 +85,7 @@ def run(cfg, verbose=True):
     ages = np.round(np.arange(start - dt, end - 1e-9, -dt), 6)
     for age in ages:
         t0 = time.perf_counter()
-        samples = trenches.samples(age)
+        samples = samples_at(age)
         slabs = mantle.seed_slabs(mantle.sink_slabs(slabs, dt, p), samples, dt, p)
         llsvp_state = mantle.update_llsvp(llsvp_state, slabs, dt, p)
         if abs((start - age) / every - round((start - age) / every)) < 1e-6 or age == ages[-1]:
