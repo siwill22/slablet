@@ -21,6 +21,16 @@ component); the new mean is the weighted mean of the best three; sigma grows by 
 that improves on the best so far and shrinks by 0.75 otherwise; a stage stops when sigma < SIGMA_MIN or
 after its generation limit.
 
+Uncertainty options:
+    --tomo SET        the tomography the skill is computed against (TOMO_SETS: default REVEAL + SEMUCB-WM1;
+                      REVEAL or SEMUCB-WM1 alone; S4 = S40RTS, SMEAN, GypsumS, S362ANI, which the tuning never saw,
+                      from build_tomo_grids.py); skill always divides by the REVEAL-vs-SEMUCB ceiling.
+    --set KEY=VALUE   override a config value (mantle.KEY for the mantle block), e.g. mantle.slab_dip_deg=90.
+    --fix FRAME:A0-A1 hold Africa at an existing frame (opt, pmag, or hotspot = Doubrovine et al. 2012, 0-120 Ma)
+                      at every 10 Myr from A0 to A1 Ma; free nodes inside that window are dropped.  Repeatable.
+    --init BEST.yaml  start the first stage from the last stage of an earlier fit instead of --start.
+    --sigma0, --generations  per-stage step size and generation limit (defaults SIGMA0, GENERATIONS).
+
 Outputs in --out: log.csv (every evaluation: stage, generation, sigma, node vectors, skill and band
 scores), best.yaml (the best nodes of each stage and their skill), and the config each stage's best used.
 """
@@ -57,6 +67,53 @@ SIGMA_MIN = 0.5
 WEIGHTS = np.array([0.5, 0.3, 0.2])
 MODEL_DIR = os.path.expanduser('~/Library/Caches/gprm/Muller2022')
 START_FILES = {'opt': 'optimisation/1000_0_rotfile_MantleOpt.rot', 'pmag': 'Rotations/1000_0_rotfile.rot'}
+HOTSPOT_FILE = os.path.expanduser('~/Library/Caches/gprm/TorsvikCocks2017/Torsvik_Cocks_HybridRotationFile.rot')
+HOTSPOT_MAX = 120.0                # GMHRF (Doubrovine et al. 2012) in that file; older is palaeomagnetic
+TOMO_GRIDS = os.path.join(REPO, 'runs_real', 'tomo_grids')
+S4 = ['S40RTS', 'SMEAN', 'GypsumS', 'S362ANI']
+
+
+def tomo_set(cfg, name):
+    """The tomography list for --tomo name (each entry like cfg's REVEAL entry)."""
+    base = {k: v for k, v in cfg['tomography'][0].items() if k not in ('name', 'file', 'variable')}
+    if name == 'default':
+        return cfg['tomography']
+    if name in ('REVEAL', 'SEMUCB-WM1'):
+        return [t for t in cfg['tomography'] if t['name'] == name]
+    names = S4 if name == 'S4' else [name]
+    return [{'name': n, 'file': os.path.join(TOMO_GRIDS, n + '.nc'), 'variable': 'vs_anomaly', **base} for n in names]
+
+
+def frame_rotation(kind, age):
+    """Africa's absolute rotation in an existing frame (opt, pmag, hotspot)."""
+    if kind == 'hotspot':
+        if age > HOTSPOT_MAX:
+            raise SystemExit('hotspot frame stops at {} Ma'.format(HOTSPOT_MAX))
+        model = pygplates.RotationModel(HOTSPOT_FILE)
+    else:
+        model = pygplates.RotationModel(os.path.join(MODEL_DIR, START_FILES[kind]))
+    return model.get_rotation(float(age), 701, anchor_plate_id=0)
+
+
+def fixed_nodes(specs):
+    """{age: vector} for --fix FRAME:A0-A1 specs, and the list of (A0, A1) windows."""
+    out, windows = {}, []
+    for spec in specs:
+        kind, span = spec.split(':')
+        a0, a1 = (float(x) for x in span.split('-'))
+        windows.append((a0, a1))
+        for a in np.arange(max(a0, 10.0), a1 + 0.5, 10.0):
+            out[float(a)] = rotation_vector(frame_rotation(kind, a))
+    return out, windows
+
+
+def set_value(cfg, item):
+    key, value = item.split('=', 1)
+    d = cfg
+    parts = key.split('.')
+    for part in parts[:-1]:
+        d = d.setdefault(part, {})
+    d[parts[-1]] = yaml.safe_load(value)
 
 
 def rotation_vector(r):
@@ -70,8 +127,7 @@ def rotation_vector(r):
 def start_nodes(kind, ages):
     if kind == 'fixed':
         return {a: np.zeros(3) for a in ages}
-    model = pygplates.RotationModel(os.path.join(MODEL_DIR, START_FILES[kind]))
-    return {a: rotation_vector(model.get_rotation(float(a), 701, anchor_plate_id=0)) for a in ages}
+    return {a: rotation_vector(frame_rotation(kind, a)) for a in ages}
 
 
 def nodes_from_frame(nodes, ages):
@@ -83,13 +139,14 @@ def nodes_from_frame(nodes, ages):
 _CFG = {}
 
 
-def _init(cfg, ceil, tomo_names):
-    _CFG.update({'cfg': cfg, 'ceil': ceil, 'tomo_names': tomo_names})
+def _init(cfg, ceil, tomo_names, fixed=None):
+    _CFG.update({'cfg': cfg, 'ceil': ceil, 'tomo_names': tomo_names, 'fixed': fixed or {}})
 
 
 def evaluate(args):
     """skill and band scores of one candidate (nodes: {age: vector})."""
     tag, nodes = args
+    nodes = {**_CFG.get('fixed', {}), **nodes}
     cfg = copy.deepcopy(_CFG['cfg'])
     cfg['frame_africa'] = {'nodes': {float(a): [float(x) for x in v] for a, v in nodes.items()}}
     cfg['output_dir'] = os.path.join(_CFG['cfg']['output_dir'], 'tmp', tag)
@@ -111,6 +168,8 @@ def evaluate(args):
 
 def fit_stage(ex, k, ages, x_nodes, sigma, gens, workers, rng, log, t0):
     d = 3 * len(ages)
+    if not d:
+        return {}, np.nan
     m = np.concatenate([x_nodes[a] for a in ages])
     best_x, best_f = m.copy(), -np.inf
     npairs = (workers - 1) // 2
@@ -148,29 +207,51 @@ def main():
     ap.add_argument('--stages', nargs='+', default=['300', '100,200,300'])
     ap.add_argument('--workers', type=int, default=10)
     ap.add_argument('--seed', type=int, default=0)
+    ap.add_argument('--tomo', default='default', help='default, REVEAL, SEMUCB-WM1, S4 or one S4 model')
+    ap.add_argument('--set', action='append', default=[], metavar='KEY=VALUE')
+    ap.add_argument('--fix', action='append', default=[], metavar='FRAME:A0-A1')
+    ap.add_argument('--init', help='best.yaml of an earlier fit: start from its last stage')
+    ap.add_argument('--sigma0', type=float, nargs='+', help='initial step (deg) per stage (default SIGMA0)')
+    ap.add_argument('--generations', type=int, nargs='+', help='generation limit per stage (default GENERATIONS)')
     args = ap.parse_args()
     cfg = yaml.safe_load(open(args.config))
+    for item in args.set:
+        set_value(cfg, item)
+    cfg['tomography'] = tomo_set(cfg, args.tomo)
+    fixed, windows = fixed_nodes(args.fix)
     cfg['output_every_myr'] = 100000
     cfg['output_dir'] = os.path.relpath(os.path.join(REPO, args.out), REPO)
     os.makedirs(os.path.join(REPO, args.out), exist_ok=True)
-    ceil = sweep.ceiling(cfg)
+    ceil = sweep.ceiling(yaml.safe_load(open(args.config)))
     tomo_names = [t['name'] for t in cfg['tomography']]
     rng = np.random.default_rng(args.seed)
     stages = [[float(a) for a in s.split(',')] for s in args.stages]
-    nodes = start_nodes(args.start, stages[0])
+    stages = [[a for a in st if not any(a0 <= a <= a1 for a0, a1 in windows)] for st in stages]
+    if args.init:
+        prev = yaml.safe_load(open(args.init))
+        last = [v for k, v in prev.items() if k.startswith('stage')][-1]['nodes']
+        nodes = nodes_from_frame({**fixed, **{float(a): np.array(v) for a, v in last.items()}}, stages[0])
+    else:
+        nodes = start_nodes(args.start, stages[0])
     log, best = [], {}
     t0 = time.perf_counter()
-    with ProcessPoolExecutor(args.workers, initializer=_init, initargs=(cfg, ceil, tomo_names)) as ex:
+    with ProcessPoolExecutor(args.workers, initializer=_init, initargs=(cfg, ceil, tomo_names, fixed)) as ex:
         start_row = ex.submit(evaluate, ('start', nodes)).result()
         print('start ({}): skill {:.4f}'.format(args.start, start_row['skill']), flush=True)
-        best['start'] = {'skill': float(start_row['skill']), 'nodes': {a: [float(x) for x in v] for a, v in nodes.items()}}
+        best['start'] = {'skill': float(start_row['skill']),
+                         'nodes': {a: [float(x) for x in v] for a, v in {**fixed, **nodes}.items()}}
+        best['options'] = {'tomo': args.tomo, 'set': args.set, 'fix': args.fix, 'init': args.init, 'start': args.start}
         for k, ages in enumerate(stages):
             if k:
-                nodes = nodes_from_frame(nodes, ages)
-            nodes, f = fit_stage(ex, k, ages, nodes, SIGMA0[min(k, 2)], GENERATIONS[min(k, 2)], args.workers,
+                nodes = nodes_from_frame({**fixed, **nodes}, ages)
+            sig = (args.sigma0 or SIGMA0)[min(k, len(args.sigma0 or SIGMA0) - 1)]
+            gens = (args.generations or GENERATIONS)[min(k, len(args.generations or GENERATIONS) - 1)]
+            nodes, f = fit_stage(ex, k, ages, nodes, sig, gens, args.workers,
                                  rng, log, t0)
+            if not ages:                                   # everything held fixed: just the start
+                f = start_row['skill']
             best['stage{}'.format(k)] = {'ages': ages, 'skill': float(f),
-                                         'nodes': {a: [float(x) for x in v] for a, v in nodes.items()}}
+                                         'nodes': {a: [float(x) for x in v] for a, v in {**fixed, **nodes}.items()}}
             pd.DataFrame(log).to_csv(os.path.join(REPO, args.out, 'log.csv'), index=False, float_format='%.5f')
             with open(os.path.join(REPO, args.out, 'best.yaml'), 'w') as fh:
                 yaml.safe_dump(best, fh, sort_keys=False)
