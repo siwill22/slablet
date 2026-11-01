@@ -120,11 +120,13 @@ def tomography_depths(tc):
     return d[(d >= float(tc.get('min_depth_km', 1000))) & (d <= float(tc.get('max_depth_km', 2800)))]
 
 
-def score_depths(model, tomo, depths, lons_g, lats_g, slow_q, fast_q, lmax):
+def score_depths(model, tomo, depths, lons_g, lats_g, slow_q, fast_q, lmax, null=True):
     """Scores (one row per depth) of model[depth, lat, lon] against tomo[depth, lat, lon], with the
-    longitude-rotation null.  Either field can be a tomography model."""
+    longitude-rotation null (null=False: the unrotated scores only, much faster; *_pct and
+    *_null_mean are then NaN).  Either field can be a tomography model."""
     lon2, lat2 = np.meshgrid(lons_g, lats_g)
     w = np.cos(np.radians(lat2))
+    shifts = range(len(lons_g)) if null else [0]
     rows = []
     for k, z in enumerate(depths):
         valid = np.isfinite(tomo[k]) & np.isfinite(model[k])   # cells without data carry no weight
@@ -133,12 +135,12 @@ def score_depths(model, tomo, depths, lons_g, lats_g, slow_q, fast_q, lmax):
         t_slow, t_fast = _quantile_mask(t, wk, slow_q, True), _quantile_mask(t, wk, fast_q, False)
         ct = _coeffs(t, lat2, lon2, wk, lmax)
         null = pd.DataFrame([score_one(np.roll(m, sh, axis=1), t_slow, t_fast, ct, wk, lat2, lon2,
-                                       slow_q, fast_q, lmax) for sh in range(len(lons_g))])
+                                       slow_q, fast_q, lmax) for sh in shifts])
         row = {'depth_km': z, 'empty_cell_area': 1.0 - wk.sum() / w.sum()}
         for c in null.columns:
             row[c] = null[c].iloc[0]
-            row[c + '_pct'] = (null[c].iloc[1:] < null[c].iloc[0]).mean()
-            row[c + '_null_mean'] = null[c].iloc[1:].mean()
+            row[c + '_pct'] = (null[c].iloc[1:] < null[c].iloc[0]).mean() if len(null) > 1 else np.nan
+            row[c + '_null_mean'] = null[c].iloc[1:].mean() if len(null) > 1 else np.nan
         rows.append(row)
     return pd.DataFrame(rows)
 
@@ -159,7 +161,7 @@ def print_summary(df, label, slow_q, fast_q):
 _TOMO_CACHE = {}
 
 
-def score_run(cfg, age=0.0, only=None, write=True):
+def score_run(cfg, age=0.0, only=None, write=True, null=True):
     """Score a finished run against every tomography model in cfg['tomography'] (or the one
     named `only`).  Returns {name: per-depth DataFrame}; with write, also writes
     <output_dir>/tomography_score_<name>.csv.  Regridded tomography is kept in memory."""
@@ -181,7 +183,7 @@ def score_run(cfg, age=0.0, only=None, write=True):
             _TOMO_CACHE[key] = tomography_on_grid(tc['file'], tc['variable'], lons_g, lats_g, tomography_depths(tc))
         tomo, depths = _TOMO_CACHE[key]
         model = run.dVs.interp(depth=depths).transpose('depth', 'lat', 'lon').values
-        df = score_depths(model, tomo, depths, lons_g, lats_g, slow_q, fast_q, lmax)
+        df = score_depths(model, tomo, depths, lons_g, lats_g, slow_q, fast_q, lmax, null=null)
         name = tc.get('name', os.path.splitext(os.path.basename(tc['file']))[0])
         if write:
             df.to_csv(os.path.join(out_dir, 'tomography_score_{}.csv'.format(name)), index=False, float_format='%.4f')

@@ -19,6 +19,12 @@ Config keys (see configs/real/muller2022.yaml):
         above the pole) by deg_per_myr x (age - from_ma) degrees, with its down-dip azimuth and trench
         velocity; present-day trenches stay put.  A test of age-dependent frame errors such as
         unmodelled true polar wander, not a correction
+    frame_africa (optional): {nodes: {age: [rx, ry, rz]}}: replaces the reconstruction's absolute frame.
+        Africa's (701) absolute finite rotation at each node age is given as a rotation vector (degrees;
+        direction = Euler pole as a unit vector in Earth-centred x, y, z; length = angle); 0 Ma is the
+        identity, and rotations in between are interpolated (pygplates FiniteRotation.interpolate).  Every
+        trench sample is moved by C(t) = Africa_new(t) Africa_file(t)^-1, a global frame change (the
+        relative plate motions are untouched).  Ages beyond the oldest node are not allowed
 Outputs in output_dir:
     mantle_temp_<age>Ma.nc   dVs (and cmb_heat or pile_thickness_km), with age_ma and the model as attributes
     steps.csv                one row per step: trench samples, trench length, slablets, seconds
@@ -33,6 +39,7 @@ import time
 
 import numpy as np
 import pandas as pd
+import pygplates
 import yaml
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -42,6 +49,35 @@ import mantle                                                    # noqa: E402
 from reconstructions.trench_samples import CachedTrenchSamples   # noqa: E402
 
 KM_PER_DEG = np.radians(1.0) * 6371.0
+
+
+def finite_rotation_from_vector(v_deg):
+    """pygplates FiniteRotation from a rotation vector (x, y, z) in degrees."""
+    v = np.asarray(v_deg, float)
+    angle = np.linalg.norm(v)
+    if angle < 1e-12:
+        return pygplates.FiniteRotation.create_identity_rotation()
+    return pygplates.FiniteRotation(pygplates.PointOnSphere(*(v / angle)), np.radians(angle))
+
+
+def matrix_from_finite_rotation(r):
+    """3x3 matrix of a pygplates FiniteRotation (columns: the rotated x, y, z unit vectors)."""
+    return np.array([(r * pygplates.Vector3D(*e)).to_xyz() for e in np.eye(3)]).T
+
+
+def africa_frame(nodes):
+    """Africa's absolute rotation at any age from {age: rotation vector (deg)}, identity at 0 Ma."""
+    ages = sorted([0.0] + [float(a) for a in nodes])
+    rots = [pygplates.FiniteRotation.create_identity_rotation()] + [
+        finite_rotation_from_vector(nodes[k]) for k in sorted(nodes, key=float)]
+
+    def at(age):
+        if age > ages[-1] + 1e-9:
+            raise SystemExit('frame_africa: age {} is older than the oldest node {}'.format(age, ages[-1]))
+        i = max(0, np.searchsorted(ages, age) - 1)
+        i = min(i, len(ages) - 2)
+        return pygplates.FiniteRotation.interpolate(rots[i], rots[i + 1], ages[i], ages[i + 1], age)
+    return at
 
 
 def rotation_matrix(pole_lat, pole_lon, angle_deg):
@@ -108,12 +144,20 @@ def run(cfg, verbose=True):
     lon_drift = float(cfg.get('frame_lon_drift_deg_per_myr', 0.0))
 
     rot = cfg.get('frame_rotation')
+    fa = cfg.get('frame_africa')
+    if fa:
+        africa_new = africa_frame({float(k): v for k, v in fa['nodes'].items()})
+        file_model = pygplates.RotationModel(trenches.files[0])
+        anchor = int(cfg.get('anchor_plate_id', 0))
 
     def samples_at(age):
         s = trenches.samples(age)
         shift = lon_offset + lon_drift * age
         if shift:
             s = {**s, 'lon': ((s['lon'] + shift + 180.0) % 360.0) - 180.0}
+        if fa and age > 0 and len(s['lon']):
+            c = africa_new(age) * file_model.get_rotation(float(age), 701, anchor_plate_id=anchor).get_inverse()
+            s = rotate_samples(s, matrix_from_finite_rotation(c))
         if rot:
             angle = float(rot['deg_per_myr']) * max(0.0, age - float(rot.get('from_ma', 0.0)))
             if angle and len(s['lon']):
