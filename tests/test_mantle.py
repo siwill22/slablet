@@ -414,3 +414,46 @@ def test_resolution_independent_cmb_suppression_does_not_depend_on_the_grid():
         after = mantle.update_cmb_heat(heat, _ns_slab(0.0, depth_km=2850.0), 1.0, p)
         removed[spacing] = ((heat - after) * np.radians(spacing) ** 2 * np.cos(np.radians(lats))[:, None]).sum()
     assert removed[2.5] == pytest.approx(removed[5.0], rel=1e-6)
+
+
+def test_fixed_lower_mantle_rate_does_not_depend_on_convergence():
+    p = mantle.MantleParams(slab_lower_rate_km_per_myr=12.0)
+    s = _ns_slab(0.0, depth_km=1000.0).iloc[:2].copy()
+    s['sink_rate_km_per_myr'] = [10.0, 100.0]
+    out = mantle.sink_slabs(s, 1.0, p)
+    np.testing.assert_allclose(out['depth_km'].values, [1012.0, 1012.0])
+    old = mantle.sink_slabs(s, 1.0, mantle.MantleParams(slab_slowing_factor=4.0))
+    np.testing.assert_allclose(old['depth_km'].values, [1002.5, 1025.0])
+
+
+def test_seafloor_age_sets_slab_weight_and_thermal_time():
+    p = mantle.MantleParams(slab_age_ref_myr=50.0)
+    samples = {'lon': np.array([10.0, 20.0, 30.0]), 'lat': np.zeros(3), 'convergence_km_per_myr': np.full(3, 50.0),
+               'seafloor_age_myr': np.array([12.5, 200.0, np.nan])}
+    new = mantle.seed_slabs(mantle.core.pd.DataFrame(columns=mantle.SLAB_COLUMNS), samples, 1.0, p)
+    np.testing.assert_allclose(new['weight'].values, [0.5, np.sqrt(2.0), 1.0])     # 12.5/50, 100/50 (capped), default
+    new['age'] = 100.0
+    np.testing.assert_allclose(mantle.core.thermal_tau(new, p), [50.0, 400.0, 200.0])
+    off = mantle.seed_slabs(mantle.core.pd.DataFrame(columns=mantle.SLAB_COLUMNS), samples, 1.0, mantle.MantleParams())
+    assert 'plate_age' not in off and (off['weight'] == 1.0).all()
+
+
+def test_lower_mantle_slabs_move_with_a_fraction_of_the_plate_velocity():
+    lats, lons = np.arange(-89.0, 90, 2.0), np.arange(-179.0, 180, 2.0)
+    flow = {'lats': lats, 'lons': lons, 'vel_e': np.full((len(lats), len(lons)), 100.0),
+            'vel_n': np.zeros((len(lats), len(lons)))}
+    s = _ns_slab(0.0, depth_km=1000.0).iloc[[10]].copy()
+    s['lat'] = 0.0
+    p = mantle.MantleParams(slab_flow_top=0.5, slab_flow_bottom=0.5, slab_slowing_factor=1e9)
+    out = mantle.sink_slabs(s, 1.0, p, flow)
+    assert out['lon'].iloc[0] - 32.5 == pytest.approx(np.degrees(50.0 / 6371.0), rel=1e-6)
+    upper = mantle.sink_slabs(s.assign(depth_km=300.0), 1.0, p, flow)         # upper-mantle slabs do not drift
+    assert upper['lon'].iloc[0] == 32.5
+
+
+def test_fixed_lower_mantle_rate_can_scale_with_the_slab_feed():
+    p = mantle.MantleParams(slab_lower_rate_km_per_myr=12.0, slab_lower_rate_exponent=0.5)
+    s = _ns_slab(0.0, depth_km=1000.0).iloc[:2].copy()
+    s['sink_rate_km_per_myr'] = [25.0, 100.0]
+    out = mantle.sink_slabs(s, 1.0, p)
+    np.testing.assert_allclose(out['depth_km'].values, [1012.0, 1024.0])

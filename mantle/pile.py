@@ -71,7 +71,8 @@ def slab_load(slab_tracers, p):
         s = slab_tracers[slab_tracers['active'].astype(bool)
                          & (slab_tracers['depth_km'].astype(float) >= p.cmb_depth_km - p.pile_slab_layer_km)]
         if len(s):
-            w = s['weight'].values.astype(float) * np.exp(-s['age'].values.astype(float) / p.slab_thermal_tau_myr)
+            from .core import thermal_fraction
+            w = s['weight'].values.astype(float) * thermal_fraction(s, p)
             spacing = p.mantle_grid_spacing_deg
             i = np.clip(np.floor((s['lat'].values.astype(float) + 90) / spacing).astype(int), 0, len(lats) - 1)
             j = np.clip(np.floor((s['lon'].values.astype(float) + 180) / spacing).astype(int), 0, len(lons) - 1)

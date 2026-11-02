@@ -19,6 +19,26 @@ class MantleParams:
     slab_lower_rate_gradient: float = 0.0   # lower-mantle rate x (1 + this x fraction of the way from
                                             # upper_mantle_km to the CMB): < 0 slower with depth (0: uniform)
     slab_max_sink_rate: float = 200.0       # km/Myr; cap on the upper-mantle rate
+    slab_lower_rate_km_per_myr: float = 0.0 # > 0: lower-mantle sinking rate of every slablet, whatever its trench's
+                                            # convergence (instead of its upper-mantle rate / slab_slowing_factor);
+                                            # the gradient and the seafloor-age factor still apply (0: off)
+    slab_lower_rate_exponent: float = 0.0   # with a fixed rate: x (the slablet's upper-mantle rate /
+    slab_lower_rate_ref_km_per_myr: float = 25.0  # this)^exponent -- a curtain fed faster is denser and sinks
+                                            # faster; 0: the same for every slab, 1: proportional, as without it
+    # seafloor age at the trench (needs the optional trench-sample key seafloor_age_myr; off when ref is 0).
+    # A = the age clipped to [slab_age_min_myr, slab_age_max_myr] (unknown: slab_age_default_myr), r = A / ref:
+    slab_age_ref_myr: float = 0.0           # > 0: the age at which every factor below is 1 (0: off)
+    slab_age_min_myr: float = 5.0
+    slab_age_max_myr: float = 100.0         # older plates are about as thick (plate cooling model)
+    slab_age_default_myr: float = 50.0
+    slab_age_weight_exponent: float = 0.5   # weight x r^this: the thermal deficit of a plate grows as sqrt(age)
+    slab_age_tau_exponent: float = 1.0      # slab_thermal_tau_myr x r^this: thicker slabs take longer to warm
+                                            # (diffusion time ~ thickness^2 ~ age)
+    slab_age_rate_exponent: float = 0.0     # lower-mantle sinking rate x r^this (thicker slabs sink faster)
+    # sideways motion in the lower mantle with the plate above (needs a flow grid from the caller):
+    slab_flow_top: float = 0.0              # fraction of the overlying plate's velocity at upper_mantle_km ...
+    slab_flow_bottom: float = 0.0           # ... and at the CMB, linear in between; < 0: against the plate
+                                            # (return flow).  Applies to lower-mantle slablets (0, 0: off)
     upper_mantle_km: float = 670.0
     cmb_depth_km: float = 2890.0            # slablets are removed here (slab_at_cmb: remove)
     slab_at_cmb: str = 'remove'             # remove: delete slablets that reach the CMB;
@@ -59,6 +79,23 @@ class MantleParams:
     mantle_field_spacing_deg: float = 0.0   # > 0: draw the dVs field on this finer grid (must divide
                                             # mantle_grid_spacing_deg); the pile and slab load stay on the
                                             # coarse grid and are interpolated up (0: the same grid)
+    # thin hot boundary layer on the CMB (llsvp: pile): a second conserved layer drawn on top of the pile, pushed by
+    # the local slab load (pile_drive: local) in the bottom tbl_slab_layer_km, so it gathers between slab pools
+    tbl_thickness_km: float = 0.0           # > 0: its mean thickness (0: off)
+    tbl_mobility_km_per_myr: float = 30.0
+    tbl_slab_head_km: float = 10000.0
+    tbl_slab_layer_km: float = 300.0
+    tbl_dVs: float = -2.0                   # % inside it
+    tbl_halo_km: float = 150.0              # and tbl_dVs x exp(-height above its top / this) above it
+    # plumes: hot conduits above the thickest parts of the boundary layer (of the pile without one)
+    plume_dVs: float = 0.0                  # < 0: anomaly on a conduit's axis, scaled by the layer's thickness there
+                                            # relative to its maximum (0: none)
+    plume_sigma_deg: float = 1.5            # conduit radius (Gaussian sigma, great-circle degrees)
+    plume_spacing_deg: float = 15.0         # sources are the layer's local maxima within this width ...
+    plume_min_fraction: float = 0.5         # ... thicker than this fraction of its maximum
+    plume_top_km: float = 200.0             # conduits run from the hot layer up to this depth
+    lithosphere_dVs: float = 0.0            # > 0 (with a thickness grid from the caller): a fast lid, +this % at the
+                                            # surface falling linearly to 0 at the lithosphere's base (0: none)
     dvs_save_native: bool = False           # True: also write the field before the tomography blur, as dVs_native
     mantle_bin_area_normalise: bool = False  # True: divide each lon/lat cell's binned slab sum by the
                                              # cell's area relative to an equatorial cell, so a slab

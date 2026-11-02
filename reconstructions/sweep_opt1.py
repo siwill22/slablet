@@ -86,6 +86,11 @@ def run_variant(job):
         df.to_csv(os.path.join(REPO, cfg['output_dir'], 'compare_opt1.csv'), index=False, float_format='%.5g')
         row.update(scores(df, RECENT))
         row.update({k + '_all': v for k, v in scores(df, 1000).items()})
+        if cfg.get('mantle', {}).get('dvs_save_native'):       # the field before the tomography blur
+            dfn = co.compare(os.path.join(REPO, cfg['output_dir']), _G['grid'], var='dVs_native')
+            dfn.to_csv(os.path.join(REPO, cfg['output_dir'], 'compare_opt1_native.csv'), index=False, float_format='%.5g')
+            row.update({k + '_nat': v for k, v in scores(dfn, RECENT).items()})
+            row.update({k + '_nat_all': v for k, v in scores(dfn, 1000).items()})
     except Exception as e:
         row['error'] = '{}: {}'.format(type(e).__name__, e)
     row['seconds'] = time.perf_counter() - t0
@@ -95,7 +100,7 @@ def run_variant(job):
 def main():
     ap = argparse.ArgumentParser(description=__doc__.split('\n')[0])
     ap.add_argument('sweep')
-    ap.add_argument('--workers', type=int, default=10)
+    ap.add_argument('--workers', type=int, default=4)
     args = ap.parse_args()
     spec = yaml.safe_load(open(args.sweep))
     base = yaml.safe_load(open(os.path.join(REPO, spec['base'])))

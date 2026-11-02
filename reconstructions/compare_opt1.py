@@ -129,15 +129,26 @@ def degree_power(c):
     return np.array([(c[:, l, :l + 1] ** 2).sum() for l in range(c.shape[1])])
 
 
-def compare(run_dir, grid):
+def compare(run_dir, grid, var='dVs'):
+    """Per age and depth comparison of the run's var (dVs, or dVs_native: the field before the tomography blur)
+    with OPT1.  Fields on a finer grid than 5 deg are block-averaged (cos-lat weights) onto it, and runs with
+    other layers are interpolated linearly to DEPTHS."""
+    from mantle.core import _block_mean
     rows = []
     for age in grid.age.values:
         f = os.path.join(run_dir, 'mantle_temp_{:04d}Ma.nc'.format(int(age)))
         if not os.path.exists(f):
             continue
-        run = xr.open_dataset(f).dVs.transpose('depth', 'lat', 'lon')
-        for z in DEPTHS:
-            slow = -run.sel(depth=z).values                         # hot / slow positive
+        with xr.open_dataset(f) as ds:
+            run = ds[var].transpose('depth', 'lat', 'lon').astype(float)
+            if not np.array_equal(run.depth.values, DEPTHS):
+                run = run.interp(depth=DEPTHS)
+            lats_r, vals = run.lat.values, run.values
+        k = 5.0 / (lats_r[1] - lats_r[0])
+        if k > 1.001:
+            vals = _block_mean(vals, lats_r, k)
+        for zi, z in enumerate(DEPTHS):
+            slow = -vals[zi]                                        # hot / slow positive
             t = grid.T.sel(age=age, depth=z).values
             cr = ts._coeffs(slow, LAT2, LON2, W, LMAX)
             ct = ts._coeffs(t, LAT2, LON2, W, LMAX)

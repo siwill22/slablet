@@ -1,0 +1,22 @@
+# Against OPT1, 0-240 Ma weighted (reconstructions/sweep_opt1.py; scores also on dVs_native, the field before the
+# tomography blur: *_nat), from the sharp-slab model with the seafloor cache (reconstructions/seafloor_tracker.py).
+#   lower-mantle rate    a fixed rate for every slab instead of its trench's rate / slowing factor
+#   seafloor age         slab strength ~ sqrt(age), thermal time ~ age (ref 50 Myr; 5-100 Myr), and lower-mantle
+#                        rate ~ sqrt(age)
+#   lower-mantle flow    slabs below 670 km move with a fraction of the plate velocity above (top, bottom)
+name: o2_rate_age_flow
+base: configs/real/muller2022_dip_pile_sharp.yaml
+common: {seafloor: true}
+variants:
+  base: {}
+  s2_tau100: {mantle.slab_slowing_factor: 2, mantle.slab_cmb_tau_myr: 100}
+  lr10: {mantle.slab_lower_rate_km_per_myr: 10}
+  lr15: {mantle.slab_lower_rate_km_per_myr: 15}
+  lr20: {mantle.slab_lower_rate_km_per_myr: 20}
+  age: {mantle.slab_age_ref_myr: 50}
+  age_weight_only: {mantle.slab_age_ref_myr: 50, mantle.slab_age_tau_exponent: 0}
+  age_lr15_rate: {mantle.slab_age_ref_myr: 50, mantle.slab_lower_rate_km_per_myr: 15, mantle.slab_age_rate_exponent: 0.5}
+  flow_p3: {mantle.slab_flow_top: 0.3, mantle.slab_flow_bottom: 0.3}
+  flow_p5_0: {mantle.slab_flow_top: 0.5, mantle.slab_flow_bottom: 0.0}
+  flow_p3_m3: {mantle.slab_flow_top: 0.3, mantle.slab_flow_bottom: -0.3}
+  flow_m3: {mantle.slab_flow_top: -0.3, mantle.slab_flow_bottom: -0.3}

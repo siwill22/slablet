@@ -25,6 +25,11 @@ Config keys (see configs/real/muller2022.yaml):
         identity, and rotations in between are interpolated (pygplates FiniteRotation.interpolate).  Every
         trench sample is moved by C(t) = Africa_new(t) Africa_file(t)^-1, a global frame change (the
         relative plate motions are untouched).  Ages beyond the oldest node are not allowed
+    seafloor (optional, default false): read the cache of reconstructions/seafloor_tracker.py (run it first): each
+        trench sample gets seafloor_age_myr (for the mantle.slab_age_* options), and sink_slabs gets the plate
+        velocity grid (for mantle.slab_flow_top / slab_flow_bottom).  The velocities are in the reconstruction's
+        own frame, so the flow cannot be combined with the frame_* options.  With mantle.lithosphere_dVs > 0
+        the field also gets a lid from reconstructions/lithosphere.py (which needs the same cache)
 Outputs in output_dir:
     mantle_temp_<age>Ma.nc   dVs (and cmb_heat or pile_thickness_km), with age_ma and the model as attributes
     steps.csv                one row per step: trench samples, trench length, slablets, seconds
@@ -134,7 +139,11 @@ def run(cfg, verbose=True):
         yaml.safe_dump({**cfg, 'mantle': dataclasses.asdict(p)}, f, sort_keys=False)
 
     def save(age):
-        ds = mantle.dvs_field(slabs, llsvp_state, p)
+        lith = None
+        if p.lithosphere_dVs > 0:
+            from reconstructions.lithosphere import thickness_km
+            lith = thickness_km(cfg, age)
+        ds = mantle.dvs_field(slabs, llsvp_state, p, lith)
         ds.attrs.update({'age_ma': age, 'reconstruction': cfg['name'],
                          'anchor_plate_id': int(cfg.get('anchor_plate_id', 0))})
         ds.to_netcdf(os.path.join(out_dir, 'mantle_temp_{:04.0f}Ma.nc'.format(age)),
@@ -150,8 +159,26 @@ def run(cfg, verbose=True):
         file_model = pygplates.RotationModel(trenches.files[0])
         anchor = int(cfg.get('anchor_plate_id', 0))
 
+    seafloor = None
+    if cfg.get('seafloor'):
+        from reconstructions.seafloor_tracker import SeafloorCache, VEL_DEG
+        seafloor = SeafloorCache(cfg, p.slab_sample_deg)
+        uses_flow = p.slab_flow_top != 0 or p.slab_flow_bottom != 0
+        if uses_flow and (lon_offset or lon_drift or rot or fa):
+            raise SystemExit('the lower-mantle flow (slab_flow_*) is in the reconstruction frame: no frame_* options')
+        vel_lats = np.arange(-90 + VEL_DEG / 2, 90, VEL_DEG)
+        vel_lons = np.arange(-180 + VEL_DEG / 2, 180, VEL_DEG)
+
+    def flow_at(age):
+        if seafloor is None:
+            return None
+        rec = seafloor.at(age)
+        return {'lats': vel_lats, 'lons': vel_lons, 'vel_e': rec['vel_e'], 'vel_n': rec['vel_n']}
+
     def samples_at(age):
         s = trenches.samples(age)
+        if seafloor is not None:
+            s = {**s, 'seafloor_age_myr': seafloor.at(age)['trench_age']}
         shift = lon_offset + lon_drift * age
         if shift:
             s = {**s, 'lon': ((s['lon'] + shift + 180.0) % 360.0) - 180.0}
@@ -176,7 +203,7 @@ def run(cfg, verbose=True):
     for age in ages:
         t0 = time.perf_counter()
         samples = samples_at(age)
-        slabs = mantle.seed_slabs(mantle.sink_slabs(slabs, dt, p), samples, dt, p)
+        slabs = mantle.seed_slabs(mantle.sink_slabs(slabs, dt, p, flow_at(age)), samples, dt, p)
         llsvp_state = mantle.update_llsvp(llsvp_state, slabs, dt, p)
         if abs((start - age) / every - round((start - age) / every)) < 1e-6 or age == ages[-1]:
             save(age)

@@ -80,7 +80,7 @@ def empty_samples():
     return {'lon': np.zeros(0), 'lat': np.zeros(0), 'convergence_km_per_myr': np.zeros(0)}
 
 
-def sink_slabs(slab_tracers, delta_time, p):
+def sink_slabs(slab_tracers, delta_time, p, flow=None):
     """Sink existing slablets vertically (lon/lat fixed) for delta_time Myr.
 
     With dipping slabs on (p.slab_dip_deg < 90 or p.slab_trench_follow) slablets above
@@ -116,16 +116,22 @@ def sink_slabs(slab_tracers, delta_time, p):
         if p.slab_lower_rate_gradient:
             frac = ((slab_tracers.loc[lower, 'depth_km'].astype(float) - p.upper_mantle_km)
                     / (p.cmb_depth_km - p.upper_mantle_km)).clip(0.0, 1.0)
-            slab_tracers.loc[lower, 'depth_km'] += (
-                slab_tracers.loc[lower, 'sink_rate_km_per_myr'] / p.slab_slowing_factor
-                * (1.0 + p.slab_lower_rate_gradient * frac) * delta_time)
+            if p.slab_lower_rate_km_per_myr > 0 or _uses_age(slab_tracers, p):
+                slab_tracers.loc[lower, 'depth_km'] += (_lower_rate(slab_tracers.loc[lower], p)
+                                                        * (1.0 + p.slab_lower_rate_gradient * frac.values) * delta_time)
+            else:
+                slab_tracers.loc[lower, 'depth_km'] += (
+                    slab_tracers.loc[lower, 'sink_rate_km_per_myr'] / p.slab_slowing_factor
+                    * (1.0 + p.slab_lower_rate_gradient * frac) * delta_time)
+        elif p.slab_lower_rate_km_per_myr > 0 or _uses_age(slab_tracers, p):
+            slab_tracers.loc[lower, 'depth_km'] += _lower_rate(slab_tracers.loc[lower], p) * delta_time
         else:
             slab_tracers.loc[lower, 'depth_km'] += (
                 slab_tracers.loc[lower, 'sink_rate_km_per_myr'] / p.slab_slowing_factor * delta_time)
         slab_tracers.loc[active, 'age'] += delta_time
         if p.slab_at_cmb == 'rest':
             slab_tracers['depth_km'] = np.minimum(slab_tracers['depth_km'].astype(float), p.cmb_depth_km)
-            faded = np.exp(-slab_tracers['age'].astype(float) / p.slab_thermal_tau_myr) < SLAB_REST_MIN_FRACTION
+            faded = pd.Series(thermal_fraction(slab_tracers, p) < SLAB_REST_MIN_FRACTION, index=slab_tracers.index)
             if p.slab_cmb_tau_myr > 0:
                 resting = slab_tracers['depth_km'].astype(float) >= p.cmb_depth_km
                 slab_tracers.loc[resting, 'weight'] = (slab_tracers.loc[resting, 'weight'].astype(float)
@@ -136,6 +142,7 @@ def sink_slabs(slab_tracers, delta_time, p):
             slab_tracers = slab_tracers[slab_tracers['depth_km'] < p.cmb_depth_km].reset_index(drop=True)
         if p.slab_cmb_spread_km_per_myr > 0:
             slab_tracers = spread_cmb_slabs(slab_tracers, delta_time, p)
+        slab_tracers = flow_lower_slabs(slab_tracers, delta_time, p, flow)
     return slab_tracers
 
 
@@ -181,6 +188,80 @@ def spread_cmb_slabs(slab_tracers, delta_time, p):
     return slab_tracers
 
 
+def _age_ratio(plate_age, p):
+    """r = clipped seafloor age at subduction / p.slab_age_ref_myr (unknown ages: the default)."""
+    a = np.asarray(plate_age, float)
+    a = np.where(np.isfinite(a), a, p.slab_age_default_myr)
+    return np.clip(a, p.slab_age_min_myr, p.slab_age_max_myr) / p.slab_age_ref_myr
+
+
+def _uses_age(slabs, p):
+    return p.slab_age_ref_myr > 0 and 'plate_age' in slabs
+
+
+def thermal_tau(slabs, p):
+    """Thermal e-folding time of each slablet: p.slab_thermal_tau_myr, times r^slab_age_tau_exponent with the
+    seafloor-age options (a scalar without them)."""
+    if _uses_age(slabs, p) and p.slab_age_tau_exponent:
+        return p.slab_thermal_tau_myr * _age_ratio(slabs['plate_age'].values, p) ** p.slab_age_tau_exponent
+    return p.slab_thermal_tau_myr
+
+
+def thermal_fraction(slabs, p):
+    """exp(-age / tau): the fraction of its thermal anomaly each slablet still has."""
+    return np.exp(-slabs['age'].values.astype(float) / thermal_tau(slabs, p))
+
+
+def _lower_rate(slabs, p):
+    """Lower-mantle sinking rate of each slablet before the depth gradient."""
+    if p.slab_lower_rate_km_per_myr > 0:
+        rate = np.full(len(slabs), float(p.slab_lower_rate_km_per_myr))
+        if p.slab_lower_rate_exponent:
+            rate = rate * (slabs['sink_rate_km_per_myr'].values.astype(float)
+                           / p.slab_lower_rate_ref_km_per_myr) ** p.slab_lower_rate_exponent
+    else:
+        rate = slabs['sink_rate_km_per_myr'].values.astype(float) / p.slab_slowing_factor
+    if _uses_age(slabs, p) and p.slab_age_rate_exponent:
+        rate = rate * _age_ratio(slabs['plate_age'].values, p) ** p.slab_age_rate_exponent
+    return rate
+
+
+def _grid_bilinear(f, lats_g, lons_g, lat, lon):
+    """f (nlat, nlon) on cell centres, bilinear at (lat, lon), wrapping in longitude; NaN counts as 0."""
+    f = np.nan_to_num(f)
+    dlat, dlon = lats_g[1] - lats_g[0], lons_g[1] - lons_g[0]
+    fi = np.clip((lat - lats_g[0]) / dlat, 0.0, len(lats_g) - 1.0)
+    fj = (lon - lons_g[0]) / dlon
+    i0 = np.minimum(np.floor(fi).astype(int), len(lats_g) - 2)
+    j0 = np.floor(fj).astype(int)
+    ti, tj = fi - i0, fj - j0
+    j0, j1 = j0 % len(lons_g), (j0 + 1) % len(lons_g)
+    return ((1 - ti) * ((1 - tj) * f[i0, j0] + tj * f[i0, j1])
+            + ti * ((1 - tj) * f[i0 + 1, j0] + tj * f[i0 + 1, j1]))
+
+
+def flow_lower_slabs(slab_tracers, delta_time, p, flow):
+    """Move lower-mantle slablets sideways with a fraction of the plate velocity above them: p.slab_flow_top at
+    upper_mantle_km to p.slab_flow_bottom at the CMB, linear in depth (the same angular rate as that fraction of
+    the plate's).  flow: {'lats', 'lons' (cell centres), 'vel_e', 'vel_n' (km/Myr at the surface; NaN = 0)}."""
+    if flow is None or (p.slab_flow_top == 0 and p.slab_flow_bottom == 0):
+        return slab_tracers
+    lower = (slab_tracers['active'].astype(bool) & (slab_tracers['depth_km'].astype(float) >= p.upper_mantle_km)).values
+    if not lower.any():
+        return slab_tracers
+    s = slab_tracers.loc[lower]
+    lon, lat = s['lon'].values.astype(float), s['lat'].values.astype(float)
+    frac = np.clip((s['depth_km'].values.astype(float) - p.upper_mantle_km) / (p.cmb_depth_km - p.upper_mantle_km), 0, 1)
+    k = p.slab_flow_top + (p.slab_flow_bottom - p.slab_flow_top) * frac
+    ve = k * _grid_bilinear(flow['vel_e'], flow['lats'], flow['lons'], lat, lon)
+    vn = k * _grid_bilinear(flow['vel_n'], flow['lats'], flow['lons'], lat, lon)
+    lon, lat = move_along_azimuth(lon, lat, np.degrees(np.arctan2(ve, vn)), np.hypot(ve, vn) * delta_time,
+                                  SURFACE_RADIUS_KM)
+    slab_tracers.loc[lower, 'lon'] = lon
+    slab_tracers.loc[lower, 'lat'] = lat
+    return slab_tracers
+
+
 def _sample_scale(p):
     """Slablet weight factor: the trench length each slablet stands for, in REF_SAMPLE_DEG (1 without
     p.resolution_independent)."""
@@ -216,7 +297,16 @@ def seed_slabs(slab_tracers, samples, delta_time, p):
     if _dipping(p) and 'downdip_azimuth_deg' in samples:
         for key, col in DIP_COLUMNS.items():
             new[col] = np.asarray(samples[key], dtype=float)
+    if p.slab_age_ref_myr > 0:
+        _add_plate_age(new, samples.get('seafloor_age_myr', np.full(len(new), np.nan)), p)
     return new if len(slab_tracers) == 0 else pd.concat([slab_tracers, new], ignore_index=True)
+
+
+def _add_plate_age(slabs, plate_age, p):
+    """The seafloor age at subduction as column plate_age, and the weight times r^slab_age_weight_exponent."""
+    slabs['plate_age'] = np.asarray(plate_age, float)
+    if p.slab_age_weight_exponent:
+        slabs['weight'] = slabs['weight'].values * _age_ratio(slabs['plate_age'].values, p) ** p.slab_age_weight_exponent
 
 
 def initial_slab_columns(samples, delta_time, p, depth_km=None):
@@ -239,15 +329,23 @@ def initial_slab_columns(samples, delta_time, p, depth_km=None):
     upper_mantle_km, slowing_factor = p.upper_mantle_km, p.slab_slowing_factor
     rate = np.clip(convergence * p.slab_sink_rate_factor, SLAB_FULL_WEIGHT_CONVERGENCE_KM_PER_MYR,
                    p.slab_max_sink_rate)
-    # time for the slab to reach depth_km: upper mantle at rate, lower at rate / slowing_factor
+    # lower-mantle rate: rate / slowing_factor, or the fixed rate (times the seafloor-age factor)
+    if p.slab_lower_rate_km_per_myr > 0 or p.slab_age_ref_myr > 0:
+        probe = pd.DataFrame({'sink_rate_km_per_myr': rate})
+        if p.slab_age_ref_myr > 0:
+            probe['plate_age'] = np.asarray(samples.get('seafloor_age_myr', np.full(len(rate), np.nan)), float)
+        lower_rate = _lower_rate(probe, p)
+    else:
+        lower_rate = rate / slowing_factor
+    # time for the slab to reach depth_km: upper mantle at rate, lower at lower_rate
     upper = min(depth_km, upper_mantle_km)
-    t_end = upper / rate + max(0.0, depth_km - upper_mantle_km) * slowing_factor / rate
+    t_end = upper / rate + max(0.0, depth_km - upper_mantle_km) / lower_rate
     n = np.ceil(t_end / delta_time).astype(int) + 1          # ages 0, dt, ..., >= t_end
     point = np.repeat(np.arange(len(s_lat)), n)
     age = (np.arange(n.sum()) - np.repeat(np.cumsum(n) - n, n)) * delta_time
     r = rate[point]
     t_um = upper_mantle_km / r
-    depth = np.where(age <= t_um, r * age, upper_mantle_km + (age - t_um) * r / slowing_factor)
+    depth = np.where(age <= t_um, r * age, upper_mantle_km + (age - t_um) * lower_rate[point])
     out = pd.DataFrame({
         'lon': s_lon[point], 'lat': s_lat[point],
         'depth_km': np.minimum(depth, depth_km), 'age': age, 'active': True,
@@ -255,6 +353,8 @@ def initial_slab_columns(samples, delta_time, p, depth_km=None):
         'weight': delta_time * np.minimum(1.0, convergence[point] / SLAB_FULL_WEIGHT_CONVERGENCE_KM_PER_MYR)
                   * _sample_scale(p),
         'attached': True})
+    if p.slab_age_ref_myr > 0:
+        _add_plate_age(out, np.asarray(samples.get('seafloor_age_myr', np.full(len(s_lon), np.nan)), float)[point], p)
     if _dipping(p) and 'downdip_azimuth_deg' in samples:
         # where the slablet would be had the trench kept its present velocity and dip: moved
         # down-dip while in the upper mantle; seeded where the trench was age Myr ago and then
@@ -343,11 +443,25 @@ def _check_llsvp(p):
         raise ValueError('llsvp must be one of {}, not {!r}'.format(LLSVP_MODES, p.llsvp))
 
 
+def _tbl_params(p):
+    """The pile parameters for the thin boundary layer (p.tbl_*): a local-drive pile."""
+    import dataclasses
+    return dataclasses.replace(p, pile_mean_thickness_km=p.tbl_thickness_km, pile_drive='local',
+                               pile_mobility_km_per_myr=p.tbl_mobility_km_per_myr,
+                               pile_slab_head_km=p.tbl_slab_head_km, pile_slab_layer_km=p.tbl_slab_layer_km)
+
+
+def _with_tbl(p):
+    return p.llsvp == 'pile' and p.tbl_thickness_km > 0
+
+
 def new_llsvp_state(p):
-    """Start state of the LLSVP model chosen by p.llsvp."""
+    """Start state of the LLSVP model chosen by p.llsvp ({'pile', 'tbl'} with the boundary layer)."""
     _check_llsvp(p)
     if p.llsvp == 'heat':
         return new_cmb_heat(p)
+    if _with_tbl(p):
+        return {'pile': _pile.new_pile(p), 'tbl': _pile.new_pile(_tbl_params(p))}
     if p.llsvp == 'pile':
         return _pile.new_pile(p)
     return None
@@ -358,6 +472,9 @@ def update_llsvp(state, slab_tracers, delta_time, p):
     _check_llsvp(p)
     if p.llsvp == 'heat':
         return update_cmb_heat(state, slab_tracers, delta_time, p)
+    if _with_tbl(p):
+        return {'pile': _pile.update_pile(state['pile'], slab_tracers, delta_time, p),
+                'tbl': _pile.update_pile(state['tbl'], slab_tracers, delta_time, _tbl_params(p))}
     if p.llsvp == 'pile':
         return _pile.update_pile(state, slab_tracers, delta_time, p)
     return None
@@ -416,7 +533,7 @@ def update_cmb_heat(cmb_heat, slab_tracers, delta_time, p):
             coupling = p.cmb_surface_coupling + (1.0 - p.cmb_surface_coupling) * (depths_f / p.cmb_depth_km)
             weights  = p.cmb_slab_suppression * delta_time * coupling * _slab_weights(all_active)
             if p.cmb_suppression_thermal_decay:
-                weights = weights * np.exp(-all_active['age'].values.astype(float) / p.slab_thermal_tau_myr)
+                weights = weights * thermal_fraction(all_active, p)
 
             lon_idx = np.clip(np.floor((lons_f + 180) / spacing_deg).astype(int), 0, nlon - 1)
             lat_idx = np.clip(np.floor((lats_f + 90)  / spacing_deg).astype(int), 0, nlat - 1)
@@ -477,7 +594,49 @@ def _upsample(f, lats_c, lons_c, lats_f, lons_f):
     return a * (1 - ti) + b * ti
 
 
-def dvs_field(slab_tracers, llsvp_state, p):
+def lithosphere_field(thickness_km, lats_g, lons_g, depths_g, depth_interval_km, p):
+    """The lid: +p.lithosphere_dVs % at the surface falling linearly to 0 at the base, averaged over each layer.
+    thickness_km is on any regular cell-centre grid that is a multiple or a fraction of the field grid."""
+    th = np.asarray(thickness_km, float)
+    k = (lats_g[1] - lats_g[0]) * th.shape[0] / 180.0
+    if k > 1.001:                                         # field grid coarser: block mean
+        th = _block_mean(th, np.arange(-90 + 90.0 / th.shape[0], 90, 180.0 / th.shape[0]), k)
+    elif k < 0.999:                                       # finer: repeat
+        r = int(round(1 / k))
+        th = np.repeat(np.repeat(th, r, axis=0), r, axis=1)
+    sub_z = (depths_g[:, None] + depth_interval_km * (np.arange(10) + 0.5)[None, :] / 10 - depth_interval_km / 2)
+    frac = np.clip(1.0 - sub_z[:, :, None, None] / np.maximum(th, 1.0)[None, None], 0.0, 1.0).mean(axis=1)
+    return p.lithosphere_dVs * frac
+
+
+def plume_sources(h, p):
+    """Plume sources: lon, lat and strength (thickness / maximum) of the local maxima of the hot layer h (model
+    grid) within p.plume_spacing_deg, where it is thicker than p.plume_min_fraction of its maximum."""
+    from scipy.ndimage import maximum_filter
+    lons_c, lats_c = mantle_grid(p.mantle_grid_spacing_deg)
+    hmax = float(h.max())
+    if hmax <= 0:
+        return np.zeros(0), np.zeros(0), np.zeros(0)
+    size = max(3, int(round(p.plume_spacing_deg / p.mantle_grid_spacing_deg)) | 1)
+    peak = (h == maximum_filter(h, size=size, mode=('nearest', 'wrap'))) & (h > p.plume_min_fraction * hmax)
+    i, j = np.nonzero(peak)
+    return lons_c[j], lats_c[i], h[i, j] / hmax
+
+
+def plume_field(plumes, lats_g, lons_g, depths_g, p):
+    """Vertical conduits: p.plume_dVs x strength x exp(-d^2 / 2 sigma^2) (d: great-circle distance from the axis;
+    the strongest conduit where they overlap) at depths from p.plume_top_km down."""
+    lon, lat, strength = plumes
+    lo, la = np.meshgrid(lons_g, lats_g)
+    cell = lonlat_to_xyz(lo.ravel(), la.ravel())
+    axis = lonlat_to_xyz(np.asarray(lon, float), np.asarray(lat, float))
+    d = np.degrees(np.arccos(np.clip(cell @ axis.T, -1.0, 1.0)))
+    amp = (p.plume_dVs * strength[None, :] * np.exp(-0.5 * (d / p.plume_sigma_deg) ** 2)).min(axis=1)
+    layer = (depths_g >= p.plume_top_km).astype(float)
+    return layer[:, None, None] * amp.reshape(la.shape)[None]
+
+
+def dvs_field(slab_tracers, llsvp_state, p, lithosphere_km=None):
     """Bin slab tracers onto a 3D grid and return a dVs/Vs anomaly Dataset.
 
     Each slablet contributes a cold temperature anomaly (p.slab_temp_anomaly_K × its
@@ -542,7 +701,7 @@ def dvs_field(slab_tracers, llsvp_state, p):
             lats_f   = active['lat'].values.astype(float)
             depths_f = active['depth_km'].values.astype(float)
 
-            dT  = p.slab_temp_anomaly_K * np.exp(-ages_f / p.slab_thermal_tau_myr) * _slab_weights(active)
+            dT  = p.slab_temp_anomaly_K * thermal_fraction(active, p) * _slab_weights(active)
             dVs = dT * p.slab_dVs_per_K
 
             lon_idx = np.clip(
@@ -583,9 +742,15 @@ def dvs_field(slab_tracers, llsvp_state, p):
 
     if fine and cmb_heat is not None:
         cmb_heat = _upsample(cmb_heat, lats_c, lons_c, lats_g, lons_g)
+    tbl_h = None
+    if isinstance(llsvp_state, dict):
+        llsvp_state, tbl_h = llsvp_state['pile'], llsvp_state['tbl']
     pile_h = llsvp_state if p.llsvp == 'pile' else None
+    plumes = plume_sources(tbl_h if tbl_h is not None else pile_h, p) if p.plume_dVs < 0 and pile_h is not None else None
     if fine and pile_h is not None:
         pile_h = _upsample(pile_h, lats_c, lons_c, lats_g, lons_g)
+    if fine and tbl_h is not None:
+        tbl_h = _upsample(tbl_h, lats_c, lons_c, lats_g, lons_g)
 
     # Inject LLSVP-like warm anomaly from CMB heat accumulation.
     # Iterate deepest→shallowest; break once decay becomes negligible.
@@ -611,6 +776,21 @@ def dvs_field(slab_tracers, llsvp_state, p):
             strength = np.clip(pile_h / p.pile_halo_h_km, 0.0, 1.0)
             field += np.where(depths_g[:, None, None] < top[None, :, :],
                               p.pile_halo_dVs * strength[None, :, :] * np.exp(-above / p.pile_halo_km), 0.0)
+    if tbl_h is not None:                      # the boundary layer, on top of the pile
+        both = pile_h + tbl_h
+        field += p.tbl_dVs * (_pile.pile_layer_fractions(both, depths_g, depth_interval_km, max_depth_km)
+                              - _pile.pile_layer_fractions(pile_h, depths_g, depth_interval_km, max_depth_km))
+        if p.tbl_halo_km > 0:
+            top = max_depth_km - both
+            above = np.clip(top[None, :, :] - depths_g[:, None, None], 0.0, None)
+            strength = np.clip(tbl_h / max(p.tbl_thickness_km, 1e-9), 0.0, 1.0)
+            field += np.where(depths_g[:, None, None] < top[None, :, :],
+                              p.tbl_dVs * strength[None, :, :] * np.exp(-above / p.tbl_halo_km), 0.0)
+    if plumes is not None and len(plumes[0]):
+        field += plume_field(plumes, lats_g, lons_g, depths_g, p)
+
+    if p.lithosphere_dVs > 0 and lithosphere_km is not None:
+        field += lithosphere_field(lithosphere_km, lats_g, lons_g, depths_g, depth_interval_km, p)
 
     field = _remove_area_weighted_mean(field, lats_g)
     native = None
@@ -641,6 +821,13 @@ def dvs_field(slab_tracers, llsvp_state, p):
             coords={'lat': lats_g, 'lon': lons_g},
             attrs={'units': 'heat units',
                    'long_name': 'CMB heat accumulation (proxy for LLSVP intensity)'})
+    if tbl_h is not None:
+        data_vars['tbl_thickness_km'] = xr.DataArray(
+            tbl_h, dims=['lat', 'lon'], coords={'lat': lats_g, 'lon': lons_g},
+            attrs={'units': 'km', 'long_name': 'thickness of the thin hot boundary layer on top of the pile'})
+    if plumes is not None:
+        data_vars['plume_lon'] = xr.DataArray(plumes[0], dims=['plume'])
+        data_vars['plume_lat'] = xr.DataArray(plumes[1], dims=['plume'])
     if pile_h is not None:
         data_vars['pile_thickness_km'] = xr.DataArray(
             pile_h, dims=['lat', 'lon'], coords={'lat': lats_g, 'lon': lons_g},
