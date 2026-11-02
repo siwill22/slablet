@@ -23,7 +23,6 @@ import contextlib
 import copy
 import io
 import shutil
-import sys
 from concurrent.futures import ProcessPoolExecutor
 
 import numpy as np
@@ -33,6 +32,7 @@ import yaml
 
 from slablet.paths import WORK
 
+from slablet.gplates.models import set_rotation_files
 from slablet.analysis import sweep                                  # noqa: E402
 from slablet.analysis import tomography_score as ts                 # noqa: E402
 from slablet.frame.fit_frame import START_FILES, S4, set_value, tomo_set   # noqa: E402
@@ -65,7 +65,7 @@ def _init(cfg, ceil):
 def score(fr):
     cfg = copy.deepcopy(_CFG['cfg'])
     if fr['nodes'] is None:
-        cfg['rotation_files'] = [fr['source']]
+        set_rotation_files(cfg, [fr['source']])
     else:
         cfg['frame_africa'] = {'nodes': fr['nodes']}
     cfg['output_dir'] = os.path.join(_CFG['cfg']['output_dir'], 'tmp', fr['frame'])

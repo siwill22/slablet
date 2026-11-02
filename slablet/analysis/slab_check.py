@@ -18,7 +18,6 @@ Distances are great-circle distances on the sphere (km at the surface radius).
 """
 import argparse
 import os
-import sys
 
 import numpy as np
 import pandas as pd
@@ -80,9 +79,7 @@ def check(slabs, trench_lon, trench_lat, slab1=None):
 
 def present_trenches(cfg):
     p_sample = cfg.get('mantle', {}).get('slab_sample_deg', 1.0)
-    t = CachedTrenchSamples(cfg['model_dir'], cfg['rotation_files'], cfg['topology_files'], cfg['name'],
-                            os.path.join(WORK, cfg['cache_dir']), sample_deg=p_sample,
-                            anchor_plate_id=int(cfg.get('anchor_plate_id', 0))).samples(float(cfg['end_ma']))
+    t = CachedTrenchSamples.for_config(cfg, p_sample).samples(float(cfg['end_ma']))
     return t['lon'], t['lat']
 
 

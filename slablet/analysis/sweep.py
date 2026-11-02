@@ -43,7 +43,6 @@ import contextlib
 import copy
 import io
 import json
-import sys
 import time
 from concurrent.futures import ProcessPoolExecutor, as_completed
 

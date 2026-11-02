@@ -28,7 +28,6 @@ import glob
 import io
 import json
 import resource
-import sys
 import time
 from concurrent.futures import ProcessPoolExecutor
 

@@ -13,11 +13,10 @@
 #   conda run -n pygmt17 python -m slablet.gplates.seafloor_tracker configs/muller2022_refined.yaml   # once
 #   conda run -n pygmt17 python -m slablet.gplates.run_mantle configs/muller2022_refined.yaml
 name: muller2022
-model_dir: /Users/simon/Library/Caches/gprm/Muller2022
-rotation_files:
-- optimisation/1000_0_rotfile_MantleOpt.rot
-topology_files:
-- Topologies/*.gpml
+reconstruction:                 # slablet/gplates/models.py: gprm, plate_model_manager or files
+  source: gprm
+  model: Muller2022             # gprm.fetch_Muller2022(): the optimised mantle frame (anchor 0)
+  craton_files: [Cratons/*.gpml]   # gprm has no cratons; this is in the same download
 anchor_plate_id: 0
 start_ma: 1000
 end_ma: 0

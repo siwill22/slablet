@@ -15,7 +15,6 @@ the oldest node C is held at its value there, so the frame is continuous and old
 """
 import argparse
 import os
-import sys
 
 import numpy as np
 import pygplates

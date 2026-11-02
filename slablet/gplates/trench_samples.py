@@ -10,7 +10,7 @@ The positions are in the frame of anchor_plate_id.  Slablets sink vertically in 
 frame, so it must be a mantle frame (fixed to the deep mantle), not a palaeomagnetic
 frame fixed to the spin axis.  Model folders often hold several rotation files for
 different frames (Müller et al. 2022: palaeomagnetic, optimised mantle, no-net-rotation),
-so the files are always listed explicitly (glob patterns relative to the model folder),
+so the files always come from the run config's reconstruction block (slablet.gplates.models),
 never discovered.
 
 Resolving topologies is most of the cost of a mantle run (about 90 ms per Myr for
@@ -18,26 +18,11 @@ Müller et al. 2019), so samples are cached as one .npz per time, under
 cache_dir/<model name>-<hash of the files used>/anchor<id>_s<sample_deg>_v2/ (v2: with the
 down-dip azimuth and trench velocity; the v1 folders hold only the three required keys).
 """
-import glob
 import hashlib
 import os
 
 import numpy as np
 import pygplates
-
-
-def model_files(model_dir, rotation_patterns, topology_patterns):
-    """The rotation and topology files matching the patterns (relative to model_dir).
-    Every pattern must match at least one file."""
-    def _find(patterns):
-        found = []
-        for pat in patterns:
-            hits = sorted(glob.glob(os.path.join(model_dir, pat)))
-            if not hits:
-                raise SystemExit('no file matches {} in {}'.format(pat, model_dir))
-            found += hits
-        return found
-    return _find(rotation_patterns), _find(topology_patterns)
 
 
 def load_model(rotation_files, topology_files):
@@ -106,15 +91,23 @@ class CachedTrenchSamples:
     """samples(time_ma) from the cache, resolving the model (once, on first need) only
     for the times that are not cached yet."""
 
-    def __init__(self, model_dir, rotation_files, topology_files, name, cache_dir,
-                 sample_deg=1.0, anchor_plate_id=0):
-        self.files = model_files(model_dir, rotation_files, topology_files)
+    def __init__(self, recon, name, cache_dir, sample_deg=1.0, anchor_plate_id=0):
+        """recon: a slablet.gplates.models.Reconstruction."""
+        self.files = (recon.rotation_files, recon.topology_files)
         self.sample_deg, self.anchor_plate_id = sample_deg, anchor_plate_id
-        self.folder = os.path.join(cache_dir, '{}-{}'.format(name, _model_key(model_dir, sum(self.files, []))),
+        self.folder = os.path.join(cache_dir, '{}-{}'.format(name, _model_key(recon.model_dir, sum(self.files, []))),
                                    'anchor{}_s{:g}_v2'.format(anchor_plate_id, sample_deg))
         os.makedirs(self.folder, exist_ok=True)
         self._model = None
         self.n_resolved = 0
+
+    @classmethod
+    def for_config(cls, cfg, sample_deg=1.0):
+        """The cache for a run config (name, cache_dir, anchor_plate_id and its reconstruction)."""
+        from slablet.gplates.models import load
+        from slablet.paths import WORK
+        return cls(load(cfg), cfg['name'], os.path.join(WORK, cfg['cache_dir']), sample_deg=sample_deg,
+                   anchor_plate_id=int(cfg.get('anchor_plate_id', 0)))
 
     def samples(self, time_ma):
         path = os.path.join(self.folder, 't{:09.3f}.npz'.format(float(time_ma)))

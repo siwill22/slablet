@@ -44,7 +44,6 @@ import contextlib
 import copy
 import io
 import shutil
-import sys
 import time
 from concurrent.futures import ProcessPoolExecutor
 

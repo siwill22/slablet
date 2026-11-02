@@ -2,7 +2,8 @@
 
     thickness_km(cfg, age)  ->  (180, 360) array, lat ascending from -89.5, lon from -179.5
 
-Continents and cratons are the reconstruction's own polygons (Müller 2022: Continents/shapes_continents.gpml and
+Continents and cratons are the reconstruction's own polygons (continent_files and craton_files of the run config's
+reconstruction, slablet/gplates/models.py; Müller 2022: Continents/shapes_continents.gpml and
 Cratons/shapes_cratons_Merdith_etal.gpml), reconstructed to the age and tested cell by cell (pygplates
 PlatePartitioner).  Oceans take the tracked seafloor age (slablet/gplates/seafloor_tracker.py, the nearest 10 Myr):
     ocean      OCEAN_KM_PER_SQRT_MYR x sqrt(age), at most OCEAN_MAX_KM (age unknown: DEFAULT_OCEAN_AGE_MYR)
@@ -11,14 +12,12 @@ PlatePartitioner).  Oceans take the tracked seafloor age (slablet/gplates/seaflo
 These are round Earth-like values for the shape of the field, not fitted.  Cached as
 <seafloor cache>/../lithosphere_v1/t<age>.npz.
 """
-import glob
 import os
-import sys
 
 import numpy as np
 import pygplates
 
-from slablet.paths import WORK
+from slablet.gplates.models import load as load_reconstruction             # noqa: E402
 from slablet.gplates.seafloor_tracker import GRID_EVERY_MYR, SeafloorCache   # noqa: E402
 
 OCEAN_KM_PER_SQRT_MYR = 10.0
@@ -26,7 +25,6 @@ OCEAN_MAX_KM = 100.0
 DEFAULT_OCEAN_AGE_MYR = 60.0
 CONTINENT_KM = 150.0
 CRATON_KM = 250.0
-POLYGONS = {'continent': 'Continents/*.gpml', 'craton': 'Cratons/*.gpml'}
 LATS = np.arange(-89.5, 90, 1.0)
 LONS = np.arange(-179.5, 180, 1.0)
 _MODEL = {}
@@ -34,10 +32,18 @@ _MODEL = {}
 
 def _masks(cfg, age):
     if 'rm' not in _MODEL:
-        files = sorted(sum([glob.glob(os.path.join(cfg['model_dir'], f)) for f in cfg['rotation_files']], []))
-        _MODEL['rm'] = pygplates.RotationModel(files, default_anchor_plate_id=int(cfg.get('anchor_plate_id', 0)))
-        _MODEL['polys'] = {k: pygplates.FeatureCollection(sorted(glob.glob(os.path.join(cfg['model_dir'], v)))[0])
-                           for k, v in POLYGONS.items()}
+        recon = load_reconstruction(cfg)
+        _MODEL['rm'] = pygplates.RotationModel(sorted(recon.rotation_files),
+                                               default_anchor_plate_id=int(cfg.get('anchor_plate_id', 0)))
+        _MODEL['polys'] = {}
+        for k, files in (('continent', recon.continent_files), ('craton', recon.craton_files)):
+            if files is None:
+                raise SystemExit('{}: no {} polygons for the lithosphere lid; give {}_files in the reconstruction '
+                                 'block ([] for none)'.format(recon.label, k, k))
+            fc = pygplates.FeatureCollection()
+            for f in files:
+                fc.add(pygplates.FeatureCollection(f))
+            _MODEL['polys'][k] = fc
         lo, la = np.meshgrid(LONS, LATS)
         _MODEL['points'] = [pygplates.PointOnSphere(float(a), float(b)) for a, b in zip(la.ravel(), lo.ravel())]
     out = {}

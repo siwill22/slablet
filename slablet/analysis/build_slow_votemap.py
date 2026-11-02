@@ -17,7 +17,6 @@ Output: runs_real/votemaps/<name>.nc (default slow_votes_S), variables votes (de
 import glob
 import os
 import re
-import sys
 
 import numpy as np
 import xarray as xr

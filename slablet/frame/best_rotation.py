@@ -17,7 +17,6 @@ senses) x ANGLES_DEG, plus no rotation.  Output: one row per rotation, tomograph
 """
 import argparse
 import os
-import sys
 from concurrent.futures import ProcessPoolExecutor
 
 import numpy as np

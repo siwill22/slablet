@@ -21,7 +21,6 @@ Distances are great-circle distances on a sphere of radius 6371 km.
 """
 import argparse
 import os
-import sys
 import time
 
 import numpy as np
@@ -29,7 +28,6 @@ import pygplates
 import yaml
 from scipy.spatial import cKDTree
 
-from slablet.paths import WORK
 from slablet.gplates.trench_samples import CachedTrenchSamples        # noqa: E402
 
 SEED_DEG = 1.0
@@ -130,9 +128,7 @@ def age_grid(tree, ages):
 
 
 def folder_for(cfg, sample_deg=1.0):
-    trenches = CachedTrenchSamples(cfg['model_dir'], cfg['rotation_files'], cfg['topology_files'], cfg['name'],
-                                   os.path.join(WORK, cfg['cache_dir']), sample_deg=sample_deg,
-                                   anchor_plate_id=int(cfg.get('anchor_plate_id', 0)))
+    trenches = CachedTrenchSamples.for_config(cfg, sample_deg)
     return trenches, os.path.join(trenches.folder, VERSION)
 
 

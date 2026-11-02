@@ -8,8 +8,9 @@ give the dVs field, exactly as in a PlateDriver run (same mantle code, same para
 names).  Time runs from start_ma down to end_ma (ages in Ma; present day = 0).
 
 Config keys (see configs/muller2022.yaml):
-    name, model_dir, rotation_files, topology_files (glob patterns relative to model_dir),
-    anchor_plate_id, start_ma, end_ma, delta_time, output_every_myr,
+    name, reconstruction (which model and files: see slablet/gplates/models.py; gprm,
+    plate_model_manager or explicit files; or the original top-level model_dir, rotation_files,
+    topology_files), anchor_plate_id, start_ma, end_ma, delta_time, output_every_myr,
     output_dir, cache_dir, initial_slabs (columns | none), mantle: {MantleParams keys},
     frame_lon_offset_deg, frame_lon_drift_deg_per_myr (optional, default 0: every trench sample
         is rotated about the spin axis by offset + drift x age degrees, east positive; a test of
@@ -34,12 +35,12 @@ Outputs in output_dir:
     mantle_temp_<age>Ma.nc   dVs (and cmb_heat or pile_thickness_km), with age_ma and the model as attributes
     steps.csv                one row per step: trench samples, trench length, slablets, seconds
     slabs_upper_mantle_<end>Ma.npz   the slablets above 700 km at the end (lon, lat, depth_km, age, weight)
-    run_info.yaml            the config as run, with the full mantle parameters
+    run_info.yaml            the config as run, with the full mantle parameters, the files the
+                             reconstruction resolved to and the slablet version
 """
 import argparse
 import dataclasses
 import os
-import sys
 import time
 
 import numpy as np
@@ -50,6 +51,7 @@ import yaml
 from slablet.paths import WORK
 
 import slablet                                                    # noqa: E402
+from slablet.gplates.models import load as load_reconstruction  # noqa: E402
 from slablet.gplates.trench_samples import CachedTrenchSamples   # noqa: E402
 
 KM_PER_DEG = np.radians(1.0) * 6371.0
@@ -129,13 +131,17 @@ def run(cfg, verbose=True):
     every = float(cfg.get('output_every_myr', 10.0))
     out_dir = os.path.join(WORK, cfg['output_dir'])
     os.makedirs(out_dir, exist_ok=True)
-    trenches = CachedTrenchSamples(cfg['model_dir'], cfg['rotation_files'], cfg['topology_files'],
-                                   cfg['name'], os.path.join(WORK, cfg['cache_dir']),
+    recon = load_reconstruction(cfg)
+    if recon.frame == 'unknown' and verbose:
+        print('{}: the anchor plate\'s frame is not recorded ({}); slablets assume it is fixed to the mantle'.format(
+            recon.label, recon.frame_note))
+    trenches = CachedTrenchSamples(recon, cfg['name'], os.path.join(WORK, cfg['cache_dir']),
                                    sample_deg=p.slab_sample_deg,
                                    anchor_plate_id=int(cfg.get('anchor_plate_id', 0)))
 
     with open(os.path.join(out_dir, 'run_info.yaml'), 'w') as f:
-        yaml.safe_dump({**cfg, 'mantle': dataclasses.asdict(p)}, f, sort_keys=False)
+        yaml.safe_dump({**cfg, 'mantle': dataclasses.asdict(p), 'reconstruction_resolved': recon.summary(),
+                        'slablet': slablet.version_info()}, f, sort_keys=False)
 
     def save(age):
         lith = None
@@ -155,7 +161,7 @@ def run(cfg, verbose=True):
     fa = cfg.get('frame_africa')
     if fa:
         africa_new = africa_frame({float(k): v for k, v in fa['nodes'].items()})
-        file_model = pygplates.RotationModel(trenches.files[0])
+        file_model = pygplates.RotationModel(recon.rotation_files)
         anchor = int(cfg.get('anchor_plate_id', 0))
 
     seafloor = None

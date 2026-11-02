@@ -14,3 +14,24 @@ from .core import (SLAB_COLUMNS, SLAB_FULL_WEIGHT_CONVERGENCE_KM_PER_MYR, empty_
                    sink_slabs, seed_slabs, initial_slab_columns, slab_depth_near,
                    mantle_grid, new_cmb_heat, update_cmb_heat, dvs_field,
                    LLSVP_MODES, new_llsvp_state, update_llsvp)
+
+__version__ = '0.1.0'
+
+
+def version_info():
+    """slablet's version and, for a git checkout, its commit (with '-dirty' if it has
+    uncommitted changes): recorded with every run so results can be traced to the code."""
+    import os
+    import subprocess
+    here = os.path.dirname(os.path.abspath(__file__))
+    info = {'version': __version__}
+    try:
+        git = ['git', '-C', here]
+        commit = subprocess.run(git + ['rev-parse', '--short', 'HEAD'], capture_output=True, text=True,
+                                check=True).stdout.strip()
+        dirty = subprocess.run(git + ['status', '--porcelain', '--untracked-files=no'], capture_output=True,
+                               text=True, check=True).stdout.strip()
+        info['git'] = commit + ('-dirty' if dirty else '')
+    except (OSError, subprocess.CalledProcessError):
+        pass
+    return info

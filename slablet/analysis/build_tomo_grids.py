@@ -8,7 +8,6 @@ area-weighted layer mean.  Writes runs_real/tomo_grids/<name>.nc with vs_anomaly
 units differ between models, which does not matter to the scores (area-fraction regions and correlations).
 """
 import os
-import sys
 
 import numpy as np
 import xarray as xr

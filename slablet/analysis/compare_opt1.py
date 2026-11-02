@@ -27,7 +27,6 @@ os.environ.setdefault('OMP_NUM_THREADS', '1')
 os.environ.setdefault('OPENBLAS_NUM_THREADS', '1')
 
 import argparse
-import sys
 from concurrent.futures import ProcessPoolExecutor
 
 import numpy as np
