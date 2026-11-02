@@ -36,6 +36,13 @@ run pd-opt1-best $R/sweeps_opt1/o1_halo_profile/s2_tau100 "PlateDriver mantle: O
 run pd-opt1-sharp $R/sweeps_opt1/o1_halo_profile/s2_tau100_halo300_sharp "PlateDriver mantle: OPT1-tuned, halo 300 km, no blur" \
   "PlateDriver kinematic mantle, sweep o1_halo_profile variant s2_tau100_halo300_sharp, Muller 2022 optimised frame"
 
+# the slab-width-profile run, before the tomography blur (dVs_native), at its native 1 deg (as nodes)
+$PY prep/prep_convection.py --input $R/muller2022_dip_pile_sharp --volume-var dVs_native --age-regex '_(\d+)Ma' \
+  --age-max 1000 --id pd-dip-pile-sharp --name "PlateDriver mantle: dip + pile, sharp slabs (1 deg)" \
+  --source "PlateDriver kinematic mantle (configs/real/muller2022_dip_pile_sharp.yaml, dVs_native), Muller 2022 optimised frame" \
+  --var-id vs --var-name "dVs (kinematic model)" --units % --high-means fast --colormap RdBu \
+  --nlon 360 --nlat 181 --ndepth 29 --default-clip -3 3 --out $A --validate
+
 # OPT1, 0-1000 Ma every 20 Myr, at Geode's standard 1 deg x 192 depths
 $PY prep/prep_convection.py --input $HOME/Data/zenodo/OPT1_temperature_anomaly_grids_dimensional --id opt1 \
   --name "Muller 2022 OPT1" --age-max 1000 --out $A --validate \

@@ -49,8 +49,17 @@ class MantleParams:
     slab_sigma_depth_km: float = 150.0      # vertical smoothing of the slab field
     slab_sigma_lower_deg: float = 0.0       # > 0: horizontal smoothing of the slab field below upper_mantle_km
                                             # instead of slab_sigma_deg (slabs thicken and fold there; 0: same)
+    slab_sigma_cmb_deg: float = 0.0         # > 0: slab width profile -- slab_sigma_deg above upper_mantle_km, then
+                                            # slab_sigma_lower_deg (or slab_sigma_deg) just below it, growing
+                                            # linearly to this at the CMB; also the slab load's smoothing (0: off)
+    slab_sigma_depth_upper_km: float = -1.0 # >= 0 (with the profile): vertical smoothing above upper_mantle_km
+                                            # (< 0: slab_sigma_depth_km everywhere)
     tomo_smooth_horiz_deg: float = 0.0      # optional blur of the final field (0 = off)
     tomo_smooth_depth_km: float = 0.0
+    mantle_field_spacing_deg: float = 0.0   # > 0: draw the dVs field on this finer grid (must divide
+                                            # mantle_grid_spacing_deg); the pile and slab load stay on the
+                                            # coarse grid and are interpolated up (0: the same grid)
+    dvs_save_native: bool = False           # True: also write the field before the tomography blur, as dVs_native
     mantle_bin_area_normalise: bool = False  # True: divide each lon/lat cell's binned slab sum by the
                                              # cell's area relative to an equatorial cell, so a slab
                                              # counts the same at every latitude (False: a slab at 60°

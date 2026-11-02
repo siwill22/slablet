@@ -314,3 +314,50 @@ def test_slabs_on_the_cmb_spread_away_from_the_slab_pile_and_shallower_ones_do_n
     assert (m.lon.values == 32.5).all()                              # the mid-mantle slab is untouched
     still = mantle.sink_slabs(deep, 5.0, mantle.MantleParams(slab_at_cmb='rest', slab_thermal_tau_myr=1e9))
     np.testing.assert_array_equal(still.lon.values, deep.lon.values)  # off by default
+
+
+def test_slab_width_profile_is_narrow_above_660_and_widens_to_the_cmb():
+    p = mantle.MantleParams(slab_sigma_deg=0.75, slab_sigma_lower_deg=2.0, slab_sigma_cmb_deg=3.5)
+    sig = mantle.core.slab_sigma_profile(np.array([150.0, 650.0, 700.0, 1780.0, 2890.0]), p)
+    np.testing.assert_allclose(sig, [0.75, 0.75, 2.0, 2.75, 3.5], atol=0.03)
+
+
+def test_block_mean_and_upsample_round_trip_a_smooth_field():
+    lons_f, lats_f = mantle.mantle_grid(1.0)
+    lons_c, lats_c = mantle.mantle_grid(5.0)
+    lon, lat = np.meshgrid(np.radians(lons_f), np.radians(lats_f))
+    f = np.cos(lat) ** 2 * np.cos(2 * lon)                          # degree 2
+    c = mantle.core._block_mean(f, lats_f, 5)
+    assert c.shape == (len(lats_c), len(lons_c))
+    back = mantle.core._upsample(c, lats_c, lons_c, lats_f, lons_f)
+    assert np.abs(back - f)[np.abs(lats_f) < 80].max() < 0.02
+
+
+def test_fine_field_keeps_the_slab_and_narrows_it_in_the_upper_mantle():
+    coarse = mantle.MantleParams(slab_thermal_tau_myr=1e9, mantle_bin_area_normalise=True)
+    fine = mantle.MantleParams(slab_thermal_tau_myr=1e9, mantle_bin_area_normalise=True, mantle_field_spacing_deg=1.0,
+                               slab_sigma_deg=0.75, slab_sigma_lower_deg=2.0, slab_sigma_cmb_deg=3.5,
+                               tomo_smooth_horiz_deg=5.0, dvs_save_native=True)
+    slab = _ns_slab(0.0, depth_km=350.0)
+    widths = {}
+    for name, p in (('coarse', coarse), ('fine', fine)):
+        ds = mantle.dvs_field(slab, None, p)
+        f = ds['dVs_native' if name == 'fine' else 'dVs'].sel(depth=350).values
+        f = f - np.median(f)                                         # undo the zero-mean shift
+        eq = f[np.abs(ds.lat.values) < 5].mean(axis=0)
+        widths[name] = (eq > 0.5 * eq.max()).sum() * (ds.lon.values[1] - ds.lon.values[0])   # degrees above half max
+        if name == 'fine':
+            assert 'dVs' in ds and ds.dVs.shape == ds.dVs_native.shape == (29, 180, 360)
+    assert widths['fine'] < 0.5 * widths['coarse']
+
+
+def test_fine_field_has_the_same_integrated_slab_anomaly_as_the_model_grid():
+    base = dict(slab_thermal_tau_myr=1e9, mantle_bin_area_normalise=True, slab_sigma_deg=3.0)
+    out = {}
+    for name, extra in (('coarse', {}), ('fine', {'mantle_field_spacing_deg': 1.0})):
+        ds = mantle.dvs_field(_ns_slab(0.0, depth_km=1050.0), None, mantle.MantleParams(**base, **extra))
+        f = ds.dVs.sel(depth=1050).values.astype(float)
+        f = f - np.median(f)
+        cell = np.radians(ds.lon.values[1] - ds.lon.values[0]) ** 2 * np.cos(np.radians(ds.lat.values))[:, None]
+        out[name] = (f * cell).sum()
+    assert out['fine'] == pytest.approx(out['coarse'], rel=0.05)

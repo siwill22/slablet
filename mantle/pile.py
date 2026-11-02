@@ -63,7 +63,8 @@ def new_pile(p):
 
 def slab_load(slab_tracers, p):
     """L: thermally weighted slab load in the bottom p.pile_slab_layer_km, per square
-    degree of equatorial area, smoothed with p.slab_sigma_deg."""
+    degree of equatorial area, smoothed with p.slab_sigma_deg (p.slab_sigma_cmb_deg when the
+    slab width profile is on)."""
     lons, lats, _ = _grid(p)
     load = np.zeros((len(lats), len(lons)))
     if len(slab_tracers):
@@ -76,7 +77,9 @@ def slab_load(slab_tracers, p):
             j = np.clip(np.floor((s['lon'].values.astype(float) + 180) / spacing).astype(int), 0, len(lons) - 1)
             np.add.at(load, (i, j), w)
             load /= spacing ** 2 * np.cos(np.radians(lats))[:, None]
-    return spherical_gaussian_smooth(load, lats, lons, p.slab_sigma_deg)
+    # with the slab width profile on, the load is as wide as slabs are at the CMB
+    sigma = p.slab_sigma_cmb_deg if p.slab_sigma_cmb_deg > 0 else p.slab_sigma_deg
+    return spherical_gaussian_smooth(load, lats, lons, sigma)
 
 
 PILE_DRIVES = ('local', 'flow')

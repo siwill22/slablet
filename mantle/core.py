@@ -415,6 +415,48 @@ def _remove_area_weighted_mean(field, lats):
     return field - means[:, None, None]
 
 
+# On a fine field grid, horizontal kernels at least this fraction of the coarse grid spacing are
+# applied on the coarse grid and interpolated up (dvs_field): a fine-grid kernel that wide is huge.
+_COARSE_PATH_FRACTION = 0.4
+
+
+def slab_sigma_profile(depths, p):
+    """Horizontal slab smoothing (great-circle degrees) at each depth for the slab width profile
+    (p.slab_sigma_cmb_deg > 0): p.slab_sigma_deg above p.upper_mantle_km; below it from
+    p.slab_sigma_lower_deg (or p.slab_sigma_deg) growing linearly to p.slab_sigma_cmb_deg at the
+    CMB.  Rounded to 0.05 degrees so that layers share smoothing kernels."""
+    lower0 = p.slab_sigma_lower_deg if p.slab_sigma_lower_deg > 0 else p.slab_sigma_deg
+    frac = np.clip((np.asarray(depths, float) - p.upper_mantle_km) / (p.cmb_depth_km - p.upper_mantle_km), 0.0, 1.0)
+    sig = np.where(np.asarray(depths) < p.upper_mantle_km, p.slab_sigma_deg,
+                   lower0 + (p.slab_sigma_cmb_deg - lower0) * frac)
+    return np.round(sig / 0.05) * 0.05
+
+
+def _block_mean(f, lats_f, k):
+    """(..., nlat, nlon) on a fine grid -> the coarse grid k times wider (cos-latitude weights)."""
+    k = int(round(k))
+    w = np.cos(np.radians(lats_f))[:, None] * np.ones(f.shape[-1])
+    sh = f.shape[:-2] + (f.shape[-2] // k, k, f.shape[-1] // k, k)
+    num = (f * w).reshape(sh).sum(axis=(-3, -1))
+    return num / w.reshape(sh[-4:]).sum(axis=(-3, -1))
+
+
+def _upsample(f, lats_c, lons_c, lats_f, lons_f):
+    """Bilinear interpolation between coarse cell centres onto fine ones, wrapping in longitude
+    and holding the outermost coarse row towards the poles.  f is (..., nlat_c, nlon_c)."""
+    dc = lats_c[1] - lats_c[0]
+    fi = np.clip((lats_f - lats_c[0]) / dc, 0.0, len(lats_c) - 1.0)
+    i0 = np.minimum(np.floor(fi).astype(int), len(lats_c) - 2)
+    ti = (fi - i0)[:, None]
+    fj = (lons_f - lons_c[0]) / dc
+    j0 = np.floor(fj).astype(int)
+    tj = (fj - j0)[None, :]
+    j0, j1 = j0 % len(lons_c), (j0 + 1) % len(lons_c)
+    a = f[..., i0, :][..., j0] * (1 - tj) + f[..., i0, :][..., j1] * tj
+    b = f[..., i0 + 1, :][..., j0] * (1 - tj) + f[..., i0 + 1, :][..., j1] * tj
+    return a * (1 - ti) + b * ti
+
+
 def dvs_field(slab_tracers, llsvp_state, p):
     """Bin slab tracers onto a 3D grid and return a dVs/Vs anomaly Dataset.
 
@@ -433,6 +475,13 @@ def dvs_field(slab_tracers, llsvp_state, p):
             the pile top, decaying upward as exp(-height / p.pile_halo_km);
       none  nothing is added (llsvp_state is None).
 
+    Slab width: one horizontal smoothing (p.slab_sigma_deg), or p.slab_sigma_lower_deg below the
+    upper mantle, or with p.slab_sigma_cmb_deg > 0 a profile (slab_sigma_profile): narrow slabs above
+    p.upper_mantle_km, widening with depth below it.  With p.mantle_field_spacing_deg the field is drawn
+    on that finer grid (float32); the LLSVP state stays on the model grid and is interpolated up, and
+    kernels wider than _COARSE_PATH_FRACTION of the model grid are applied on the model grid.  With
+    p.dvs_save_native the field before the tomography blur is also returned, as dVs_native.
+
     Each depth layer has zero area-weighted mean, like tomography models.
     Returns xr.Dataset with variables 'dVs' and 'cmb_heat' (heat) or 'pile_thickness_km'
     (pile) (dims: depth, lat, lon).
@@ -441,15 +490,26 @@ def dvs_field(slab_tracers, llsvp_state, p):
     cmb_heat = llsvp_state if p.llsvp == 'heat' else None
     from scipy.ndimage import gaussian_filter1d
 
-    spacing_deg, depth_interval_km = p.mantle_grid_spacing_deg, p.mantle_depth_interval_km
+    coarse_deg, depth_interval_km = p.mantle_grid_spacing_deg, p.mantle_depth_interval_km
+    fine = 0 < p.mantle_field_spacing_deg < coarse_deg
+    spacing_deg = p.mantle_field_spacing_deg if fine else coarse_deg
     max_depth_km = p.cmb_depth_km
     lons_g, lats_g = mantle_grid(spacing_deg)
+    lons_c, lats_c = mantle_grid(coarse_deg)
     depths_g = np.arange(depth_interval_km / 2, max_depth_km, depth_interval_km)
     nlon, nlat, ndepth = len(lons_g), len(lats_g), len(depths_g)
     field = np.zeros((ndepth, nlat, nlon), dtype=float)
 
+    def _hsmooth(f, sig_deg):
+        """Horizontal smoothing on the field grid; on a fine field grid, a wide kernel is applied
+        on the coarse grid and interpolated back up (the result is smooth at that scale anyway)."""
+        if fine and sig_deg >= _COARSE_PATH_FRACTION * coarse_deg:
+            return _upsample(spherical_gaussian_smooth(_block_mean(f, lats_g, coarse_deg / spacing_deg),
+                                                       lats_c, lons_c, sig_deg), lats_c, lons_c, lats_g, lons_g)
+        return spherical_gaussian_smooth(f, lats_g, lons_g, sig_deg)
+
     def _smooth(f, sig_h_deg, sig_d_km):
-        f = spherical_gaussian_smooth(f, lats_g, lons_g, sig_h_deg)
+        f = _hsmooth(f, sig_h_deg)
         if sig_d_km > 0:
             f = gaussian_filter1d(f, sig_d_km / depth_interval_km, axis=0, mode='nearest')
         return f
@@ -473,8 +533,24 @@ def dvs_field(slab_tracers, llsvp_state, p):
                 np.floor(depths_f / depth_interval_km).astype(int), 0, ndepth - 1)
             np.add.at(field, (dep_idx, lat_idx, lon_idx), dVs)
             field = _per_area(field, lats_g, p)
+            if fine:                                  # a sum per cell: per coarse-cell area, as on the model grid
+                field *= (coarse_deg / spacing_deg) ** 2
 
-            if p.slab_sigma_lower_deg > 0:            # wider slabs below the upper mantle
+            if p.slab_sigma_cmb_deg > 0:              # slab width profile: narrow above, widening below
+                sig = slab_sigma_profile(depths_g, p)
+                upper_g = depths_g < p.upper_mantle_km
+                out = np.zeros_like(field)
+                for part, sig_d in ((upper_g, p.slab_sigma_depth_upper_km if p.slab_sigma_depth_upper_km >= 0
+                                     else p.slab_sigma_depth_km), (~upper_g, p.slab_sigma_depth_km)):
+                    f = np.where(part[:, None, None], field, 0.0)
+                    for s_k in np.unique(sig[part]):
+                        k = part & (sig == s_k)
+                        f[k] = _hsmooth(f[k], s_k)
+                    if sig_d > 0:
+                        f = gaussian_filter1d(f, sig_d / depth_interval_km, axis=0, mode='nearest')
+                    out += f
+                field = out
+            elif p.slab_sigma_lower_deg > 0:            # wider slabs below the upper mantle
                 lower_g = depths_g >= p.upper_mantle_km
                 upper_f = np.where(lower_g[:, None, None], 0.0, field)
                 lower_f = np.where(lower_g[:, None, None], field, 0.0)
@@ -482,6 +558,12 @@ def dvs_field(slab_tracers, llsvp_state, p):
                          + _smooth(lower_f, p.slab_sigma_lower_deg, p.slab_sigma_depth_km))
             else:
                 field = _smooth(field, p.slab_sigma_deg, p.slab_sigma_depth_km)
+
+    if fine and cmb_heat is not None:
+        cmb_heat = _upsample(cmb_heat, lats_c, lons_c, lats_g, lons_g)
+    pile_h = llsvp_state if p.llsvp == 'pile' else None
+    if fine and pile_h is not None:
+        pile_h = _upsample(pile_h, lats_c, lons_c, lats_g, lons_g)
 
     # Inject LLSVP-like warm anomaly from CMB heat accumulation.
     # Iterate deepest→shallowest; break once decay becomes negligible.
@@ -499,24 +581,27 @@ def dvs_field(slab_tracers, llsvp_state, p):
               f'dVs at CMB: {field[-1].min():.4f}–{field[-1].max():.4f} %')
     elif cmb_heat is not None:
         print(f'  [mantle] WARNING: cmb_heat shape {cmb_heat.shape} != expected ({nlat},{nlon}) — LLSVP skipped')
-    if p.llsvp == 'pile' and llsvp_state is not None:
-        field += p.pile_dVs * _pile.pile_layer_fractions(llsvp_state, depths_g, depth_interval_km, max_depth_km)
+    if pile_h is not None:
+        field += p.pile_dVs * _pile.pile_layer_fractions(pile_h, depths_g, depth_interval_km, max_depth_km)
         if p.pile_halo_km > 0:                 # warm layer above the pile top
-            top = max_depth_km - llsvp_state
+            top = max_depth_km - pile_h
             above = np.clip(top[None, :, :] - depths_g[:, None, None], 0.0, None)
-            strength = np.clip(llsvp_state / p.pile_halo_h_km, 0.0, 1.0)
+            strength = np.clip(pile_h / p.pile_halo_h_km, 0.0, 1.0)
             field += np.where(depths_g[:, None, None] < top[None, :, :],
                               p.pile_halo_dVs * strength[None, :, :] * np.exp(-above / p.pile_halo_km), 0.0)
 
     field = _remove_area_weighted_mean(field, lats_g)
+    native = None
 
     if p.tomo_smooth_horiz_deg > 0 or p.tomo_smooth_depth_km > 0:
+        if p.dvs_save_native:
+            native = field.astype(np.float32)
         field = _smooth(field, p.tomo_smooth_horiz_deg, p.tomo_smooth_depth_km)
         field = _remove_area_weighted_mean(field, lats_g)
 
     data_vars = {
         'dVs': xr.DataArray(
-            field, dims=['depth', 'lat', 'lon'],
+            field.astype(np.float32) if fine else field, dims=['depth', 'lat', 'lon'],
             coords={'depth': depths_g, 'lat': lats_g, 'lon': lons_g},
             attrs={'units': '%',
                    'long_name': 'dVs/Vs anomaly (positive = cold fast slab; negative = warm slow region)',
@@ -524,14 +609,18 @@ def dvs_field(slab_tracers, llsvp_state, p):
                    'thermal_tau_myr': p.slab_thermal_tau_myr,
                    'dVs_per_K': p.slab_dVs_per_K}),
     }
+    if native is not None:
+        data_vars['dVs_native'] = xr.DataArray(
+            native, dims=['depth', 'lat', 'lon'], coords={'depth': depths_g, 'lat': lats_g, 'lon': lons_g},
+            attrs={'units': '%', 'long_name': 'dVs/Vs before the tomography blur (tomo_smooth_*)'})
     if cmb_heat is not None and cmb_heat.shape == (nlat, nlon):
         data_vars['cmb_heat'] = xr.DataArray(
             cmb_heat, dims=['lat', 'lon'],
             coords={'lat': lats_g, 'lon': lons_g},
             attrs={'units': 'heat units',
                    'long_name': 'CMB heat accumulation (proxy for LLSVP intensity)'})
-    if p.llsvp == 'pile' and llsvp_state is not None:
+    if pile_h is not None:
         data_vars['pile_thickness_km'] = xr.DataArray(
-            llsvp_state, dims=['lat', 'lon'], coords={'lat': lats_g, 'lon': lons_g},
+            pile_h, dims=['lat', 'lon'], coords={'lat': lats_g, 'lon': lons_g},
             attrs={'units': 'km', 'long_name': 'thickness of the conserved pile on the CMB (llsvp: pile)'})
     return xr.Dataset(data_vars)
