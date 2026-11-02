@@ -760,6 +760,30 @@ def dvs_field(slab_tracers, llsvp_state, p, lithosphere_km=None):
         capped = depths_g < p.slab_dVs_max_depth_km
         field[capped] = p.slab_dVs_max * np.tanh(field[capped] / p.slab_dVs_max)
 
+    if p.wedge_dVs < 0 and len(slab_tracers) > 0 and 'dip_azimuth_deg' in slab_tracers:
+        w = slab_tracers[slab_tracers['active'].astype(bool).values
+                         & (slab_tracers['depth_km'].astype(float) >= p.wedge_top_km).values
+                         & (slab_tracers['depth_km'].astype(float) < min(p.wedge_bottom_km, p.upper_mantle_km)).values
+                         & np.isfinite(slab_tracers['dip_azimuth_deg'].astype(float)).values]
+        if len(w):
+            dep = w['depth_km'].values.astype(float)
+            lon_w, lat_w = move_along_azimuth(w['lon'].values.astype(float), w['lat'].values.astype(float),
+                                              w['dip_azimuth_deg'].values.astype(float), p.wedge_offset_km,
+                                              SURFACE_RADIUS_KM - dep)
+            amount = np.abs(p.slab_temp_anomaly_K * p.slab_dVs_per_K) * thermal_fraction(w, p) * _slab_weights(w)
+            wf = np.zeros_like(field)
+            np.add.at(wf, (np.clip(np.floor(dep / depth_interval_km).astype(int), 0, ndepth - 1),
+                           np.clip(np.floor((lat_w + 90) / spacing_deg).astype(int), 0, nlat - 1),
+                           np.clip(np.floor((lon_w + 180) / spacing_deg).astype(int), 0, nlon - 1)), amount)
+            wf = _per_area(wf, lats_g, p)
+            if p.resolution_independent:
+                wf *= _cell_scale(spacing_deg, p, depth_interval_km)
+            elif fine:
+                wf *= (coarse_deg / spacing_deg) ** 2
+            upper = depths_g < p.upper_mantle_km
+            wf[upper] = _hsmooth(wf[upper], p.wedge_sigma_deg)
+            field += p.wedge_dVs * np.tanh(wf / p.wedge_saturation)
+
     if fine and cmb_heat is not None:
         cmb_heat = _upsample(cmb_heat, lats_c, lons_c, lats_g, lons_g)
     tbl_h = None

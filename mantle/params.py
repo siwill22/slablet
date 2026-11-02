@@ -78,6 +78,14 @@ class MantleParams:
                                             # the LLSVP, lid and blur are added -- a slab is at most as fast as its
                                             # coldest core, however many slablets share a cell (0: no cap)
     slab_dVs_max_depth_km: float = 1e9      # the cap applies above this depth only (upper_mantle_km: upper mantle)
+    # slow mantle wedge and back-arc (needs the dip azimuth; off when wedge_dVs is 0): each upper-mantle slablet
+    # deeper than wedge_top_km also marks the mantle wedge_offset_km towards the overriding plate at its depth
+    wedge_dVs: float = 0.0                  # < 0: the anomaly there (%), reached where the shifted slab field is
+    wedge_saturation: float = 1.0           # well above this (dVs x tanh(shifted field / this)) (0: none)
+    wedge_offset_km: float = 200.0
+    wedge_top_km: float = 50.0
+    wedge_bottom_km: float = 670.0          # slablets deeper than this mark no wedge
+    wedge_sigma_deg: float = 1.5            # horizontal smoothing of the wedge field
     tomo_smooth_horiz_deg: float = 0.0      # optional blur of the final field (0 = off)
     tomo_smooth_depth_km: float = 0.0
     mantle_field_spacing_deg: float = 0.0   # > 0: draw the dVs field on this finer grid (must divide

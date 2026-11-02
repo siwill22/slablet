@@ -478,3 +478,17 @@ def test_slab_field_can_saturate():
     assert cap.max() - np.median(cap) < 4.0 + 1e-6
     upper_only = mantle.dvs_field(slab, None, mantle.MantleParams(**base, slab_dVs_max=4.0, slab_dVs_max_depth_km=670.0))
     np.testing.assert_allclose(upper_only.dVs.sel(depth=1050).values, raw)          # 1050 km is below the cap
+
+
+def test_mantle_wedge_is_slow_on_the_overriding_side():
+    p = mantle.MantleParams(slab_thermal_tau_myr=1e9, mantle_bin_area_normalise=True, slab_sigma_deg=1.0,
+                            slab_sigma_depth_km=0.0, wedge_dVs=-2.0, wedge_offset_km=500.0, wedge_sigma_deg=1.0)
+    slab = _ns_slab(0.0, depth_km=250.0)
+    slab['dip_azimuth_deg'] = 90.0                               # overriding plate to the east
+    f = mantle.dvs_field(slab, None, p).dVs.sel(depth=250).values
+    eq = f[np.abs(mantle.mantle_grid(5.0)[1]) < 5].mean(axis=0)
+    lons = mantle.mantle_grid(5.0)[0]
+    east = lons[np.argmin(eq)]
+    assert eq.min() < eq.max() and 32.5 < east < 42.5                # slowest about 4.5 deg east of the slab
+    none = mantle.dvs_field(slab.drop(columns='dip_azimuth_deg'), None, p).dVs.sel(depth=250).values
+    assert none.min() >= np.median(none) - 1e-9                       # no azimuth: no wedge

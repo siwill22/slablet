@@ -6,6 +6,7 @@
 #   - plume conduits at fixed random sites (one per 12 x 12 deg), active over thick pile;
 #   - a lithosphere lid (+6 % at the surface) from tracked seafloor ages and the continent / craton polygons;
 #   - upper-mantle slabs saturating at +3 % (slab_dVs_max above 670 km), so they no longer swamp the lid;
+#   - a slow mantle wedge and back-arc: -3 % where slabs shallower than 300 km lie 200 km down-dip (wedge_*);
 #   - seafloor: true reads reconstructions/seafloor_tracker.py's cache (run it once first).
 # Output every 10 Myr.
 #
@@ -75,6 +76,8 @@ mantle:
   lithosphere_dVs: 6.0
   slab_dVs_max: 3.0
   slab_dVs_max_depth_km: 670.0
+  wedge_dVs: -3.0
+  wedge_bottom_km: 300.0
   resolution_independent: true
 tomography:
 - name: REVEAL
