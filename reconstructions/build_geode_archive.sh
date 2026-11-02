@@ -43,6 +43,13 @@ $PY prep/prep_convection.py --input $R/muller2022_dip_pile_sharp --volume-var dV
   --var-id vs --var-name "dVs (kinematic model)" --units % --high-means fast --colormap RdBu \
   --nlon 360 --nlat 181 --ndepth 29 --default-clip -3 3 --out $A --validate
 
+# the refined model (configs/real/muller2022_refined.yaml; every 10 Myr), before the blur, at its native 1 deg
+$PY prep/prep_convection.py --input $R/muller2022_refined --volume-var dVs_native --age-regex '_(\d+)Ma' \
+  --age-max 1000 --id pd-refined --name "PlateDriver mantle: refined (screened pile, plumes, lithosphere)" \
+  --source "PlateDriver kinematic mantle (configs/real/muller2022_refined.yaml, dVs_native), Muller 2022 optimised frame" \
+  --var-id vs --var-name "dVs (kinematic model)" --units % --high-means fast --colormap RdBu \
+  --nlon 360 --nlat 181 --ndepth 29 --default-clip -3 3 --out $A --validate
+
 # OPT1, 0-1000 Ma every 20 Myr, at Geode's standard 1 deg x 192 depths
 $PY prep/prep_convection.py --input $HOME/Data/zenodo/OPT1_temperature_anomaly_grids_dimensional --id opt1 \
   --name "Muller 2022 OPT1" --age-max 1000 --out $A --validate \

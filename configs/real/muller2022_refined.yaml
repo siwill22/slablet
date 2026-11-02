@@ -1,0 +1,132 @@
+# Muller et al. (2022) from 1000 Ma: the sharp-slab model (muller2022_dip_pile_sharp.yaml) with the refinements of
+# 2 November 2026 (show-me/2026-11-02-refinements/, sweeps o2-o6):
+#   - lower-mantle sinking at 15 km/Myr x (the slab's upper-mantle rate / 25 km/Myr)^0.5, instead of the upper-mantle
+#     rate / 3: much less dependent on the trench's convergence;
+#   - a screened pile push (35 deg), which keeps two piles (African and Pacific) and adds smaller-scale structure;
+#   - plume conduits at fixed random sites (one per 12 x 12 deg), active over thick pile;
+#   - a lithosphere lid (+6 % at the surface) from tracked seafloor ages and the continent / craton polygons;
+#   - upper-mantle slabs saturating at +3 % (slab_dVs_max above 670 km), so they no longer swamp the lid;
+#   - seafloor: true reads reconstructions/seafloor_tracker.py's cache (run it once first).
+# Output every 10 Myr.
+#
+#   conda run -n pygmt17 python reconstructions/seafloor_tracker.py configs/real/muller2022_refined.yaml   # once
+#   conda run -n pygmt17 python reconstructions/run_mantle.py configs/real/muller2022_refined.yaml
+name: muller2022
+model_dir: /Users/simon/Library/Caches/gprm/Muller2022
+rotation_files:
+- optimisation/1000_0_rotfile_MantleOpt.rot
+topology_files:
+- Topologies/*.gpml
+anchor_plate_id: 0
+start_ma: 1000
+end_ma: 0
+delta_time: 1
+output_every_myr: 10
+initial_slabs: columns
+output_dir: runs_real/muller2022_refined
+cache_dir: runs_real/cache
+mantle:
+  mantle_field_spacing_deg: 1.0
+  slab_sigma_deg: 0.75
+  slab_sigma_lower_deg: 2.0
+  slab_sigma_cmb_deg: 3.5
+  slab_sigma_depth_upper_km: 50
+  dvs_save_native: true
+  slab_sink_rate_factor: 0.5
+  slab_slowing_factor: 3
+  slab_max_sink_rate: 400
+  slab_thermal_tau_myr: 200
+  slab_at_cmb: rest
+  mantle_bin_area_normalise: true
+  cmb_suppression_thermal_decay: true
+  initial_slab_depth_km: 1320
+  mantle_grid_spacing_deg: 5.0
+  mantle_depth_interval_km: 100
+  cmb_heating_rate: 0.02
+  cmb_slab_suppression: 0.05
+  cmb_surface_coupling: 0.1
+  cmb_sigma_deg: 10.0
+  cmb_max_heat: 3.0
+  cmb_dVs_scale: -0.5
+  cmb_decay_km: 400.0
+  tomo_smooth_horiz_deg: 5.0
+  tomo_smooth_depth_km: 150.0
+  llsvp: pile
+  pile_drive: flow
+  pile_slab_head_km: 10000
+  pile_slab_layer_km: 1000
+  pile_mean_thickness_km: 150
+  pile_mobility_km_per_myr: 30
+  pile_dVs: -5
+  pile_halo_km: 600
+  pile_halo_dVs: -2
+  pile_halo_h_km: 300
+  slab_cmb_tau_myr: 25
+  slab_dip_deg: 40
+  slab_dip_shallow_deg: 30
+  slab_dip_shallow_km: 100
+  slab_lower_rate_km_per_myr: 15
+  slab_lower_rate_exponent: 0.5
+  pile_flow_screen_deg: 35
+  plume_dVs: -1.5
+  plume_source: sites
+  plume_spacing_deg: 12
+  plume_min_fraction: 0.2
+  lithosphere_dVs: 6.0
+  slab_dVs_max: 3.0
+  slab_dVs_max_depth_km: 670.0
+  resolution_independent: true
+tomography:
+- name: REVEAL
+  file: /Users/simon/Data/SeismicTomography/Schouten_Supplementary_material/Models/REVEAL_downsampled_anomaly.nc
+  variable: vs_anomaly
+  depths_km:
+  - 1000
+  - 1100
+  - 1200
+  - 1300
+  - 1400
+  - 1500
+  - 1600
+  - 1700
+  - 1800
+  - 1900
+  - 2000
+  - 2100
+  - 2200
+  - 2300
+  - 2400
+  - 2500
+  - 2600
+  - 2700
+  - 2800
+  slow_fraction: 0.3
+  fast_fraction: 0.2
+  lmax: 8
+- name: SEMUCB-WM1
+  file: /Users/simon/Data/SeismicTomography/Schouten_Supplementary_material/Models/SEMUCB_WM1_anomaly.nc
+  variable: vs_anomaly
+  depths_km:
+  - 1000
+  - 1100
+  - 1200
+  - 1300
+  - 1400
+  - 1500
+  - 1600
+  - 1700
+  - 1800
+  - 1900
+  - 2000
+  - 2100
+  - 2200
+  - 2300
+  - 2400
+  - 2500
+  - 2600
+  - 2700
+  - 2800
+  slow_fraction: 0.3
+  fast_fraction: 0.2
+  lmax: 8
+seafloor: true

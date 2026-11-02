@@ -457,3 +457,24 @@ def test_fixed_lower_mantle_rate_can_scale_with_the_slab_feed():
     s['sink_rate_km_per_myr'] = [25.0, 100.0]
     out = mantle.sink_slabs(s, 1.0, p)
     np.testing.assert_allclose(out['depth_km'].values, [1012.0, 1024.0])
+
+
+def test_plume_sites_are_active_where_the_hot_layer_is_thick():
+    p = mantle.MantleParams(llsvp='pile', plume_dVs=-1.5, plume_source='sites', plume_spacing_deg=10.0,
+                            plume_min_fraction=0.2)
+    lons, lats = mantle.mantle_grid(p.mantle_grid_spacing_deg)
+    h = np.where(np.abs(lats)[:, None] < 30, 300.0, 0.0) * np.ones(len(lons))   # a band of pile
+    lon, lat, strength = mantle.core.plume_sources(h, p)
+    assert len(mantle.core.plume_sites(10.0)[0]) == 413                 # 41253 square degrees / 100
+    assert len(lon) > 20 and np.all(np.abs(lat) < 33) and np.all(strength > 0.2)
+
+
+def test_slab_field_can_saturate():
+    base = dict(slab_thermal_tau_myr=1e9, mantle_bin_area_normalise=True, slab_sigma_deg=0.0, slab_sigma_depth_km=0.0)
+    slab = mantle.core.pd.concat([_ns_slab(0.0)] * 20, ignore_index=True)        # 20 slablets per cell
+    raw = mantle.dvs_field(slab, None, mantle.MantleParams(**base)).dVs.sel(depth=1050).values
+    cap = mantle.dvs_field(slab, None, mantle.MantleParams(**base, slab_dVs_max=4.0)).dVs.sel(depth=1050).values
+    assert raw.max() - np.median(raw) > 8.0
+    assert cap.max() - np.median(cap) < 4.0 + 1e-6
+    upper_only = mantle.dvs_field(slab, None, mantle.MantleParams(**base, slab_dVs_max=4.0, slab_dVs_max_depth_km=670.0))
+    np.testing.assert_allclose(upper_only.dVs.sel(depth=1050).values, raw)          # 1050 km is below the cap

@@ -617,10 +617,26 @@ def plume_sources(h, p):
     hmax = float(h.max())
     if hmax <= 0:
         return np.zeros(0), np.zeros(0), np.zeros(0)
+    if p.plume_source == 'sites':
+        lon, lat = plume_sites(p.plume_spacing_deg, p.plume_seed)
+        hs = _grid_bilinear(h, lats_c, lons_c, lat, lon)
+        on = hs > p.plume_min_fraction * hmax
+        return lon[on], lat[on], hs[on] / hmax
+    if p.plume_source != 'maxima':
+        raise ValueError('plume_source must be maxima or sites, not {!r}'.format(p.plume_source))
     size = max(3, int(round(p.plume_spacing_deg / p.mantle_grid_spacing_deg)) | 1)
     peak = (h == maximum_filter(h, size=size, mode=('nearest', 'wrap'))) & (h > p.plume_min_fraction * hmax)
     i, j = np.nonzero(peak)
     return lons_c[j], lats_c[i], h[i, j] / hmax
+
+
+def plume_sites(spacing_deg, seed=0):
+    """lon, lat of fixed random sites, uniform on the sphere, one per spacing_deg x spacing_deg on average."""
+    n = max(1, int(round(4 * np.pi / np.radians(spacing_deg) ** 2)))
+    rng = np.random.default_rng(seed)
+    lat = np.degrees(np.arcsin(rng.uniform(-1.0, 1.0, n)))
+    lon = rng.uniform(-180.0, 180.0, n)
+    return lon, lat
 
 
 def plume_field(plumes, lats_g, lons_g, depths_g, p):
@@ -739,6 +755,10 @@ def dvs_field(slab_tracers, llsvp_state, p, lithosphere_km=None):
                          + _smooth(lower_f, p.slab_sigma_lower_deg, p.slab_sigma_depth_km))
             else:
                 field = _smooth(field, p.slab_sigma_deg, p.slab_sigma_depth_km)
+
+    if p.slab_dVs_max > 0:                     # slabs saturate at their coldest core's anomaly
+        capped = depths_g < p.slab_dVs_max_depth_km
+        field[capped] = p.slab_dVs_max * np.tanh(field[capped] / p.slab_dVs_max)
 
     if fine and cmb_heat is not None:
         cmb_heat = _upsample(cmb_heat, lats_c, lons_c, lats_g, lons_g)

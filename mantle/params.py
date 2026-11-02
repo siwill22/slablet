@@ -74,6 +74,10 @@ class MantleParams:
                                             # linearly to this at the CMB; also the slab load's smoothing (0: off)
     slab_sigma_depth_upper_km: float = -1.0 # >= 0 (with the profile): vertical smoothing above upper_mantle_km
                                             # (< 0: slab_sigma_depth_km everywhere)
+    slab_dVs_max: float = 0.0               # > 0: the slab field saturates at this (%): max x tanh(field / max), before
+                                            # the LLSVP, lid and blur are added -- a slab is at most as fast as its
+                                            # coldest core, however many slablets share a cell (0: no cap)
+    slab_dVs_max_depth_km: float = 1e9      # the cap applies above this depth only (upper_mantle_km: upper mantle)
     tomo_smooth_horiz_deg: float = 0.0      # optional blur of the final field (0 = off)
     tomo_smooth_depth_km: float = 0.0
     mantle_field_spacing_deg: float = 0.0   # > 0: draw the dVs field on this finer grid (must divide
@@ -91,8 +95,12 @@ class MantleParams:
     plume_dVs: float = 0.0                  # < 0: anomaly on a conduit's axis, scaled by the layer's thickness there
                                             # relative to its maximum (0: none)
     plume_sigma_deg: float = 1.5            # conduit radius (Gaussian sigma, great-circle degrees)
-    plume_spacing_deg: float = 15.0         # sources are the layer's local maxima within this width ...
-    plume_min_fraction: float = 0.5         # ... thicker than this fraction of its maximum
+    plume_source: str = 'maxima'            # maxima: the layer's local maxima within plume_spacing_deg; sites:
+                                            # fixed random sites, one per plume_spacing_deg^2 on average (seed
+                                            # plume_seed), each active while the layer under it is thicker than ...
+    plume_spacing_deg: float = 15.0
+    plume_seed: int = 0
+    plume_min_fraction: float = 0.5         # ... this fraction of its maximum
     plume_top_km: float = 200.0             # conduits run from the hot layer up to this depth
     lithosphere_dVs: float = 0.0            # > 0 (with a thickness grid from the caller): a fast lid, +this % at the
                                             # surface falling linearly to 0 at the lithosphere's base (0: none)
