@@ -1,0 +1,17 @@
+# Against OPT1 (slablet/analysis/sweep_opt1.py), around the refined model from o5: fixed lower-mantle rate 15 km/Myr scaled
+# by the slab feed^0.5, screened pile push (35 deg).  Plumes from a fixed lattice of sites, active over thick hot layer;
+# the lithosphere lid (upper mantle only); 2 Myr steps; the lower-mantle drift.
+name: o6_refined_plumes
+base: configs/muller2022_dip_pile_sharp.yaml
+common: {seafloor: true, mantle.slab_lower_rate_km_per_myr: 15, mantle.slab_lower_rate_exponent: 0.5,
+         mantle.pile_flow_screen_deg: 35}
+variants:
+  refined: {}
+  lat12: {mantle.plume_dVs: -1.5, mantle.plume_source: lattice, mantle.plume_spacing_deg: 12, mantle.plume_min_fraction: 0.2}
+  lat8: {mantle.plume_dVs: -1.5, mantle.plume_source: lattice, mantle.plume_spacing_deg: 8, mantle.plume_min_fraction: 0.2}
+  lat12_strong: {mantle.plume_dVs: -3, mantle.plume_source: lattice, mantle.plume_spacing_deg: 12, mantle.plume_min_fraction: 0.2}
+  tbl50_lat12: {mantle.tbl_thickness_km: 50, mantle.plume_dVs: -1.5, mantle.plume_source: lattice, mantle.plume_spacing_deg: 12,
+                mantle.plume_min_fraction: 0.2}
+  lith: {mantle.lithosphere_dVs: 4}
+  dt2: {delta_time: 2}
+  flow: {mantle.slab_flow_top: 0.3, mantle.slab_flow_bottom: -0.3}

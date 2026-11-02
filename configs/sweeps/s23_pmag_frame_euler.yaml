@@ -1,0 +1,1258 @@
+# Start from the Muller 2022 palaeomagnetic frame (Rotations/1000_0_rotfile.rot), dip + pile settings, and fit the same
+# age-dependent rotations as s16 (50 poles x 0.025-0.15 deg/Myr).  Does it converge on Muller 2022 + A?
+name: s23_pmag_frame_euler
+base: configs/muller2022_pmag_dip_pile.yaml
+common:
+  output_every_myr: 100000
+variants:
+  none: {}
+  p+79_-69_r0.025:
+    frame_rotation:
+      pole_lat: 78.52
+      pole_lon: -68.75
+      deg_per_myr: 0.025
+  p+79_-69_r0.05:
+    frame_rotation:
+      pole_lat: 78.52
+      pole_lon: -68.75
+      deg_per_myr: 0.05
+  p+79_-69_r0.075:
+    frame_rotation:
+      pole_lat: 78.52
+      pole_lon: -68.75
+      deg_per_myr: 0.075
+  p+79_-69_r0.1:
+    frame_rotation:
+      pole_lat: 78.52
+      pole_lon: -68.75
+      deg_per_myr: 0.1
+  p+79_-69_r0.15:
+    frame_rotation:
+      pole_lat: 78.52
+      pole_lon: -68.75
+      deg_per_myr: 0.15
+  p+70_+154_r0.025:
+    frame_rotation:
+      pole_lat: 70.05
+      pole_lon: 153.74
+      deg_per_myr: 0.025
+  p+70_+154_r0.05:
+    frame_rotation:
+      pole_lat: 70.05
+      pole_lon: 153.74
+      deg_per_myr: 0.05
+  p+70_+154_r0.075:
+    frame_rotation:
+      pole_lat: 70.05
+      pole_lon: 153.74
+      deg_per_myr: 0.075
+  p+70_+154_r0.1:
+    frame_rotation:
+      pole_lat: 70.05
+      pole_lon: 153.74
+      deg_per_myr: 0.1
+  p+70_+154_r0.15:
+    frame_rotation:
+      pole_lat: 70.05
+      pole_lon: 153.74
+      deg_per_myr: 0.15
+  p+64_+16_r0.025:
+    frame_rotation:
+      pole_lat: 64.16
+      pole_lon: 16.23
+      deg_per_myr: 0.025
+  p+64_+16_r0.05:
+    frame_rotation:
+      pole_lat: 64.16
+      pole_lon: 16.23
+      deg_per_myr: 0.05
+  p+64_+16_r0.075:
+    frame_rotation:
+      pole_lat: 64.16
+      pole_lon: 16.23
+      deg_per_myr: 0.075
+  p+64_+16_r0.1:
+    frame_rotation:
+      pole_lat: 64.16
+      pole_lon: 16.23
+      deg_per_myr: 0.1
+  p+64_+16_r0.15:
+    frame_rotation:
+      pole_lat: 64.16
+      pole_lon: 16.23
+      deg_per_myr: 0.15
+  p+59_-121_r0.025:
+    frame_rotation:
+      pole_lat: 59.32
+      pole_lon: -121.28
+      deg_per_myr: 0.025
+  p+59_-121_r0.05:
+    frame_rotation:
+      pole_lat: 59.32
+      pole_lon: -121.28
+      deg_per_myr: 0.05
+  p+59_-121_r0.075:
+    frame_rotation:
+      pole_lat: 59.32
+      pole_lon: -121.28
+      deg_per_myr: 0.075
+  p+59_-121_r0.1:
+    frame_rotation:
+      pole_lat: 59.32
+      pole_lon: -121.28
+      deg_per_myr: 0.1
+  p+59_-121_r0.15:
+    frame_rotation:
+      pole_lat: 59.32
+      pole_lon: -121.28
+      deg_per_myr: 0.15
+  p+55_+101_r0.025:
+    frame_rotation:
+      pole_lat: 55.08
+      pole_lon: 101.22
+      deg_per_myr: 0.025
+  p+55_+101_r0.05:
+    frame_rotation:
+      pole_lat: 55.08
+      pole_lon: 101.22
+      deg_per_myr: 0.05
+  p+55_+101_r0.075:
+    frame_rotation:
+      pole_lat: 55.08
+      pole_lon: 101.22
+      deg_per_myr: 0.075
+  p+55_+101_r0.1:
+    frame_rotation:
+      pole_lat: 55.08
+      pole_lon: 101.22
+      deg_per_myr: 0.1
+  p+55_+101_r0.15:
+    frame_rotation:
+      pole_lat: 55.08
+      pole_lon: 101.22
+      deg_per_myr: 0.15
+  p+51_-36_r0.025:
+    frame_rotation:
+      pole_lat: 51.26
+      pole_lon: -36.29
+      deg_per_myr: 0.025
+  p+51_-36_r0.05:
+    frame_rotation:
+      pole_lat: 51.26
+      pole_lon: -36.29
+      deg_per_myr: 0.05
+  p+51_-36_r0.075:
+    frame_rotation:
+      pole_lat: 51.26
+      pole_lon: -36.29
+      deg_per_myr: 0.075
+  p+51_-36_r0.1:
+    frame_rotation:
+      pole_lat: 51.26
+      pole_lon: -36.29
+      deg_per_myr: 0.1
+  p+51_-36_r0.15:
+    frame_rotation:
+      pole_lat: 51.26
+      pole_lon: -36.29
+      deg_per_myr: 0.15
+  p+48_-174_r0.025:
+    frame_rotation:
+      pole_lat: 47.73
+      pole_lon: -173.8
+      deg_per_myr: 0.025
+  p+48_-174_r0.05:
+    frame_rotation:
+      pole_lat: 47.73
+      pole_lon: -173.8
+      deg_per_myr: 0.05
+  p+48_-174_r0.075:
+    frame_rotation:
+      pole_lat: 47.73
+      pole_lon: -173.8
+      deg_per_myr: 0.075
+  p+48_-174_r0.1:
+    frame_rotation:
+      pole_lat: 47.73
+      pole_lon: -173.8
+      deg_per_myr: 0.1
+  p+48_-174_r0.15:
+    frame_rotation:
+      pole_lat: 47.73
+      pole_lon: -173.8
+      deg_per_myr: 0.15
+  p+44_+49_r0.025:
+    frame_rotation:
+      pole_lat: 44.43
+      pole_lon: 48.69
+      deg_per_myr: 0.025
+  p+44_+49_r0.05:
+    frame_rotation:
+      pole_lat: 44.43
+      pole_lon: 48.69
+      deg_per_myr: 0.05
+  p+44_+49_r0.075:
+    frame_rotation:
+      pole_lat: 44.43
+      pole_lon: 48.69
+      deg_per_myr: 0.075
+  p+44_+49_r0.1:
+    frame_rotation:
+      pole_lat: 44.43
+      pole_lon: 48.69
+      deg_per_myr: 0.1
+  p+44_+49_r0.15:
+    frame_rotation:
+      pole_lat: 44.43
+      pole_lon: 48.69
+      deg_per_myr: 0.15
+  p+41_-89_r0.025:
+    frame_rotation:
+      pole_lat: 41.3
+      pole_lon: -88.82
+      deg_per_myr: 0.025
+  p+41_-89_r0.05:
+    frame_rotation:
+      pole_lat: 41.3
+      pole_lon: -88.82
+      deg_per_myr: 0.05
+  p+41_-89_r0.075:
+    frame_rotation:
+      pole_lat: 41.3
+      pole_lon: -88.82
+      deg_per_myr: 0.075
+  p+41_-89_r0.1:
+    frame_rotation:
+      pole_lat: 41.3
+      pole_lon: -88.82
+      deg_per_myr: 0.1
+  p+41_-89_r0.15:
+    frame_rotation:
+      pole_lat: 41.3
+      pole_lon: -88.82
+      deg_per_myr: 0.15
+  p+38_+134_r0.025:
+    frame_rotation:
+      pole_lat: 38.32
+      pole_lon: 133.68
+      deg_per_myr: 0.025
+  p+38_+134_r0.05:
+    frame_rotation:
+      pole_lat: 38.32
+      pole_lon: 133.68
+      deg_per_myr: 0.05
+  p+38_+134_r0.075:
+    frame_rotation:
+      pole_lat: 38.32
+      pole_lon: 133.68
+      deg_per_myr: 0.075
+  p+38_+134_r0.1:
+    frame_rotation:
+      pole_lat: 38.32
+      pole_lon: 133.68
+      deg_per_myr: 0.1
+  p+38_+134_r0.15:
+    frame_rotation:
+      pole_lat: 38.32
+      pole_lon: 133.68
+      deg_per_myr: 0.15
+  p+35_-4_r0.025:
+    frame_rotation:
+      pole_lat: 35.45
+      pole_lon: -3.83
+      deg_per_myr: 0.025
+  p+35_-4_r0.05:
+    frame_rotation:
+      pole_lat: 35.45
+      pole_lon: -3.83
+      deg_per_myr: 0.05
+  p+35_-4_r0.075:
+    frame_rotation:
+      pole_lat: 35.45
+      pole_lon: -3.83
+      deg_per_myr: 0.075
+  p+35_-4_r0.1:
+    frame_rotation:
+      pole_lat: 35.45
+      pole_lon: -3.83
+      deg_per_myr: 0.1
+  p+35_-4_r0.15:
+    frame_rotation:
+      pole_lat: 35.45
+      pole_lon: -3.83
+      deg_per_myr: 0.15
+  p+33_-141_r0.025:
+    frame_rotation:
+      pole_lat: 32.68
+      pole_lon: -141.34
+      deg_per_myr: 0.025
+  p+33_-141_r0.05:
+    frame_rotation:
+      pole_lat: 32.68
+      pole_lon: -141.34
+      deg_per_myr: 0.05
+  p+33_-141_r0.075:
+    frame_rotation:
+      pole_lat: 32.68
+      pole_lon: -141.34
+      deg_per_myr: 0.075
+  p+33_-141_r0.1:
+    frame_rotation:
+      pole_lat: 32.68
+      pole_lon: -141.34
+      deg_per_myr: 0.1
+  p+33_-141_r0.15:
+    frame_rotation:
+      pole_lat: 32.68
+      pole_lon: -141.34
+      deg_per_myr: 0.15
+  p+30_+81_r0.025:
+    frame_rotation:
+      pole_lat: 30.0
+      pole_lon: 81.15
+      deg_per_myr: 0.025
+  p+30_+81_r0.05:
+    frame_rotation:
+      pole_lat: 30.0
+      pole_lon: 81.15
+      deg_per_myr: 0.05
+  p+30_+81_r0.075:
+    frame_rotation:
+      pole_lat: 30.0
+      pole_lon: 81.15
+      deg_per_myr: 0.075
+  p+30_+81_r0.1:
+    frame_rotation:
+      pole_lat: 30.0
+      pole_lon: 81.15
+      deg_per_myr: 0.1
+  p+30_+81_r0.15:
+    frame_rotation:
+      pole_lat: 30.0
+      pole_lon: 81.15
+      deg_per_myr: 0.15
+  p+27_-56_r0.025:
+    frame_rotation:
+      pole_lat: 27.39
+      pole_lon: -56.35
+      deg_per_myr: 0.025
+  p+27_-56_r0.05:
+    frame_rotation:
+      pole_lat: 27.39
+      pole_lon: -56.35
+      deg_per_myr: 0.05
+  p+27_-56_r0.075:
+    frame_rotation:
+      pole_lat: 27.39
+      pole_lon: -56.35
+      deg_per_myr: 0.075
+  p+27_-56_r0.1:
+    frame_rotation:
+      pole_lat: 27.39
+      pole_lon: -56.35
+      deg_per_myr: 0.1
+  p+27_-56_r0.15:
+    frame_rotation:
+      pole_lat: 27.39
+      pole_lon: -56.35
+      deg_per_myr: 0.15
+  p+25_+166_r0.025:
+    frame_rotation:
+      pole_lat: 24.83
+      pole_lon: 166.14
+      deg_per_myr: 0.025
+  p+25_+166_r0.05:
+    frame_rotation:
+      pole_lat: 24.83
+      pole_lon: 166.14
+      deg_per_myr: 0.05
+  p+25_+166_r0.075:
+    frame_rotation:
+      pole_lat: 24.83
+      pole_lon: 166.14
+      deg_per_myr: 0.075
+  p+25_+166_r0.1:
+    frame_rotation:
+      pole_lat: 24.83
+      pole_lon: 166.14
+      deg_per_myr: 0.1
+  p+25_+166_r0.15:
+    frame_rotation:
+      pole_lat: 24.83
+      pole_lon: 166.14
+      deg_per_myr: 0.15
+  p+22_+29_r0.025:
+    frame_rotation:
+      pole_lat: 22.33
+      pole_lon: 28.63
+      deg_per_myr: 0.025
+  p+22_+29_r0.05:
+    frame_rotation:
+      pole_lat: 22.33
+      pole_lon: 28.63
+      deg_per_myr: 0.05
+  p+22_+29_r0.075:
+    frame_rotation:
+      pole_lat: 22.33
+      pole_lon: 28.63
+      deg_per_myr: 0.075
+  p+22_+29_r0.1:
+    frame_rotation:
+      pole_lat: 22.33
+      pole_lon: 28.63
+      deg_per_myr: 0.1
+  p+22_+29_r0.15:
+    frame_rotation:
+      pole_lat: 22.33
+      pole_lon: 28.63
+      deg_per_myr: 0.15
+  p+20_-109_r0.025:
+    frame_rotation:
+      pole_lat: 19.88
+      pole_lon: -108.88
+      deg_per_myr: 0.025
+  p+20_-109_r0.05:
+    frame_rotation:
+      pole_lat: 19.88
+      pole_lon: -108.88
+      deg_per_myr: 0.05
+  p+20_-109_r0.075:
+    frame_rotation:
+      pole_lat: 19.88
+      pole_lon: -108.88
+      deg_per_myr: 0.075
+  p+20_-109_r0.1:
+    frame_rotation:
+      pole_lat: 19.88
+      pole_lon: -108.88
+      deg_per_myr: 0.1
+  p+20_-109_r0.15:
+    frame_rotation:
+      pole_lat: 19.88
+      pole_lon: -108.88
+      deg_per_myr: 0.15
+  p+17_+114_r0.025:
+    frame_rotation:
+      pole_lat: 17.46
+      pole_lon: 113.61
+      deg_per_myr: 0.025
+  p+17_+114_r0.05:
+    frame_rotation:
+      pole_lat: 17.46
+      pole_lon: 113.61
+      deg_per_myr: 0.05
+  p+17_+114_r0.075:
+    frame_rotation:
+      pole_lat: 17.46
+      pole_lon: 113.61
+      deg_per_myr: 0.075
+  p+17_+114_r0.1:
+    frame_rotation:
+      pole_lat: 17.46
+      pole_lon: 113.61
+      deg_per_myr: 0.1
+  p+17_+114_r0.15:
+    frame_rotation:
+      pole_lat: 17.46
+      pole_lon: 113.61
+      deg_per_myr: 0.15
+  p+15_-24_r0.025:
+    frame_rotation:
+      pole_lat: 15.07
+      pole_lon: -23.89
+      deg_per_myr: 0.025
+  p+15_-24_r0.05:
+    frame_rotation:
+      pole_lat: 15.07
+      pole_lon: -23.89
+      deg_per_myr: 0.05
+  p+15_-24_r0.075:
+    frame_rotation:
+      pole_lat: 15.07
+      pole_lon: -23.89
+      deg_per_myr: 0.075
+  p+15_-24_r0.1:
+    frame_rotation:
+      pole_lat: 15.07
+      pole_lon: -23.89
+      deg_per_myr: 0.1
+  p+15_-24_r0.15:
+    frame_rotation:
+      pole_lat: 15.07
+      pole_lon: -23.89
+      deg_per_myr: 0.15
+  p+13_-161_r0.025:
+    frame_rotation:
+      pole_lat: 12.71
+      pole_lon: -161.4
+      deg_per_myr: 0.025
+  p+13_-161_r0.05:
+    frame_rotation:
+      pole_lat: 12.71
+      pole_lon: -161.4
+      deg_per_myr: 0.05
+  p+13_-161_r0.075:
+    frame_rotation:
+      pole_lat: 12.71
+      pole_lon: -161.4
+      deg_per_myr: 0.075
+  p+13_-161_r0.1:
+    frame_rotation:
+      pole_lat: 12.71
+      pole_lon: -161.4
+      deg_per_myr: 0.1
+  p+13_-161_r0.15:
+    frame_rotation:
+      pole_lat: 12.71
+      pole_lon: -161.4
+      deg_per_myr: 0.15
+  p+10_+61_r0.025:
+    frame_rotation:
+      pole_lat: 10.37
+      pole_lon: 61.09
+      deg_per_myr: 0.025
+  p+10_+61_r0.05:
+    frame_rotation:
+      pole_lat: 10.37
+      pole_lon: 61.09
+      deg_per_myr: 0.05
+  p+10_+61_r0.075:
+    frame_rotation:
+      pole_lat: 10.37
+      pole_lon: 61.09
+      deg_per_myr: 0.075
+  p+10_+61_r0.1:
+    frame_rotation:
+      pole_lat: 10.37
+      pole_lon: 61.09
+      deg_per_myr: 0.1
+  p+10_+61_r0.15:
+    frame_rotation:
+      pole_lat: 10.37
+      pole_lon: 61.09
+      deg_per_myr: 0.15
+  p+8_-76_r0.025:
+    frame_rotation:
+      pole_lat: 8.05
+      pole_lon: -76.42
+      deg_per_myr: 0.025
+  p+8_-76_r0.05:
+    frame_rotation:
+      pole_lat: 8.05
+      pole_lon: -76.42
+      deg_per_myr: 0.05
+  p+8_-76_r0.075:
+    frame_rotation:
+      pole_lat: 8.05
+      pole_lon: -76.42
+      deg_per_myr: 0.075
+  p+8_-76_r0.1:
+    frame_rotation:
+      pole_lat: 8.05
+      pole_lon: -76.42
+      deg_per_myr: 0.1
+  p+8_-76_r0.15:
+    frame_rotation:
+      pole_lat: 8.05
+      pole_lon: -76.42
+      deg_per_myr: 0.15
+  p+6_+146_r0.025:
+    frame_rotation:
+      pole_lat: 5.74
+      pole_lon: 146.08
+      deg_per_myr: 0.025
+  p+6_+146_r0.05:
+    frame_rotation:
+      pole_lat: 5.74
+      pole_lon: 146.08
+      deg_per_myr: 0.05
+  p+6_+146_r0.075:
+    frame_rotation:
+      pole_lat: 5.74
+      pole_lon: 146.08
+      deg_per_myr: 0.075
+  p+6_+146_r0.1:
+    frame_rotation:
+      pole_lat: 5.74
+      pole_lon: 146.08
+      deg_per_myr: 0.1
+  p+6_+146_r0.15:
+    frame_rotation:
+      pole_lat: 5.74
+      pole_lon: 146.08
+      deg_per_myr: 0.15
+  p+3_+9_r0.025:
+    frame_rotation:
+      pole_lat: 3.44
+      pole_lon: 8.57
+      deg_per_myr: 0.025
+  p+3_+9_r0.05:
+    frame_rotation:
+      pole_lat: 3.44
+      pole_lon: 8.57
+      deg_per_myr: 0.05
+  p+3_+9_r0.075:
+    frame_rotation:
+      pole_lat: 3.44
+      pole_lon: 8.57
+      deg_per_myr: 0.075
+  p+3_+9_r0.1:
+    frame_rotation:
+      pole_lat: 3.44
+      pole_lon: 8.57
+      deg_per_myr: 0.1
+  p+3_+9_r0.15:
+    frame_rotation:
+      pole_lat: 3.44
+      pole_lon: 8.57
+      deg_per_myr: 0.15
+  p+1_-129_r0.025:
+    frame_rotation:
+      pole_lat: 1.15
+      pole_lon: -128.94
+      deg_per_myr: 0.025
+  p+1_-129_r0.05:
+    frame_rotation:
+      pole_lat: 1.15
+      pole_lon: -128.94
+      deg_per_myr: 0.05
+  p+1_-129_r0.075:
+    frame_rotation:
+      pole_lat: 1.15
+      pole_lon: -128.94
+      deg_per_myr: 0.075
+  p+1_-129_r0.1:
+    frame_rotation:
+      pole_lat: 1.15
+      pole_lon: -128.94
+      deg_per_myr: 0.1
+  p+1_-129_r0.15:
+    frame_rotation:
+      pole_lat: 1.15
+      pole_lon: -128.94
+      deg_per_myr: 0.15
+  p-1_+94_r0.025:
+    frame_rotation:
+      pole_lat: -1.15
+      pole_lon: 93.55
+      deg_per_myr: 0.025
+  p-1_+94_r0.05:
+    frame_rotation:
+      pole_lat: -1.15
+      pole_lon: 93.55
+      deg_per_myr: 0.05
+  p-1_+94_r0.075:
+    frame_rotation:
+      pole_lat: -1.15
+      pole_lon: 93.55
+      deg_per_myr: 0.075
+  p-1_+94_r0.1:
+    frame_rotation:
+      pole_lat: -1.15
+      pole_lon: 93.55
+      deg_per_myr: 0.1
+  p-1_+94_r0.15:
+    frame_rotation:
+      pole_lat: -1.15
+      pole_lon: 93.55
+      deg_per_myr: 0.15
+  p-3_-44_r0.025:
+    frame_rotation:
+      pole_lat: -3.44
+      pole_lon: -43.96
+      deg_per_myr: 0.025
+  p-3_-44_r0.05:
+    frame_rotation:
+      pole_lat: -3.44
+      pole_lon: -43.96
+      deg_per_myr: 0.05
+  p-3_-44_r0.075:
+    frame_rotation:
+      pole_lat: -3.44
+      pole_lon: -43.96
+      deg_per_myr: 0.075
+  p-3_-44_r0.1:
+    frame_rotation:
+      pole_lat: -3.44
+      pole_lon: -43.96
+      deg_per_myr: 0.1
+  p-3_-44_r0.15:
+    frame_rotation:
+      pole_lat: -3.44
+      pole_lon: -43.96
+      deg_per_myr: 0.15
+  p-6_+179_r0.025:
+    frame_rotation:
+      pole_lat: -5.74
+      pole_lon: 178.54
+      deg_per_myr: 0.025
+  p-6_+179_r0.05:
+    frame_rotation:
+      pole_lat: -5.74
+      pole_lon: 178.54
+      deg_per_myr: 0.05
+  p-6_+179_r0.075:
+    frame_rotation:
+      pole_lat: -5.74
+      pole_lon: 178.54
+      deg_per_myr: 0.075
+  p-6_+179_r0.1:
+    frame_rotation:
+      pole_lat: -5.74
+      pole_lon: 178.54
+      deg_per_myr: 0.1
+  p-6_+179_r0.15:
+    frame_rotation:
+      pole_lat: -5.74
+      pole_lon: 178.54
+      deg_per_myr: 0.15
+  p-8_+41_r0.025:
+    frame_rotation:
+      pole_lat: -8.05
+      pole_lon: 41.03
+      deg_per_myr: 0.025
+  p-8_+41_r0.05:
+    frame_rotation:
+      pole_lat: -8.05
+      pole_lon: 41.03
+      deg_per_myr: 0.05
+  p-8_+41_r0.075:
+    frame_rotation:
+      pole_lat: -8.05
+      pole_lon: 41.03
+      deg_per_myr: 0.075
+  p-8_+41_r0.1:
+    frame_rotation:
+      pole_lat: -8.05
+      pole_lon: 41.03
+      deg_per_myr: 0.1
+  p-8_+41_r0.15:
+    frame_rotation:
+      pole_lat: -8.05
+      pole_lon: 41.03
+      deg_per_myr: 0.15
+  p-10_-96_r0.025:
+    frame_rotation:
+      pole_lat: -10.37
+      pole_lon: -96.48
+      deg_per_myr: 0.025
+  p-10_-96_r0.05:
+    frame_rotation:
+      pole_lat: -10.37
+      pole_lon: -96.48
+      deg_per_myr: 0.05
+  p-10_-96_r0.075:
+    frame_rotation:
+      pole_lat: -10.37
+      pole_lon: -96.48
+      deg_per_myr: 0.075
+  p-10_-96_r0.1:
+    frame_rotation:
+      pole_lat: -10.37
+      pole_lon: -96.48
+      deg_per_myr: 0.1
+  p-10_-96_r0.15:
+    frame_rotation:
+      pole_lat: -10.37
+      pole_lon: -96.48
+      deg_per_myr: 0.15
+  p-13_+126_r0.025:
+    frame_rotation:
+      pole_lat: -12.71
+      pole_lon: 126.01
+      deg_per_myr: 0.025
+  p-13_+126_r0.05:
+    frame_rotation:
+      pole_lat: -12.71
+      pole_lon: 126.01
+      deg_per_myr: 0.05
+  p-13_+126_r0.075:
+    frame_rotation:
+      pole_lat: -12.71
+      pole_lon: 126.01
+      deg_per_myr: 0.075
+  p-13_+126_r0.1:
+    frame_rotation:
+      pole_lat: -12.71
+      pole_lon: 126.01
+      deg_per_myr: 0.1
+  p-13_+126_r0.15:
+    frame_rotation:
+      pole_lat: -12.71
+      pole_lon: 126.01
+      deg_per_myr: 0.15
+  p-15_-11_r0.025:
+    frame_rotation:
+      pole_lat: -15.07
+      pole_lon: -11.49
+      deg_per_myr: 0.025
+  p-15_-11_r0.05:
+    frame_rotation:
+      pole_lat: -15.07
+      pole_lon: -11.49
+      deg_per_myr: 0.05
+  p-15_-11_r0.075:
+    frame_rotation:
+      pole_lat: -15.07
+      pole_lon: -11.49
+      deg_per_myr: 0.075
+  p-15_-11_r0.1:
+    frame_rotation:
+      pole_lat: -15.07
+      pole_lon: -11.49
+      deg_per_myr: 0.1
+  p-15_-11_r0.15:
+    frame_rotation:
+      pole_lat: -15.07
+      pole_lon: -11.49
+      deg_per_myr: 0.15
+  p-17_-149_r0.025:
+    frame_rotation:
+      pole_lat: -17.46
+      pole_lon: -149.0
+      deg_per_myr: 0.025
+  p-17_-149_r0.05:
+    frame_rotation:
+      pole_lat: -17.46
+      pole_lon: -149.0
+      deg_per_myr: 0.05
+  p-17_-149_r0.075:
+    frame_rotation:
+      pole_lat: -17.46
+      pole_lon: -149.0
+      deg_per_myr: 0.075
+  p-17_-149_r0.1:
+    frame_rotation:
+      pole_lat: -17.46
+      pole_lon: -149.0
+      deg_per_myr: 0.1
+  p-17_-149_r0.15:
+    frame_rotation:
+      pole_lat: -17.46
+      pole_lon: -149.0
+      deg_per_myr: 0.15
+  p-20_+73_r0.025:
+    frame_rotation:
+      pole_lat: -19.88
+      pole_lon: 73.49
+      deg_per_myr: 0.025
+  p-20_+73_r0.05:
+    frame_rotation:
+      pole_lat: -19.88
+      pole_lon: 73.49
+      deg_per_myr: 0.05
+  p-20_+73_r0.075:
+    frame_rotation:
+      pole_lat: -19.88
+      pole_lon: 73.49
+      deg_per_myr: 0.075
+  p-20_+73_r0.1:
+    frame_rotation:
+      pole_lat: -19.88
+      pole_lon: 73.49
+      deg_per_myr: 0.1
+  p-20_+73_r0.15:
+    frame_rotation:
+      pole_lat: -19.88
+      pole_lon: 73.49
+      deg_per_myr: 0.15
+  p-22_-64_r0.025:
+    frame_rotation:
+      pole_lat: -22.33
+      pole_lon: -64.02
+      deg_per_myr: 0.025
+  p-22_-64_r0.05:
+    frame_rotation:
+      pole_lat: -22.33
+      pole_lon: -64.02
+      deg_per_myr: 0.05
+  p-22_-64_r0.075:
+    frame_rotation:
+      pole_lat: -22.33
+      pole_lon: -64.02
+      deg_per_myr: 0.075
+  p-22_-64_r0.1:
+    frame_rotation:
+      pole_lat: -22.33
+      pole_lon: -64.02
+      deg_per_myr: 0.1
+  p-22_-64_r0.15:
+    frame_rotation:
+      pole_lat: -22.33
+      pole_lon: -64.02
+      deg_per_myr: 0.15
+  p-25_+158_r0.025:
+    frame_rotation:
+      pole_lat: -24.83
+      pole_lon: 158.47
+      deg_per_myr: 0.025
+  p-25_+158_r0.05:
+    frame_rotation:
+      pole_lat: -24.83
+      pole_lon: 158.47
+      deg_per_myr: 0.05
+  p-25_+158_r0.075:
+    frame_rotation:
+      pole_lat: -24.83
+      pole_lon: 158.47
+      deg_per_myr: 0.075
+  p-25_+158_r0.1:
+    frame_rotation:
+      pole_lat: -24.83
+      pole_lon: 158.47
+      deg_per_myr: 0.1
+  p-25_+158_r0.15:
+    frame_rotation:
+      pole_lat: -24.83
+      pole_lon: 158.47
+      deg_per_myr: 0.15
+  p-27_+21_r0.025:
+    frame_rotation:
+      pole_lat: -27.39
+      pole_lon: 20.97
+      deg_per_myr: 0.025
+  p-27_+21_r0.05:
+    frame_rotation:
+      pole_lat: -27.39
+      pole_lon: 20.97
+      deg_per_myr: 0.05
+  p-27_+21_r0.075:
+    frame_rotation:
+      pole_lat: -27.39
+      pole_lon: 20.97
+      deg_per_myr: 0.075
+  p-27_+21_r0.1:
+    frame_rotation:
+      pole_lat: -27.39
+      pole_lon: 20.97
+      deg_per_myr: 0.1
+  p-27_+21_r0.15:
+    frame_rotation:
+      pole_lat: -27.39
+      pole_lon: 20.97
+      deg_per_myr: 0.15
+  p-30_-117_r0.025:
+    frame_rotation:
+      pole_lat: -30.0
+      pole_lon: -116.54
+      deg_per_myr: 0.025
+  p-30_-117_r0.05:
+    frame_rotation:
+      pole_lat: -30.0
+      pole_lon: -116.54
+      deg_per_myr: 0.05
+  p-30_-117_r0.075:
+    frame_rotation:
+      pole_lat: -30.0
+      pole_lon: -116.54
+      deg_per_myr: 0.075
+  p-30_-117_r0.1:
+    frame_rotation:
+      pole_lat: -30.0
+      pole_lon: -116.54
+      deg_per_myr: 0.1
+  p-30_-117_r0.15:
+    frame_rotation:
+      pole_lat: -30.0
+      pole_lon: -116.54
+      deg_per_myr: 0.15
+  p-33_+106_r0.025:
+    frame_rotation:
+      pole_lat: -32.68
+      pole_lon: 105.95
+      deg_per_myr: 0.025
+  p-33_+106_r0.05:
+    frame_rotation:
+      pole_lat: -32.68
+      pole_lon: 105.95
+      deg_per_myr: 0.05
+  p-33_+106_r0.075:
+    frame_rotation:
+      pole_lat: -32.68
+      pole_lon: 105.95
+      deg_per_myr: 0.075
+  p-33_+106_r0.1:
+    frame_rotation:
+      pole_lat: -32.68
+      pole_lon: 105.95
+      deg_per_myr: 0.1
+  p-33_+106_r0.15:
+    frame_rotation:
+      pole_lat: -32.68
+      pole_lon: 105.95
+      deg_per_myr: 0.15
+  p-35_-32_r0.025:
+    frame_rotation:
+      pole_lat: -35.45
+      pole_lon: -31.56
+      deg_per_myr: 0.025
+  p-35_-32_r0.05:
+    frame_rotation:
+      pole_lat: -35.45
+      pole_lon: -31.56
+      deg_per_myr: 0.05
+  p-35_-32_r0.075:
+    frame_rotation:
+      pole_lat: -35.45
+      pole_lon: -31.56
+      deg_per_myr: 0.075
+  p-35_-32_r0.1:
+    frame_rotation:
+      pole_lat: -35.45
+      pole_lon: -31.56
+      deg_per_myr: 0.1
+  p-35_-32_r0.15:
+    frame_rotation:
+      pole_lat: -35.45
+      pole_lon: -31.56
+      deg_per_myr: 0.15
+  p-38_-169_r0.025:
+    frame_rotation:
+      pole_lat: -38.32
+      pole_lon: -169.06
+      deg_per_myr: 0.025
+  p-38_-169_r0.05:
+    frame_rotation:
+      pole_lat: -38.32
+      pole_lon: -169.06
+      deg_per_myr: 0.05
+  p-38_-169_r0.075:
+    frame_rotation:
+      pole_lat: -38.32
+      pole_lon: -169.06
+      deg_per_myr: 0.075
+  p-38_-169_r0.1:
+    frame_rotation:
+      pole_lat: -38.32
+      pole_lon: -169.06
+      deg_per_myr: 0.1
+  p-38_-169_r0.15:
+    frame_rotation:
+      pole_lat: -38.32
+      pole_lon: -169.06
+      deg_per_myr: 0.15
+  p-41_+53_r0.025:
+    frame_rotation:
+      pole_lat: -41.3
+      pole_lon: 53.43
+      deg_per_myr: 0.025
+  p-41_+53_r0.05:
+    frame_rotation:
+      pole_lat: -41.3
+      pole_lon: 53.43
+      deg_per_myr: 0.05
+  p-41_+53_r0.075:
+    frame_rotation:
+      pole_lat: -41.3
+      pole_lon: 53.43
+      deg_per_myr: 0.075
+  p-41_+53_r0.1:
+    frame_rotation:
+      pole_lat: -41.3
+      pole_lon: 53.43
+      deg_per_myr: 0.1
+  p-41_+53_r0.15:
+    frame_rotation:
+      pole_lat: -41.3
+      pole_lon: 53.43
+      deg_per_myr: 0.15
+  p-44_-84_r0.025:
+    frame_rotation:
+      pole_lat: -44.43
+      pole_lon: -84.08
+      deg_per_myr: 0.025
+  p-44_-84_r0.05:
+    frame_rotation:
+      pole_lat: -44.43
+      pole_lon: -84.08
+      deg_per_myr: 0.05
+  p-44_-84_r0.075:
+    frame_rotation:
+      pole_lat: -44.43
+      pole_lon: -84.08
+      deg_per_myr: 0.075
+  p-44_-84_r0.1:
+    frame_rotation:
+      pole_lat: -44.43
+      pole_lon: -84.08
+      deg_per_myr: 0.1
+  p-44_-84_r0.15:
+    frame_rotation:
+      pole_lat: -44.43
+      pole_lon: -84.08
+      deg_per_myr: 0.15
+  p-48_+138_r0.025:
+    frame_rotation:
+      pole_lat: -47.73
+      pole_lon: 138.41
+      deg_per_myr: 0.025
+  p-48_+138_r0.05:
+    frame_rotation:
+      pole_lat: -47.73
+      pole_lon: 138.41
+      deg_per_myr: 0.05
+  p-48_+138_r0.075:
+    frame_rotation:
+      pole_lat: -47.73
+      pole_lon: 138.41
+      deg_per_myr: 0.075
+  p-48_+138_r0.1:
+    frame_rotation:
+      pole_lat: -47.73
+      pole_lon: 138.41
+      deg_per_myr: 0.1
+  p-48_+138_r0.15:
+    frame_rotation:
+      pole_lat: -47.73
+      pole_lon: 138.41
+      deg_per_myr: 0.15
+  p-51_+1_r0.025:
+    frame_rotation:
+      pole_lat: -51.26
+      pole_lon: 0.9
+      deg_per_myr: 0.025
+  p-51_+1_r0.05:
+    frame_rotation:
+      pole_lat: -51.26
+      pole_lon: 0.9
+      deg_per_myr: 0.05
+  p-51_+1_r0.075:
+    frame_rotation:
+      pole_lat: -51.26
+      pole_lon: 0.9
+      deg_per_myr: 0.075
+  p-51_+1_r0.1:
+    frame_rotation:
+      pole_lat: -51.26
+      pole_lon: 0.9
+      deg_per_myr: 0.1
+  p-51_+1_r0.15:
+    frame_rotation:
+      pole_lat: -51.26
+      pole_lon: 0.9
+      deg_per_myr: 0.15
+  p-55_-137_r0.025:
+    frame_rotation:
+      pole_lat: -55.08
+      pole_lon: -136.6
+      deg_per_myr: 0.025
+  p-55_-137_r0.05:
+    frame_rotation:
+      pole_lat: -55.08
+      pole_lon: -136.6
+      deg_per_myr: 0.05
+  p-55_-137_r0.075:
+    frame_rotation:
+      pole_lat: -55.08
+      pole_lon: -136.6
+      deg_per_myr: 0.075
+  p-55_-137_r0.1:
+    frame_rotation:
+      pole_lat: -55.08
+      pole_lon: -136.6
+      deg_per_myr: 0.1
+  p-55_-137_r0.15:
+    frame_rotation:
+      pole_lat: -55.08
+      pole_lon: -136.6
+      deg_per_myr: 0.15
+  p-59_+86_r0.025:
+    frame_rotation:
+      pole_lat: -59.32
+      pole_lon: 85.89
+      deg_per_myr: 0.025
+  p-59_+86_r0.05:
+    frame_rotation:
+      pole_lat: -59.32
+      pole_lon: 85.89
+      deg_per_myr: 0.05
+  p-59_+86_r0.075:
+    frame_rotation:
+      pole_lat: -59.32
+      pole_lon: 85.89
+      deg_per_myr: 0.075
+  p-59_+86_r0.1:
+    frame_rotation:
+      pole_lat: -59.32
+      pole_lon: 85.89
+      deg_per_myr: 0.1
+  p-59_+86_r0.15:
+    frame_rotation:
+      pole_lat: -59.32
+      pole_lon: 85.89
+      deg_per_myr: 0.15
+  p-64_-52_r0.025:
+    frame_rotation:
+      pole_lat: -64.16
+      pole_lon: -51.62
+      deg_per_myr: 0.025
+  p-64_-52_r0.05:
+    frame_rotation:
+      pole_lat: -64.16
+      pole_lon: -51.62
+      deg_per_myr: 0.05
+  p-64_-52_r0.075:
+    frame_rotation:
+      pole_lat: -64.16
+      pole_lon: -51.62
+      deg_per_myr: 0.075
+  p-64_-52_r0.1:
+    frame_rotation:
+      pole_lat: -64.16
+      pole_lon: -51.62
+      deg_per_myr: 0.1
+  p-64_-52_r0.15:
+    frame_rotation:
+      pole_lat: -64.16
+      pole_lon: -51.62
+      deg_per_myr: 0.15
+  p-70_+171_r0.025:
+    frame_rotation:
+      pole_lat: -70.05
+      pole_lon: 170.87
+      deg_per_myr: 0.025
+  p-70_+171_r0.05:
+    frame_rotation:
+      pole_lat: -70.05
+      pole_lon: 170.87
+      deg_per_myr: 0.05
+  p-70_+171_r0.075:
+    frame_rotation:
+      pole_lat: -70.05
+      pole_lon: 170.87
+      deg_per_myr: 0.075
+  p-70_+171_r0.1:
+    frame_rotation:
+      pole_lat: -70.05
+      pole_lon: 170.87
+      deg_per_myr: 0.1
+  p-70_+171_r0.15:
+    frame_rotation:
+      pole_lat: -70.05
+      pole_lon: 170.87
+      deg_per_myr: 0.15
+  p-79_+33_r0.025:
+    frame_rotation:
+      pole_lat: -78.52
+      pole_lon: 33.37
+      deg_per_myr: 0.025
+  p-79_+33_r0.05:
+    frame_rotation:
+      pole_lat: -78.52
+      pole_lon: 33.37
+      deg_per_myr: 0.05
+  p-79_+33_r0.075:
+    frame_rotation:
+      pole_lat: -78.52
+      pole_lon: 33.37
+      deg_per_myr: 0.075
+  p-79_+33_r0.1:
+    frame_rotation:
+      pole_lat: -78.52
+      pole_lon: 33.37
+      deg_per_myr: 0.1
+  p-79_+33_r0.15:
+    frame_rotation:
+      pole_lat: -78.52
+      pole_lon: 33.37
+      deg_per_myr: 0.15

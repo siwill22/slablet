@@ -1,0 +1,20 @@
+# Against OPT1 (slablet/analysis/sweep_opt1.py).  From o4: a fixed lower-mantle rate (15 km/Myr) with a screened pile push
+# (pile_flow_screen_deg 30-45) keeps two piles, raises present-day tomography skill and moves both spectra towards OPT1's.
+# Around it: the rate scaling with the slab feed (exponent 0.5), seafloor-age weights, lower-mantle drift, CMB life,
+# and plumes from the (now more numerous) pile maxima.
+name: o5_screened
+base: configs/muller2022_dip_pile_sharp.yaml
+common: {seafloor: true, mantle.slab_lower_rate_km_per_myr: 15}
+variants:
+  scr45: {mantle.pile_flow_screen_deg: 45}
+  scr35: {mantle.pile_flow_screen_deg: 35}
+  scr45_beta05: {mantle.pile_flow_screen_deg: 45, mantle.slab_lower_rate_exponent: 0.5}
+  scr35_beta05: {mantle.pile_flow_screen_deg: 35, mantle.slab_lower_rate_exponent: 0.5}
+  scr45_lr20: {mantle.pile_flow_screen_deg: 45, mantle.slab_lower_rate_km_per_myr: 20}
+  scr45_age: {mantle.pile_flow_screen_deg: 45, mantle.slab_age_ref_myr: 50, mantle.slab_age_tau_exponent: 0}
+  scr45_flow: {mantle.pile_flow_screen_deg: 45, mantle.slab_flow_top: 0.3, mantle.slab_flow_bottom: -0.3}
+  scr45_tau100: {mantle.pile_flow_screen_deg: 45, mantle.slab_cmb_tau_myr: 100}
+  scr45_plumes: {mantle.pile_flow_screen_deg: 45, mantle.plume_dVs: -1.5, mantle.plume_spacing_deg: 10,
+                 mantle.plume_min_fraction: 0.2, mantle.plume_sigma_deg: 2}
+  scr35_beta05_age_flow: {mantle.pile_flow_screen_deg: 35, mantle.slab_lower_rate_exponent: 0.5, mantle.slab_age_ref_myr: 50,
+                          mantle.slab_age_tau_exponent: 0, mantle.slab_flow_top: 0.3, mantle.slab_flow_bottom: -0.3}

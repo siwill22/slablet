@@ -1,0 +1,8 @@
+# Model runs, caches and scores (large; kept locally, never versioned).  runs_real may be a
+# symlink to an existing folder.
+/runs_real
+/runs/
+show-me/
+__pycache__/
+*.egg-info/
+.DS_Store

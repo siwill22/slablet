@@ -1,0 +1,20 @@
+# Against OPT1 (slablet/analysis/sweep_opt1.py).  With a fixed lower-mantle rate (o3) nearly all of the pile drains under
+# the Pacific (2 % of its volume under Africa at 0 Ma, against 18 % in the base model; OPT1 has 14-23 % of its hottest
+# deep material there).  Ways to keep two piles: a less mobile pile, a screened push (each slab pushes only nearby),
+# a weaker push, or a push from slabs near the CMB only (300 km instead of 1000 km); and plumes from more sources.
+name: o4_two_piles
+base: configs/muller2022_dip_pile_sharp.yaml
+common: {seafloor: true, mantle.slab_lower_rate_km_per_myr: 15}
+variants:
+  mob10: {mantle.pile_mobility_km_per_myr: 10}
+  mob5: {mantle.pile_mobility_km_per_myr: 5}
+  scr45: {mantle.pile_flow_screen_deg: 45}
+  scr30: {mantle.pile_flow_screen_deg: 30}
+  head5000: {mantle.pile_slab_head_km: 5000}
+  layer300: {mantle.pile_slab_layer_km: 300}
+  lr12: {mantle.slab_lower_rate_km_per_myr: 12}
+  slowing3_mob10: {mantle.slab_lower_rate_km_per_myr: 0, mantle.pile_mobility_km_per_myr: 10}
+  mob10_tbl_plumes: {mantle.pile_mobility_km_per_myr: 10, mantle.tbl_thickness_km: 100, mantle.plume_dVs: -1.5,
+                     mantle.plume_spacing_deg: 10, mantle.plume_min_fraction: 0.2, mantle.plume_sigma_deg: 2}
+  scr45_tbl_plumes: {mantle.pile_flow_screen_deg: 45, mantle.tbl_thickness_km: 100, mantle.plume_dVs: -1.5,
+                     mantle.plume_spacing_deg: 10, mantle.plume_min_fraction: 0.2, mantle.plume_sigma_deg: 2}

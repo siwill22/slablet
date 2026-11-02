@@ -1,0 +1,12 @@
+# The refined model (configs/muller2022_refined.yaml) with the slab field saturating at slab_dVs_max: unblurred slabs
+# reach 40-160 % in the upper mantle, so after the blur they swamp the lithosphere lid.  Scored against OPT1 and
+# present-day tomography (slablet/analysis/sweep_opt1.py); the upper mantle is checked separately (show-me).
+name: o7_slab_cap
+base: configs/muller2022_refined.yaml
+variants:
+  final: {}
+  cap8: {mantle.slab_dVs_max: 8}
+  cap5: {mantle.slab_dVs_max: 5}
+  cap3: {mantle.slab_dVs_max: 3}
+  cap5_lith6: {mantle.slab_dVs_max: 5, mantle.lithosphere_dVs: 6}
+  cap3_lith6: {mantle.slab_dVs_max: 3, mantle.lithosphere_dVs: 6}

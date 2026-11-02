@@ -1,0 +1,106 @@
+# Müller et al. (2022), tuned settings plus everything from 1 November 2026 (show-me/2026-11-01-dip-llsvp-frame/):
+# slabs dip at 30 deg above 100 km and 40 deg below in the upper mantle (fits Slab1.0, the fast vote maps and REVEAL/SEMUCB-WM1); flow-driven pile
+# at -5 % with a warm layer 600 km thick above it (-2 %); slabs resting on the CMB warm with a 25 Myr e-folding time.
+#
+#   conda run -n pygmt17 python -m slablet.gplates.run_mantle configs/muller2022_dip_pile.yaml
+name: muller2022
+model_dir: /Users/simon/Library/Caches/gprm/Muller2022
+rotation_files:
+- optimisation/1000_0_rotfile_MantleOpt.rot
+topology_files:
+- Topologies/*.gpml
+anchor_plate_id: 0
+start_ma: 300
+end_ma: 0
+delta_time: 1
+output_every_myr: 10
+initial_slabs: columns
+output_dir: runs_real/muller2022_dip_pile
+cache_dir: runs_real/cache
+mantle:
+  slab_sink_rate_factor: 0.5
+  slab_slowing_factor: 3
+  slab_max_sink_rate: 400
+  slab_thermal_tau_myr: 200
+  slab_at_cmb: rest
+  mantle_bin_area_normalise: true
+  cmb_suppression_thermal_decay: true
+  initial_slab_depth_km: 1320
+  mantle_grid_spacing_deg: 5.0
+  mantle_depth_interval_km: 100
+  cmb_heating_rate: 0.02
+  cmb_slab_suppression: 0.05
+  cmb_surface_coupling: 0.1
+  cmb_sigma_deg: 10.0
+  cmb_max_heat: 3.0
+  cmb_dVs_scale: -0.5
+  cmb_decay_km: 400.0
+  tomo_smooth_horiz_deg: 5.0
+  tomo_smooth_depth_km: 150.0
+  llsvp: pile
+  pile_drive: flow
+  pile_slab_head_km: 10000
+  pile_slab_layer_km: 1000
+  pile_mean_thickness_km: 150
+  pile_mobility_km_per_myr: 30
+  pile_dVs: -5
+  pile_halo_km: 600
+  pile_halo_dVs: -2
+  pile_halo_h_km: 300
+  slab_cmb_tau_myr: 25
+  slab_dip_deg: 40
+  slab_dip_shallow_deg: 30
+  slab_dip_shallow_km: 100
+tomography:
+- name: REVEAL
+  file: /Users/simon/Data/SeismicTomography/Schouten_Supplementary_material/Models/REVEAL_downsampled_anomaly.nc
+  variable: vs_anomaly
+  depths_km:
+  - 1000
+  - 1100
+  - 1200
+  - 1300
+  - 1400
+  - 1500
+  - 1600
+  - 1700
+  - 1800
+  - 1900
+  - 2000
+  - 2100
+  - 2200
+  - 2300
+  - 2400
+  - 2500
+  - 2600
+  - 2700
+  - 2800
+  slow_fraction: 0.3
+  fast_fraction: 0.2
+  lmax: 8
+- name: SEMUCB-WM1
+  file: /Users/simon/Data/SeismicTomography/Schouten_Supplementary_material/Models/SEMUCB_WM1_anomaly.nc
+  variable: vs_anomaly
+  depths_km:
+  - 1000
+  - 1100
+  - 1200
+  - 1300
+  - 1400
+  - 1500
+  - 1600
+  - 1700
+  - 1800
+  - 1900
+  - 2000
+  - 2100
+  - 2200
+  - 2300
+  - 2400
+  - 2500
+  - 2600
+  - 2700
+  - 2800
+  slow_fraction: 0.3
+  fast_fraction: 0.2
+  lmax: 8

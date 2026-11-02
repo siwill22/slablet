@@ -1,0 +1,3011 @@
+# Latin-hypercube random search (300) around the plateau: slab_at_cmb rest, llsvp none.
+# Seed 20261101.  Ranges: sink 0.3-1 (log), slowing 1.5-8 (log), tau 100-400 (log), tomo blur 3-10 deg,
+# slab sigma 2-6 deg, upper_mantle_km 500-1000, initial columns 660-2000 km, start 250-350 Ma.
+name: s06_random_search
+base: configs/muller2022.yaml
+common:
+  output_every_myr: 100000
+  mantle:
+    slab_at_cmb: rest
+    llsvp: none
+variants:
+  r000:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.934
+      slab_slowing_factor: 2.889
+      slab_thermal_tau_myr: 153.146
+      tomo_smooth_horiz_deg: 7.444
+      slab_sigma_deg: 3.593
+      upper_mantle_km: 968.423
+      initial_slab_depth_km: 1653.373
+  r001:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.956
+      slab_slowing_factor: 3.148
+      slab_thermal_tau_myr: 362.905
+      tomo_smooth_horiz_deg: 7.775
+      slab_sigma_deg: 3.926
+      upper_mantle_km: 699.949
+      initial_slab_depth_km: 800.311
+  r002:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.428
+      slab_slowing_factor: 5.84
+      slab_thermal_tau_myr: 266.056
+      tomo_smooth_horiz_deg: 8.26
+      slab_sigma_deg: 4.684
+      upper_mantle_km: 668.502
+      initial_slab_depth_km: 1192.847
+  r003:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.82
+      slab_slowing_factor: 5.299
+      slab_thermal_tau_myr: 318.502
+      tomo_smooth_horiz_deg: 5.669
+      slab_sigma_deg: 2.495
+      upper_mantle_km: 528.248
+      initial_slab_depth_km: 1875.99
+  r004:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.391
+      slab_slowing_factor: 2.198
+      slab_thermal_tau_myr: 169.899
+      tomo_smooth_horiz_deg: 7.823
+      slab_sigma_deg: 3.39
+      upper_mantle_km: 683.144
+      initial_slab_depth_km: 1182.777
+  r005:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.555
+      slab_slowing_factor: 7.424
+      slab_thermal_tau_myr: 272.661
+      tomo_smooth_horiz_deg: 9.018
+      slab_sigma_deg: 5.831
+      upper_mantle_km: 684.003
+      initial_slab_depth_km: 1305.365
+  r006:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.599
+      slab_slowing_factor: 1.55
+      slab_thermal_tau_myr: 184.837
+      tomo_smooth_horiz_deg: 4.533
+      slab_sigma_deg: 3.01
+      upper_mantle_km: 522.214
+      initial_slab_depth_km: 1936.065
+  r007:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.912
+      slab_slowing_factor: 4.159
+      slab_thermal_tau_myr: 107.191
+      tomo_smooth_horiz_deg: 8.895
+      slab_sigma_deg: 5.344
+      upper_mantle_km: 928.938
+      initial_slab_depth_km: 1797.971
+  r008:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.876
+      slab_slowing_factor: 7.313
+      slab_thermal_tau_myr: 112.028
+      tomo_smooth_horiz_deg: 8.803
+      slab_sigma_deg: 2.234
+      upper_mantle_km: 825.454
+      initial_slab_depth_km: 1641.71
+  r009:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.31
+      slab_slowing_factor: 4.964
+      slab_thermal_tau_myr: 203.828
+      tomo_smooth_horiz_deg: 6.114
+      slab_sigma_deg: 2.915
+      upper_mantle_km: 948.98
+      initial_slab_depth_km: 1821.318
+  r010:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.699
+      slab_slowing_factor: 1.516
+      slab_thermal_tau_myr: 195.908
+      tomo_smooth_horiz_deg: 6.687
+      slab_sigma_deg: 2.739
+      upper_mantle_km: 691.312
+      initial_slab_depth_km: 852.38
+  r011:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.872
+      slab_slowing_factor: 2.577
+      slab_thermal_tau_myr: 109.898
+      tomo_smooth_horiz_deg: 4.157
+      slab_sigma_deg: 3.191
+      upper_mantle_km: 902.456
+      initial_slab_depth_km: 1832.673
+  r012:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.419
+      slab_slowing_factor: 2.482
+      slab_thermal_tau_myr: 350.22
+      tomo_smooth_horiz_deg: 8.949
+      slab_sigma_deg: 3.369
+      upper_mantle_km: 503.115
+      initial_slab_depth_km: 1259.863
+  r013:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.646
+      slab_slowing_factor: 3.497
+      slab_thermal_tau_myr: 223.216
+      tomo_smooth_horiz_deg: 7.037
+      slab_sigma_deg: 5.363
+      upper_mantle_km: 880.678
+      initial_slab_depth_km: 1355.302
+  r014:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.335
+      slab_slowing_factor: 6.298
+      slab_thermal_tau_myr: 238.809
+      tomo_smooth_horiz_deg: 4.723
+      slab_sigma_deg: 4.36
+      upper_mantle_km: 876.939
+      initial_slab_depth_km: 826.602
+  r015:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.92
+      slab_slowing_factor: 4.294
+      slab_thermal_tau_myr: 154.381
+      tomo_smooth_horiz_deg: 5.045
+      slab_sigma_deg: 2.886
+      upper_mantle_km: 772.537
+      initial_slab_depth_km: 794.575
+  r016:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.392
+      slab_slowing_factor: 6.13
+      slab_thermal_tau_myr: 393.983
+      tomo_smooth_horiz_deg: 3.019
+      slab_sigma_deg: 5.764
+      upper_mantle_km: 623.654
+      initial_slab_depth_km: 1102.604
+  r017:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.51
+      slab_slowing_factor: 5.935
+      slab_thermal_tau_myr: 258.66
+      tomo_smooth_horiz_deg: 4.999
+      slab_sigma_deg: 2.665
+      upper_mantle_km: 552.485
+      initial_slab_depth_km: 1799.848
+  r018:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.355
+      slab_slowing_factor: 1.726
+      slab_thermal_tau_myr: 201.918
+      tomo_smooth_horiz_deg: 3.05
+      slab_sigma_deg: 4.673
+      upper_mantle_km: 909.014
+      initial_slab_depth_km: 921.16
+  r019:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.423
+      slab_slowing_factor: 2.359
+      slab_thermal_tau_myr: 323.28
+      tomo_smooth_horiz_deg: 4.032
+      slab_sigma_deg: 3.477
+      upper_mantle_km: 793.556
+      initial_slab_depth_km: 1865.003
+  r020:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.469
+      slab_slowing_factor: 4.936
+      slab_thermal_tau_myr: 280.449
+      tomo_smooth_horiz_deg: 3.424
+      slab_sigma_deg: 4.794
+      upper_mantle_km: 724.816
+      initial_slab_depth_km: 1172.482
+  r021:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.624
+      slab_slowing_factor: 5.079
+      slab_thermal_tau_myr: 208.645
+      tomo_smooth_horiz_deg: 5.243
+      slab_sigma_deg: 5.049
+      upper_mantle_km: 866.109
+      initial_slab_depth_km: 1850.37
+  r022:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.72
+      slab_slowing_factor: 2.467
+      slab_thermal_tau_myr: 277.919
+      tomo_smooth_horiz_deg: 7.564
+      slab_sigma_deg: 2.752
+      upper_mantle_km: 630.851
+      initial_slab_depth_km: 1153.552
+  r023:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.314
+      slab_slowing_factor: 1.838
+      slab_thermal_tau_myr: 344.225
+      tomo_smooth_horiz_deg: 7.54
+      slab_sigma_deg: 2.363
+      upper_mantle_km: 867.473
+      initial_slab_depth_km: 1081.971
+  r024:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.941
+      slab_slowing_factor: 5.67
+      slab_thermal_tau_myr: 103.05
+      tomo_smooth_horiz_deg: 8.527
+      slab_sigma_deg: 4.376
+      upper_mantle_km: 918.7
+      initial_slab_depth_km: 1927.475
+  r025:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.398
+      slab_slowing_factor: 1.531
+      slab_thermal_tau_myr: 132.186
+      tomo_smooth_horiz_deg: 4.67
+      slab_sigma_deg: 3.852
+      upper_mantle_km: 767.479
+      initial_slab_depth_km: 970.859
+  r026:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.673
+      slab_slowing_factor: 5.9
+      slab_thermal_tau_myr: 172.457
+      tomo_smooth_horiz_deg: 4.387
+      slab_sigma_deg: 2.488
+      upper_mantle_km: 872.423
+      initial_slab_depth_km: 1945.564
+  r027:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.336
+      slab_slowing_factor: 3.056
+      slab_thermal_tau_myr: 380.541
+      tomo_smooth_horiz_deg: 8.475
+      slab_sigma_deg: 2.441
+      upper_mantle_km: 931.15
+      initial_slab_depth_km: 1576.367
+  r028:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.347
+      slab_slowing_factor: 4.035
+      slab_thermal_tau_myr: 376.809
+      tomo_smooth_horiz_deg: 9.594
+      slab_sigma_deg: 2.532
+      upper_mantle_km: 505.238
+      initial_slab_depth_km: 1899.088
+  r029:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.705
+      slab_slowing_factor: 2.797
+      slab_thermal_tau_myr: 269.334
+      tomo_smooth_horiz_deg: 7.187
+      slab_sigma_deg: 5.883
+      upper_mantle_km: 835.393
+      initial_slab_depth_km: 773.636
+  r030:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.577
+      slab_slowing_factor: 4.586
+      slab_thermal_tau_myr: 144.02
+      tomo_smooth_horiz_deg: 6.806
+      slab_sigma_deg: 3.78
+      upper_mantle_km: 937.58
+      initial_slab_depth_km: 1506.881
+  r031:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.91
+      slab_slowing_factor: 1.748
+      slab_thermal_tau_myr: 305.311
+      tomo_smooth_horiz_deg: 8.639
+      slab_sigma_deg: 4.194
+      upper_mantle_km: 516.366
+      initial_slab_depth_km: 1244.881
+  r032:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.373
+      slab_slowing_factor: 2.655
+      slab_thermal_tau_myr: 114.915
+      tomo_smooth_horiz_deg: 7.64
+      slab_sigma_deg: 5.263
+      upper_mantle_km: 518.579
+      initial_slab_depth_km: 1889.878
+  r033:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.784
+      slab_slowing_factor: 3.701
+      slab_thermal_tau_myr: 138.448
+      tomo_smooth_horiz_deg: 9.975
+      slab_sigma_deg: 5.495
+      upper_mantle_km: 721.216
+      initial_slab_depth_km: 1060.176
+  r034:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.422
+      slab_slowing_factor: 4.1
+      slab_thermal_tau_myr: 144.078
+      tomo_smooth_horiz_deg: 8.327
+      slab_sigma_deg: 2.934
+      upper_mantle_km: 692.717
+      initial_slab_depth_km: 1087.043
+  r035:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.738
+      slab_slowing_factor: 3.433
+      slab_thermal_tau_myr: 111.36
+      tomo_smooth_horiz_deg: 4.745
+      slab_sigma_deg: 2.927
+      upper_mantle_km: 718.091
+      initial_slab_depth_km: 1372.201
+  r036:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.666
+      slab_slowing_factor: 3.379
+      slab_thermal_tau_myr: 116.595
+      tomo_smooth_horiz_deg: 4.096
+      slab_sigma_deg: 5.522
+      upper_mantle_km: 881.936
+      initial_slab_depth_km: 1281.981
+  r037:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.302
+      slab_slowing_factor: 2.036
+      slab_thermal_tau_myr: 149.389
+      tomo_smooth_horiz_deg: 5.272
+      slab_sigma_deg: 3.579
+      upper_mantle_km: 886.239
+      initial_slab_depth_km: 1093.866
+  r038:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.688
+      slab_slowing_factor: 1.967
+      slab_thermal_tau_myr: 257.097
+      tomo_smooth_horiz_deg: 9.708
+      slab_sigma_deg: 3.772
+      upper_mantle_km: 688.677
+      initial_slab_depth_km: 984.287
+  r039:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 2.326
+      slab_thermal_tau_myr: 161.229
+      tomo_smooth_horiz_deg: 3.967
+      slab_sigma_deg: 5.989
+      upper_mantle_km: 953.701
+      initial_slab_depth_km: 1521.989
+  r040:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.388
+      slab_slowing_factor: 4.79
+      slab_thermal_tau_myr: 368.414
+      tomo_smooth_horiz_deg: 8.546
+      slab_sigma_deg: 4.075
+      upper_mantle_km: 524.795
+      initial_slab_depth_km: 1690.204
+  r041:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.43
+      slab_slowing_factor: 3.326
+      slab_thermal_tau_myr: 281.592
+      tomo_smooth_horiz_deg: 7.162
+      slab_sigma_deg: 5.717
+      upper_mantle_km: 661.411
+      initial_slab_depth_km: 1826.498
+  r042:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.504
+      slab_slowing_factor: 3.957
+      slab_thermal_tau_myr: 133.447
+      tomo_smooth_horiz_deg: 8.774
+      slab_sigma_deg: 4.643
+      upper_mantle_km: 828.215
+      initial_slab_depth_km: 1288.18
+  r043:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.751
+      slab_slowing_factor: 4.323
+      slab_thermal_tau_myr: 288.203
+      tomo_smooth_horiz_deg: 4.126
+      slab_sigma_deg: 4.022
+      upper_mantle_km: 605.59
+      initial_slab_depth_km: 1308.105
+  r044:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.406
+      slab_slowing_factor: 3.656
+      slab_thermal_tau_myr: 244.0
+      tomo_smooth_horiz_deg: 9.785
+      slab_sigma_deg: 2.136
+      upper_mantle_km: 762.692
+      initial_slab_depth_km: 1666.23
+  r045:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.315
+      slab_slowing_factor: 2.073
+      slab_thermal_tau_myr: 315.332
+      tomo_smooth_horiz_deg: 8.394
+      slab_sigma_deg: 5.377
+      upper_mantle_km: 800.702
+      initial_slab_depth_km: 945.616
+  r046:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.347
+      slab_slowing_factor: 1.777
+      slab_thermal_tau_myr: 259.651
+      tomo_smooth_horiz_deg: 7.946
+      slab_sigma_deg: 4.449
+      upper_mantle_km: 860.67
+      initial_slab_depth_km: 1782.263
+  r047:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.352
+      slab_slowing_factor: 3.297
+      slab_thermal_tau_myr: 247.691
+      tomo_smooth_horiz_deg: 5.215
+      slab_sigma_deg: 2.798
+      upper_mantle_km: 740.202
+      initial_slab_depth_km: 1549.119
+  r048:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.972
+      slab_slowing_factor: 6.943
+      slab_thermal_tau_myr: 121.864
+      tomo_smooth_horiz_deg: 7.963
+      slab_sigma_deg: 2.989
+      upper_mantle_km: 786.98
+      initial_slab_depth_km: 927.279
+  r049:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.693
+      slab_slowing_factor: 3.109
+      slab_thermal_tau_myr: 196.778
+      tomo_smooth_horiz_deg: 9.893
+      slab_sigma_deg: 4.032
+      upper_mantle_km: 703.272
+      initial_slab_depth_km: 929.855
+  r050:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.568
+      slab_slowing_factor: 4.563
+      slab_thermal_tau_myr: 156.588
+      tomo_smooth_horiz_deg: 5.223
+      slab_sigma_deg: 3.356
+      upper_mantle_km: 977.015
+      initial_slab_depth_km: 1200.823
+  r051:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.307
+      slab_slowing_factor: 4.33
+      slab_thermal_tau_myr: 168.67
+      tomo_smooth_horiz_deg: 5.077
+      slab_sigma_deg: 2.955
+      upper_mantle_km: 701.23
+      initial_slab_depth_km: 1931.384
+  r052:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.748
+      slab_slowing_factor: 4.699
+      slab_thermal_tau_myr: 121.377
+      tomo_smooth_horiz_deg: 4.783
+      slab_sigma_deg: 4.244
+      upper_mantle_km: 905.983
+      initial_slab_depth_km: 1278.719
+  r053:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.652
+      slab_slowing_factor: 5.197
+      slab_thermal_tau_myr: 299.303
+      tomo_smooth_horiz_deg: 5.754
+      slab_sigma_deg: 2.345
+      upper_mantle_km: 857.351
+      initial_slab_depth_km: 1022.637
+  r054:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.627
+      slab_slowing_factor: 5.421
+      slab_thermal_tau_myr: 246.706
+      tomo_smooth_horiz_deg: 9.28
+      slab_sigma_deg: 4.886
+      upper_mantle_km: 966.281
+      initial_slab_depth_km: 1860.735
+  r055:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.734
+      slab_slowing_factor: 2.389
+      slab_thermal_tau_myr: 127.558
+      tomo_smooth_horiz_deg: 8.065
+      slab_sigma_deg: 2.25
+      upper_mantle_km: 678.574
+      initial_slab_depth_km: 1953.528
+  r056:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.487
+      slab_slowing_factor: 6.063
+      slab_thermal_tau_myr: 352.921
+      tomo_smooth_horiz_deg: 9.12
+      slab_sigma_deg: 3.99
+      upper_mantle_km: 891.007
+      initial_slab_depth_km: 901.107
+  r057:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.357
+      slab_slowing_factor: 3.88
+      slab_thermal_tau_myr: 122.425
+      tomo_smooth_horiz_deg: 5.47
+      slab_sigma_deg: 3.65
+      upper_mantle_km: 845.648
+      initial_slab_depth_km: 1328.271
+  r058:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.407
+      slab_slowing_factor: 1.739
+      slab_thermal_tau_myr: 142.333
+      tomo_smooth_horiz_deg: 3.792
+      slab_sigma_deg: 3.092
+      upper_mantle_km: 850.505
+      initial_slab_depth_km: 1632.861
+  r059:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.492
+      slab_slowing_factor: 1.614
+      slab_thermal_tau_myr: 176.044
+      tomo_smooth_horiz_deg: 6.532
+      slab_sigma_deg: 5.177
+      upper_mantle_km: 993.16
+      initial_slab_depth_km: 1711.756
+  r060:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.323
+      slab_slowing_factor: 5.749
+      slab_thermal_tau_myr: 242.867
+      tomo_smooth_horiz_deg: 4.935
+      slab_sigma_deg: 3.682
+      upper_mantle_km: 932.026
+      initial_slab_depth_km: 1791.115
+  r061:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.585
+      slab_slowing_factor: 4.781
+      slab_thermal_tau_myr: 371.558
+      tomo_smooth_horiz_deg: 4.8
+      slab_sigma_deg: 4.821
+      upper_mantle_km: 671.384
+      initial_slab_depth_km: 729.326
+  r062:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.53
+      slab_slowing_factor: 7.391
+      slab_thermal_tau_myr: 104.81
+      tomo_smooth_horiz_deg: 4.185
+      slab_sigma_deg: 3.906
+      upper_mantle_km: 735.795
+      initial_slab_depth_km: 1450.986
+  r063:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.551
+      slab_slowing_factor: 1.784
+      slab_thermal_tau_myr: 180.743
+      tomo_smooth_horiz_deg: 7.873
+      slab_sigma_deg: 5.268
+      upper_mantle_km: 894.1
+      initial_slab_depth_km: 1050.673
+  r064:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.812
+      slab_slowing_factor: 4.458
+      slab_thermal_tau_myr: 129.114
+      tomo_smooth_horiz_deg: 4.017
+      slab_sigma_deg: 2.688
+      upper_mantle_km: 755.267
+      initial_slab_depth_km: 670.352
+  r065:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.3
+      slab_slowing_factor: 3.123
+      slab_thermal_tau_myr: 189.341
+      tomo_smooth_horiz_deg: 6.884
+      slab_sigma_deg: 4.201
+      upper_mantle_km: 746.376
+      initial_slab_depth_km: 723.228
+  r066:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.485
+      slab_slowing_factor: 5.392
+      slab_thermal_tau_myr: 200.801
+      tomo_smooth_horiz_deg: 8.414
+      slab_sigma_deg: 3.28
+      upper_mantle_km: 596.831
+      initial_slab_depth_km: 1958.166
+  r067:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.946
+      slab_slowing_factor: 6.187
+      slab_thermal_tau_myr: 229.32
+      tomo_smooth_horiz_deg: 3.138
+      slab_sigma_deg: 4.618
+      upper_mantle_km: 895.384
+      initial_slab_depth_km: 1988.262
+  r068:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.616
+      slab_slowing_factor: 3.234
+      slab_thermal_tau_myr: 272.163
+      tomo_smooth_horiz_deg: 3.507
+      slab_sigma_deg: 3.888
+      upper_mantle_km: 571.722
+      initial_slab_depth_km: 1566.71
+  r069:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.517
+      slab_slowing_factor: 7.822
+      slab_thermal_tau_myr: 131.03
+      tomo_smooth_horiz_deg: 5.79
+      slab_sigma_deg: 4.925
+      upper_mantle_km: 731.803
+      initial_slab_depth_km: 859.933
+  r070:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.424
+      slab_slowing_factor: 1.505
+      slab_thermal_tau_myr: 100.732
+      tomo_smooth_horiz_deg: 9.804
+      slab_sigma_deg: 5.622
+      upper_mantle_km: 928.239
+      initial_slab_depth_km: 1592.438
+  r071:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.41
+      slab_slowing_factor: 1.579
+      slab_thermal_tau_myr: 144.961
+      tomo_smooth_horiz_deg: 9.264
+      slab_sigma_deg: 3.51
+      upper_mantle_km: 510.091
+      initial_slab_depth_km: 718.903
+  r072:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.667
+      slab_slowing_factor: 3.612
+      slab_thermal_tau_myr: 292.529
+      tomo_smooth_horiz_deg: 3.665
+      slab_sigma_deg: 3.55
+      upper_mantle_km: 674.244
+      initial_slab_depth_km: 1730.529
+  r073:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.405
+      slab_slowing_factor: 6.906
+      slab_thermal_tau_myr: 286.974
+      tomo_smooth_horiz_deg: 5.939
+      slab_sigma_deg: 4.662
+      upper_mantle_km: 848.697
+      initial_slab_depth_km: 738.68
+  r074:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.969
+      slab_slowing_factor: 2.766
+      slab_thermal_tau_myr: 267.581
+      tomo_smooth_horiz_deg: 8.861
+      slab_sigma_deg: 3.664
+      upper_mantle_km: 981.744
+      initial_slab_depth_km: 975.702
+  r075:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.899
+      slab_slowing_factor: 4.987
+      slab_thermal_tau_myr: 106.819
+      tomo_smooth_horiz_deg: 4.117
+      slab_sigma_deg: 3.627
+      upper_mantle_km: 696.973
+      initial_slab_depth_km: 1408.604
+  r076:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.541
+      slab_slowing_factor: 2.782
+      slab_thermal_tau_myr: 230.147
+      tomo_smooth_horiz_deg: 6.413
+      slab_sigma_deg: 5.849
+      upper_mantle_km: 655.592
+      initial_slab_depth_km: 1198.172
+  r077:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.618
+      slab_slowing_factor: 5.057
+      slab_thermal_tau_myr: 330.423
+      tomo_smooth_horiz_deg: 8.966
+      slab_sigma_deg: 4.954
+      upper_mantle_km: 649.349
+      initial_slab_depth_km: 680.72
+  r078:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.745
+      slab_slowing_factor: 4.228
+      slab_thermal_tau_myr: 158.995
+      tomo_smooth_horiz_deg: 6.48
+      slab_sigma_deg: 5.612
+      upper_mantle_km: 626.381
+      initial_slab_depth_km: 1410.685
+  r079:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.482
+      slab_slowing_factor: 3.266
+      slab_thermal_tau_myr: 131.937
+      tomo_smooth_horiz_deg: 5.017
+      slab_sigma_deg: 3.246
+      upper_mantle_km: 754.225
+      initial_slab_depth_km: 1000.91
+  r080:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.477
+      slab_slowing_factor: 4.127
+      slab_thermal_tau_myr: 170.335
+      tomo_smooth_horiz_deg: 9.469
+      slab_sigma_deg: 2.708
+      upper_mantle_km: 714.323
+      initial_slab_depth_km: 1316.687
+  r081:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.466
+      slab_slowing_factor: 2.627
+      slab_thermal_tau_myr: 125.175
+      tomo_smooth_horiz_deg: 7.881
+      slab_sigma_deg: 2.01
+      upper_mantle_km: 853.229
+      initial_slab_depth_km: 1315.856
+  r082:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.471
+      slab_slowing_factor: 7.88
+      slab_thermal_tau_myr: 162.103
+      tomo_smooth_horiz_deg: 7.466
+      slab_sigma_deg: 2.384
+      upper_mantle_km: 601.56
+      initial_slab_depth_km: 1803.559
+  r083:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.755
+      slab_slowing_factor: 5.457
+      slab_thermal_tau_myr: 232.418
+      tomo_smooth_horiz_deg: 6.669
+      slab_sigma_deg: 2.804
+      upper_mantle_km: 950.323
+      initial_slab_depth_km: 951.567
+  r084:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.345
+      slab_slowing_factor: 1.574
+      slab_thermal_tau_myr: 164.973
+      tomo_smooth_horiz_deg: 7.832
+      slab_sigma_deg: 5.945
+      upper_mantle_km: 875.656
+      initial_slab_depth_km: 715.958
+  r085:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.528
+      slab_slowing_factor: 2.863
+      slab_thermal_tau_myr: 275.017
+      tomo_smooth_horiz_deg: 6.963
+      slab_sigma_deg: 4.988
+      upper_mantle_km: 874.677
+      initial_slab_depth_km: 1143.32
+  r086:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.399
+      slab_slowing_factor: 2.414
+      slab_thermal_tau_myr: 194.598
+      tomo_smooth_horiz_deg: 4.255
+      slab_sigma_deg: 2.565
+      upper_mantle_km: 958.703
+      initial_slab_depth_km: 1871.919
+  r087:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.615
+      slab_slowing_factor: 6.972
+      slab_thermal_tau_myr: 383.953
+      tomo_smooth_horiz_deg: 8.375
+      slab_sigma_deg: 5.638
+      upper_mantle_km: 898.797
+      initial_slab_depth_km: 1030.516
+  r088:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.499
+      slab_slowing_factor: 2.163
+      slab_thermal_tau_myr: 303.521
+      tomo_smooth_horiz_deg: 6.651
+      slab_sigma_deg: 4.456
+      upper_mantle_km: 994.29
+      initial_slab_depth_km: 1100.84
+  r089:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.905
+      slab_slowing_factor: 6.348
+      slab_thermal_tau_myr: 122.9
+      tomo_smooth_horiz_deg: 3.246
+      slab_sigma_deg: 3.204
+      upper_mantle_km: 579.746
+      initial_slab_depth_km: 1545.105
+  r090:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.681
+      slab_slowing_factor: 7.218
+      slab_thermal_tau_myr: 141.303
+      tomo_smooth_horiz_deg: 3.169
+      slab_sigma_deg: 3.806
+      upper_mantle_km: 906.956
+      initial_slab_depth_km: 1514.861
+  r091:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.868
+      slab_slowing_factor: 1.669
+      slab_thermal_tau_myr: 241.531
+      tomo_smooth_horiz_deg: 4.373
+      slab_sigma_deg: 4.505
+      upper_mantle_km: 723.111
+      initial_slab_depth_km: 700.664
+  r092:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.567
+      slab_slowing_factor: 4.074
+      slab_thermal_tau_myr: 152.165
+      tomo_smooth_horiz_deg: 7.214
+      slab_sigma_deg: 3.827
+      upper_mantle_km: 743.197
+      initial_slab_depth_km: 1980.182
+  r093:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.81
+      slab_slowing_factor: 6.873
+      slab_thermal_tau_myr: 129.792
+      tomo_smooth_horiz_deg: 4.606
+      slab_sigma_deg: 5.234
+      upper_mantle_km: 776.447
+      initial_slab_depth_km: 1385.282
+  r094:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 7.551
+      slab_thermal_tau_myr: 163.363
+      tomo_smooth_horiz_deg: 6.622
+      slab_sigma_deg: 4.83
+      upper_mantle_km: 893.051
+      initial_slab_depth_km: 1426.255
+  r095:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.33
+      slab_slowing_factor: 4.246
+      slab_thermal_tau_myr: 220.64
+      tomo_smooth_horiz_deg: 7.016
+      slab_sigma_deg: 2.973
+      upper_mantle_km: 688.308
+      initial_slab_depth_km: 1823.479
+  r096:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.447
+      slab_slowing_factor: 1.764
+      slab_thermal_tau_myr: 158.429
+      tomo_smooth_horiz_deg: 3.743
+      slab_sigma_deg: 3.534
+      upper_mantle_km: 581.37
+      initial_slab_depth_km: 1732.824
+  r097:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.451
+      slab_slowing_factor: 2.403
+      slab_thermal_tau_myr: 147.447
+      tomo_smooth_horiz_deg: 8.757
+      slab_sigma_deg: 3.721
+      upper_mantle_km: 599.759
+      initial_slab_depth_km: 1625.932
+  r098:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.372
+      slab_slowing_factor: 1.92
+      slab_thermal_tau_myr: 341.259
+      tomo_smooth_horiz_deg: 3.315
+      slab_sigma_deg: 2.613
+      upper_mantle_km: 805.253
+      initial_slab_depth_km: 892.979
+  r099:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.916
+      slab_slowing_factor: 2.353
+      slab_thermal_tau_myr: 106.234
+      tomo_smooth_horiz_deg: 6.241
+      slab_sigma_deg: 4.316
+      upper_mantle_km: 738.742
+      initial_slab_depth_km: 1068.296
+  r100:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.381
+      slab_slowing_factor: 2.339
+      slab_thermal_tau_myr: 116.158
+      tomo_smooth_horiz_deg: 5.575
+      slab_sigma_deg: 3.745
+      upper_mantle_km: 677.886
+      initial_slab_depth_km: 1110.135
+  r101:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.706
+      slab_slowing_factor: 3.155
+      slab_thermal_tau_myr: 126.481
+      tomo_smooth_horiz_deg: 9.822
+      slab_sigma_deg: 5.683
+      upper_mantle_km: 889.462
+      initial_slab_depth_km: 1397.918
+  r102:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.963
+      slab_slowing_factor: 4.675
+      slab_thermal_tau_myr: 133.825
+      tomo_smooth_horiz_deg: 4.414
+      slab_sigma_deg: 3.407
+      upper_mantle_km: 955.182
+      initial_slab_depth_km: 918.299
+  r103:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.36
+      slab_slowing_factor: 1.658
+      slab_thermal_tau_myr: 312.956
+      tomo_smooth_horiz_deg: 8.581
+      slab_sigma_deg: 5.031
+      upper_mantle_km: 963.054
+      initial_slab_depth_km: 1909.631
+  r104:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.99
+      slab_slowing_factor: 2.823
+      slab_thermal_tau_myr: 187.712
+      tomo_smooth_horiz_deg: 6.213
+      slab_sigma_deg: 4.983
+      upper_mantle_km: 784.648
+      initial_slab_depth_km: 776.441
+  r105:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.397
+      slab_slowing_factor: 5.784
+      slab_thermal_tau_myr: 260.292
+      tomo_smooth_horiz_deg: 5.99
+      slab_sigma_deg: 2.899
+      upper_mantle_km: 790.761
+      initial_slab_depth_km: 1470.726
+  r106:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.65
+      slab_slowing_factor: 1.624
+      slab_thermal_tau_myr: 336.849
+      tomo_smooth_horiz_deg: 8.682
+      slab_sigma_deg: 4.124
+      upper_mantle_km: 539.698
+      initial_slab_depth_km: 1034.065
+  r107:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.463
+      slab_slowing_factor: 2.548
+      slab_thermal_tau_myr: 190.339
+      tomo_smooth_horiz_deg: 7.972
+      slab_sigma_deg: 5.435
+      upper_mantle_km: 820.99
+      initial_slab_depth_km: 824.895
+  r108:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.441
+      slab_slowing_factor: 2.845
+      slab_thermal_tau_myr: 199.515
+      tomo_smooth_horiz_deg: 9.3
+      slab_sigma_deg: 5.412
+      upper_mantle_km: 834.098
+      initial_slab_depth_km: 1896.378
+  r109:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.859
+      slab_slowing_factor: 3.393
+      slab_thermal_tau_myr: 245.356
+      tomo_smooth_horiz_deg: 3.761
+      slab_sigma_deg: 5.753
+      upper_mantle_km: 627.138
+      initial_slab_depth_km: 1462.161
+  r110:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.71
+      slab_slowing_factor: 2.276
+      slab_thermal_tau_myr: 230.916
+      tomo_smooth_horiz_deg: 7.487
+      slab_sigma_deg: 2.176
+      upper_mantle_km: 990.151
+      initial_slab_depth_km: 1161.956
+  r111:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.434
+      slab_slowing_factor: 5.702
+      slab_thermal_tau_myr: 100.356
+      tomo_smooth_horiz_deg: 3.574
+      slab_sigma_deg: 4.841
+      upper_mantle_km: 520.702
+      initial_slab_depth_km: 1853.659
+  r112:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.854
+      slab_slowing_factor: 3.754
+      slab_thermal_tau_myr: 135.768
+      tomo_smooth_horiz_deg: 8.106
+      slab_sigma_deg: 2.085
+      upper_mantle_km: 904.292
+      initial_slab_depth_km: 1447.658
+  r113:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.303
+      slab_slowing_factor: 1.95
+      slab_thermal_tau_myr: 165.671
+      tomo_smooth_horiz_deg: 7.325
+      slab_sigma_deg: 5.1
+      upper_mantle_km: 989.092
+      initial_slab_depth_km: 849.471
+  r114:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.88
+      slab_slowing_factor: 2.082
+      slab_thermal_tau_myr: 183.509
+      tomo_smooth_horiz_deg: 5.912
+      slab_sigma_deg: 3.788
+      upper_mantle_km: 757.534
+      initial_slab_depth_km: 814.621
+  r115:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.472
+      slab_slowing_factor: 2.668
+      slab_thermal_tau_myr: 228.601
+      tomo_smooth_horiz_deg: 8.145
+      slab_sigma_deg: 4.858
+      upper_mantle_km: 548.989
+      initial_slab_depth_km: 819.32
+  r116:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.432
+      slab_slowing_factor: 2.606
+      slab_thermal_tau_myr: 296.883
+      tomo_smooth_horiz_deg: 7.795
+      slab_sigma_deg: 4.286
+      upper_mantle_km: 978.573
+      initial_slab_depth_km: 902.774
+  r117:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.351
+      slab_slowing_factor: 2.092
+      slab_thermal_tau_myr: 253.561
+      tomo_smooth_horiz_deg: 6.27
+      slab_sigma_deg: 3.601
+      upper_mantle_km: 546.989
+      initial_slab_depth_km: 1459.149
+  r118:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.327
+      slab_slowing_factor: 1.542
+      slab_thermal_tau_myr: 267.964
+      tomo_smooth_horiz_deg: 6.465
+      slab_sigma_deg: 2.462
+      upper_mantle_km: 575.219
+      initial_slab_depth_km: 1603.058
+  r119:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.559
+      slab_slowing_factor: 1.718
+      slab_thermal_tau_myr: 135.294
+      tomo_smooth_horiz_deg: 6.736
+      slab_sigma_deg: 4.222
+      upper_mantle_km: 868.564
+      initial_slab_depth_km: 1610.019
+  r120:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.583
+      slab_slowing_factor: 1.596
+      slab_thermal_tau_myr: 179.309
+      tomo_smooth_horiz_deg: 7.654
+      slab_sigma_deg: 2.059
+      upper_mantle_km: 853.64
+      initial_slab_depth_km: 1417.48
+  r121:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.639
+      slab_slowing_factor: 2.136
+      slab_thermal_tau_myr: 147.133
+      tomo_smooth_horiz_deg: 6.35
+      slab_sigma_deg: 5.322
+      upper_mantle_km: 777.107
+      initial_slab_depth_km: 1835.631
+  r122:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.695
+      slab_slowing_factor: 3.189
+      slab_thermal_tau_myr: 334.822
+      tomo_smooth_horiz_deg: 5.44
+      slab_sigma_deg: 4.425
+      upper_mantle_km: 643.324
+      initial_slab_depth_km: 1570.095
+  r123:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.368
+      slab_slowing_factor: 3.177
+      slab_thermal_tau_myr: 107.694
+      tomo_smooth_horiz_deg: 7.258
+      slab_sigma_deg: 4.697
+      upper_mantle_km: 878.835
+      initial_slab_depth_km: 1693.159
+  r124:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.83
+      slab_slowing_factor: 4.857
+      slab_thermal_tau_myr: 123.97
+      tomo_smooth_horiz_deg: 8.848
+      slab_sigma_deg: 4.089
+      upper_mantle_km: 736.915
+      initial_slab_depth_km: 1998.942
+  r125:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.362
+      slab_slowing_factor: 1.524
+      slab_thermal_tau_myr: 387.98
+      tomo_smooth_horiz_deg: 7.312
+      slab_sigma_deg: 4.557
+      upper_mantle_km: 728.592
+      initial_slab_depth_km: 1296.833
+  r126:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.313
+      slab_slowing_factor: 4.263
+      slab_thermal_tau_myr: 371.124
+      tomo_smooth_horiz_deg: 8.457
+      slab_sigma_deg: 4.749
+      upper_mantle_km: 658.255
+      initial_slab_depth_km: 1125.143
+  r127:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.362
+      slab_slowing_factor: 2.114
+      slab_thermal_tau_myr: 215.584
+      tomo_smooth_horiz_deg: 3.948
+      slab_sigma_deg: 2.557
+      upper_mantle_km: 818.766
+      initial_slab_depth_km: 1439.333
+  r128:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.985
+      slab_slowing_factor: 1.606
+      slab_thermal_tau_myr: 364.526
+      tomo_smooth_horiz_deg: 3.212
+      slab_sigma_deg: 2.544
+      upper_mantle_km: 707.188
+      initial_slab_depth_km: 1985.685
+  r129:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.497
+      slab_slowing_factor: 3.354
+      slab_thermal_tau_myr: 101.48
+      tomo_smooth_horiz_deg: 6.551
+      slab_sigma_deg: 3.965
+      upper_mantle_km: 509.695
+      initial_slab_depth_km: 1233.539
+  r130:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.383
+      slab_slowing_factor: 3.718
+      slab_thermal_tau_myr: 234.466
+      tomo_smooth_horiz_deg: 8.359
+      slab_sigma_deg: 2.668
+      upper_mantle_km: 647.827
+      initial_slab_depth_km: 1574.345
+  r131:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.689
+      slab_slowing_factor: 1.875
+      slab_thermal_tau_myr: 365.631
+      tomo_smooth_horiz_deg: 4.841
+      slab_sigma_deg: 4.81
+      upper_mantle_km: 971.814
+      initial_slab_depth_km: 935.18
+  r132:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.308
+      slab_slowing_factor: 1.878
+      slab_thermal_tau_myr: 110.855
+      tomo_smooth_horiz_deg: 5.187
+      slab_sigma_deg: 4.92
+      upper_mantle_km: 926.607
+      initial_slab_depth_km: 1213.912
+  r133:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.93
+      slab_slowing_factor: 4.413
+      slab_thermal_tau_myr: 376.593
+      tomo_smooth_horiz_deg: 3.682
+      slab_sigma_deg: 4.709
+      upper_mantle_km: 824.594
+      initial_slab_depth_km: 1486.954
+  r134:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.402
+      slab_slowing_factor: 6.033
+      slab_thermal_tau_myr: 125.54
+      tomo_smooth_horiz_deg: 7.685
+      slab_sigma_deg: 3.668
+      upper_mantle_km: 680.789
+      initial_slab_depth_km: 1739.181
+  r135:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.712
+      slab_slowing_factor: 1.757
+      slab_thermal_tau_myr: 167.843
+      tomo_smooth_horiz_deg: 4.949
+      slab_sigma_deg: 3.117
+      upper_mantle_km: 810.746
+      initial_slab_depth_km: 1508.777
+  r136:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.34
+      slab_slowing_factor: 4.545
+      slab_thermal_tau_myr: 177.762
+      tomo_smooth_horiz_deg: 9.856
+      slab_sigma_deg: 3.916
+      upper_mantle_km: 511.9
+      initial_slab_depth_km: 1657.636
+  r137:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.439
+      slab_slowing_factor: 5.6
+      slab_thermal_tau_myr: 210.677
+      tomo_smooth_horiz_deg: 6.76
+      slab_sigma_deg: 4.562
+      upper_mantle_km: 760.834
+      initial_slab_depth_km: 991.816
+  r138:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.873
+      slab_slowing_factor: 7.146
+      slab_thermal_tau_myr: 124.658
+      tomo_smooth_horiz_deg: 6.094
+      slab_sigma_deg: 5.819
+      upper_mantle_km: 544.876
+      initial_slab_depth_km: 1141.65
+  r139:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.68
+      slab_slowing_factor: 3.681
+      slab_thermal_tau_myr: 118.505
+      tomo_smooth_horiz_deg: 3.415
+      slab_sigma_deg: 2.105
+      upper_mantle_km: 666.917
+      initial_slab_depth_km: 839.807
+  r140:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.462
+      slab_slowing_factor: 1.858
+      slab_thermal_tau_myr: 290.892
+      tomo_smooth_horiz_deg: 4.508
+      slab_sigma_deg: 5.397
+      upper_mantle_km: 528.502
+      initial_slab_depth_km: 768.981
+  r141:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.317
+      slab_slowing_factor: 2.506
+      slab_thermal_tau_myr: 367.643
+      tomo_smooth_horiz_deg: 7.066
+      slab_sigma_deg: 2.478
+      upper_mantle_km: 815.518
+      initial_slab_depth_km: 1122.0
+  r142:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.778
+      slab_slowing_factor: 1.931
+      slab_thermal_tau_myr: 385.959
+      tomo_smooth_horiz_deg: 4.051
+      slab_sigma_deg: 3.934
+      upper_mantle_km: 651.858
+      initial_slab_depth_km: 1189.1
+  r143:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.536
+      slab_slowing_factor: 3.506
+      slab_thermal_tau_myr: 347.871
+      tomo_smooth_horiz_deg: 9.18
+      slab_sigma_deg: 3.337
+      upper_mantle_km: 661.873
+      initial_slab_depth_km: 1973.447
+  r144:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.799
+      slab_slowing_factor: 2.284
+      slab_thermal_tau_myr: 264.706
+      tomo_smooth_horiz_deg: 5.296
+      slab_sigma_deg: 4.783
+      upper_mantle_km: 628.839
+      initial_slab_depth_km: 1321.348
+  r145:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.416
+      slab_slowing_factor: 5.642
+      slab_thermal_tau_myr: 320.165
+      tomo_smooth_horiz_deg: 4.319
+      slab_sigma_deg: 2.123
+      upper_mantle_km: 759.369
+      initial_slab_depth_km: 1390.055
+  r146:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.661
+      slab_slowing_factor: 1.826
+      slab_thermal_tau_myr: 214.402
+      tomo_smooth_horiz_deg: 3.854
+      slab_sigma_deg: 4.722
+      upper_mantle_km: 841.344
+      initial_slab_depth_km: 1769.493
+  r147:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.676
+      slab_slowing_factor: 2.129
+      slab_thermal_tau_myr: 383.268
+      tomo_smooth_horiz_deg: 4.626
+      slab_sigma_deg: 2.598
+      upper_mantle_km: 543.132
+      initial_slab_depth_km: 1265.688
+  r148:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.383
+      slab_slowing_factor: 6.527
+      slab_thermal_tau_myr: 105.888
+      tomo_smooth_horiz_deg: 5.313
+      slab_sigma_deg: 4.184
+      upper_mantle_km: 812.44
+      initial_slab_depth_km: 1498.72
+  r149:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.415
+      slab_slowing_factor: 2.991
+      slab_thermal_tau_myr: 251.235
+      tomo_smooth_horiz_deg: 9.231
+      slab_sigma_deg: 5.014
+      upper_mantle_km: 806.829
+      initial_slab_depth_km: 1763.649
+  r150:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.506
+      slab_slowing_factor: 2.751
+      slab_thermal_tau_myr: 283.194
+      tomo_smooth_horiz_deg: 9.763
+      slab_sigma_deg: 2.653
+      upper_mantle_km: 565.411
+      initial_slab_depth_km: 696.993
+  r151:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.685
+      slab_slowing_factor: 2.65
+      slab_thermal_tau_myr: 310.922
+      tomo_smooth_horiz_deg: 5.635
+      slab_sigma_deg: 3.695
+      upper_mantle_km: 768.636
+      initial_slab_depth_km: 805.975
+  r152:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.59
+      slab_slowing_factor: 5.5
+      slab_thermal_tau_myr: 302.618
+      tomo_smooth_horiz_deg: 7.237
+      slab_sigma_deg: 4.474
+      upper_mantle_km: 858.703
+      initial_slab_depth_km: 1536.701
+  r153:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.591
+      slab_slowing_factor: 3.738
+      slab_thermal_tau_myr: 101.035
+      tomo_smooth_horiz_deg: 3.268
+      slab_sigma_deg: 2.357
+      upper_mantle_km: 973.708
+      initial_slab_depth_km: 1965.77
+  r154:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.588
+      slab_slowing_factor: 2.507
+      slab_thermal_tau_myr: 261.923
+      tomo_smooth_horiz_deg: 9.941
+      slab_sigma_deg: 5.73
+      upper_mantle_km: 653.457
+      initial_slab_depth_km: 1588.047
+  r155:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.937
+      slab_slowing_factor: 4.18
+      slab_thermal_tau_myr: 182.784
+      tomo_smooth_horiz_deg: 6.929
+      slab_sigma_deg: 3.121
+      upper_mantle_km: 942.192
+      initial_slab_depth_km: 1376.075
+  r156:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.338
+      slab_slowing_factor: 1.565
+      slab_thermal_tau_myr: 117.045
+      tomo_smooth_horiz_deg: 8.233
+      slab_sigma_deg: 4.64
+      upper_mantle_km: 685.117
+      initial_slab_depth_km: 1676.822
+  r157:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.827
+      slab_slowing_factor: 2.463
+      slab_thermal_tau_myr: 156.476
+      tomo_smooth_horiz_deg: 7.404
+      slab_sigma_deg: 4.361
+      upper_mantle_km: 715.523
+      initial_slab_depth_km: 1090.751
+  r158:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.595
+      slab_slowing_factor: 1.91
+      slab_thermal_tau_myr: 108.466
+      tomo_smooth_horiz_deg: 9.386
+      slab_sigma_deg: 5.917
+      upper_mantle_km: 920.058
+      initial_slab_depth_km: 1257.577
+  r159:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.417
+      slab_slowing_factor: 2.247
+      slab_thermal_tau_myr: 198.072
+      tomo_smooth_horiz_deg: 6.862
+      slab_sigma_deg: 5.313
+      upper_mantle_km: 946.898
+      initial_slab_depth_km: 1205.003
+  r160:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.553
+      slab_slowing_factor: 2.723
+      slab_thermal_tau_myr: 108.936
+      tomo_smooth_horiz_deg: 3.046
+      slab_sigma_deg: 2.778
+      upper_mantle_km: 591.055
+      initial_slab_depth_km: 999.181
+  r161:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.518
+      slab_slowing_factor: 1.981
+      slab_thermal_tau_myr: 277.297
+      tomo_smooth_horiz_deg: 3.909
+      slab_sigma_deg: 2.305
+      upper_mantle_km: 749.198
+      initial_slab_depth_km: 759.641
+  r162:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.701
+      slab_slowing_factor: 6.489
+      slab_thermal_tau_myr: 152.638
+      tomo_smooth_horiz_deg: 7.284
+      slab_sigma_deg: 5.897
+      upper_mantle_km: 733.442
+      initial_slab_depth_km: 1444.756
+  r163:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.437
+      slab_slowing_factor: 7.693
+      slab_thermal_tau_myr: 191.911
+      tomo_smooth_horiz_deg: 4.857
+      slab_sigma_deg: 4.744
+      upper_mantle_km: 638.192
+      initial_slab_depth_km: 888.503
+  r164:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.454
+      slab_slowing_factor: 7.187
+      slab_thermal_tau_myr: 115.69
+      tomo_smooth_horiz_deg: 7.513
+      slab_sigma_deg: 5.203
+      upper_mantle_km: 500.726
+      initial_slab_depth_km: 1939.732
+  r165:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.891
+      slab_slowing_factor: 2.023
+      slab_thermal_tau_myr: 198.874
+      tomo_smooth_horiz_deg: 3.885
+      slab_sigma_deg: 5.485
+      upper_mantle_km: 603.077
+      initial_slab_depth_km: 1704.349
+  r166:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.318
+      slab_slowing_factor: 5.144
+      slab_thermal_tau_myr: 357.808
+      tomo_smooth_horiz_deg: 8.661
+      slab_sigma_deg: 3.254
+      upper_mantle_km: 574.306
+      initial_slab_depth_km: 1620.101
+  r167:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.662
+      slab_slowing_factor: 6.806
+      slab_thermal_tau_myr: 397.387
+      tomo_smooth_horiz_deg: 9.526
+      slab_sigma_deg: 5.121
+      upper_mantle_km: 634.725
+      initial_slab_depth_km: 1132.055
+  r168:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.79
+      slab_slowing_factor: 3.083
+      slab_thermal_tau_myr: 249.4
+      tomo_smooth_horiz_deg: 7.428
+      slab_sigma_deg: 3.531
+      upper_mantle_km: 545.701
+      initial_slab_depth_km: 1271.105
+  r169:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.349
+      slab_slowing_factor: 1.813
+      slab_thermal_tau_myr: 118.664
+      tomo_smooth_horiz_deg: 3.915
+      slab_sigma_deg: 5.657
+      upper_mantle_km: 639.164
+      initial_slab_depth_km: 1483.229
+  r170:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.837
+      slab_slowing_factor: 7.452
+      slab_thermal_tau_myr: 139.308
+      tomo_smooth_horiz_deg: 5.699
+      slab_sigma_deg: 4.26
+      upper_mantle_km: 632.906
+      initial_slab_depth_km: 755.498
+  r171:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.443
+      slab_slowing_factor: 2.155
+      slab_thermal_tau_myr: 172.897
+      tomo_smooth_horiz_deg: 6.788
+      slab_sigma_deg: 3.227
+      upper_mantle_km: 537.879
+      initial_slab_depth_km: 862.957
+  r172:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.343
+      slab_slowing_factor: 7.951
+      slab_thermal_tau_myr: 232.961
+      tomo_smooth_horiz_deg: 4.441
+      slab_sigma_deg: 5.536
+      upper_mantle_km: 568.066
+      initial_slab_depth_km: 1919.954
+  r173:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.833
+      slab_slowing_factor: 1.554
+      slab_thermal_tau_myr: 184.996
+      tomo_smooth_horiz_deg: 4.2
+      slab_sigma_deg: 4.531
+      upper_mantle_km: 730.09
+      initial_slab_depth_km: 1466.562
+  r174:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.719
+      slab_slowing_factor: 2.043
+      slab_thermal_tau_myr: 141.792
+      tomo_smooth_horiz_deg: 3.281
+      slab_sigma_deg: 2.703
+      upper_mantle_km: 719.238
+      initial_slab_depth_km: 1866.268
+  r175:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.729
+      slab_slowing_factor: 5.293
+      slab_thermal_tau_myr: 181.822
+      tomo_smooth_horiz_deg: 8.608
+      slab_sigma_deg: 3.094
+      upper_mantle_km: 672.303
+      initial_slab_depth_km: 1041.018
+  r176:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.803
+      slab_slowing_factor: 2.728
+      slab_thermal_tau_myr: 171.507
+      tomo_smooth_horiz_deg: 4.337
+      slab_sigma_deg: 5.285
+      upper_mantle_km: 694.254
+      initial_slab_depth_km: 1358.966
+  r177:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.889
+      slab_slowing_factor: 4.884
+      slab_thermal_tau_myr: 205.468
+      tomo_smooth_horiz_deg: 6.375
+      slab_sigma_deg: 3.98
+      upper_mantle_km: 884.208
+      initial_slab_depth_km: 1475.117
+  r178:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.459
+      slab_slowing_factor: 5.977
+      slab_thermal_tau_myr: 137.706
+      tomo_smooth_horiz_deg: 6.437
+      slab_sigma_deg: 4.156
+      upper_mantle_km: 785.651
+      initial_slab_depth_km: 880.218
+  r179:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.842
+      slab_slowing_factor: 3.08
+      slab_thermal_tau_myr: 305.973
+      tomo_smooth_horiz_deg: 3.542
+      slab_sigma_deg: 4.051
+      upper_mantle_km: 901.524
+      initial_slab_depth_km: 1364.444
+  r180:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.546
+      slab_slowing_factor: 7.632
+      slab_thermal_tau_myr: 176.827
+      tomo_smooth_horiz_deg: 3.481
+      slab_sigma_deg: 4.941
+      upper_mantle_km: 782.517
+      initial_slab_depth_km: 1721.57
+  r181:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.742
+      slab_slowing_factor: 7.08
+      slab_thermal_tau_myr: 203.352
+      tomo_smooth_horiz_deg: 5.593
+      slab_sigma_deg: 2.018
+      upper_mantle_km: 945.905
+      initial_slab_depth_km: 1181.654
+  r182:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.352
+      slab_slowing_factor: 3.283
+      slab_thermal_tau_myr: 160.651
+      tomo_smooth_horiz_deg: 6.253
+      slab_sigma_deg: 5.7
+      upper_mantle_km: 563.113
+      initial_slab_depth_km: 1526.09
+  r183:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.522
+      slab_slowing_factor: 3.825
+      slab_thermal_tau_myr: 110.292
+      tomo_smooth_horiz_deg: 4.769
+      slab_sigma_deg: 4.164
+      upper_mantle_km: 995.674
+      initial_slab_depth_km: 1404.472
+  r184:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.793
+      slab_slowing_factor: 1.797
+      slab_thermal_tau_myr: 355.201
+      tomo_smooth_horiz_deg: 9.608
+      slab_sigma_deg: 5.877
+      upper_mantle_km: 705.238
+      initial_slab_depth_km: 1477.837
+  r185:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.412
+      slab_slowing_factor: 4.613
+      slab_thermal_tau_myr: 348.705
+      tomo_smooth_horiz_deg: 5.343
+      slab_sigma_deg: 2.073
+      upper_mantle_km: 998.495
+      initial_slab_depth_km: 1636.105
+  r186:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.304
+      slab_slowing_factor: 5.161
+      slab_thermal_tau_myr: 119.543
+      tomo_smooth_horiz_deg: 3.357
+      slab_sigma_deg: 3.014
+      upper_mantle_km: 582.431
+      initial_slab_depth_km: 660.856
+  r187:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.532
+      slab_slowing_factor: 1.636
+      slab_thermal_tau_myr: 379.537
+      tomo_smooth_horiz_deg: 3.837
+      slab_sigma_deg: 3.426
+      upper_mantle_km: 788.514
+      initial_slab_depth_km: 751.491
+  r188:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.773
+      slab_slowing_factor: 3.208
+      slab_thermal_tau_myr: 113.458
+      tomo_smooth_horiz_deg: 4.643
+      slab_sigma_deg: 5.675
+      upper_mantle_km: 848.183
+      initial_slab_depth_km: 1072.331
+  r189:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.607
+      slab_slowing_factor: 4.726
+      slab_thermal_tau_myr: 345.185
+      tomo_smooth_horiz_deg: 5.114
+      slab_sigma_deg: 2.158
+      upper_mantle_km: 516.742
+      initial_slab_depth_km: 1559.231
+  r190:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.312
+      slab_slowing_factor: 4.069
+      slab_thermal_tau_myr: 221.906
+      tomo_smooth_horiz_deg: 4.961
+      slab_sigma_deg: 2.172
+      upper_mantle_km: 664.5
+      initial_slab_depth_km: 1746.25
+  r191:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.581
+      slab_slowing_factor: 2.69
+      slab_thermal_tau_myr: 157.582
+      tomo_smooth_horiz_deg: 8.045
+      slab_sigma_deg: 2.265
+      upper_mantle_km: 589.064
+      initial_slab_depth_km: 764.429
+  r192:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.723
+      slab_slowing_factor: 2.905
+      slab_thermal_tau_myr: 159.512
+      tomo_smooth_horiz_deg: 8.712
+      slab_sigma_deg: 3.487
+      upper_mantle_km: 593.728
+      initial_slab_depth_km: 1992.628
+  r193:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.763
+      slab_slowing_factor: 3.013
+      slab_thermal_tau_myr: 140.012
+      tomo_smooth_horiz_deg: 5.481
+      slab_sigma_deg: 2.412
+      upper_mantle_km: 922.317
+      initial_slab_depth_km: 1392.842
+  r194:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.446
+      slab_slowing_factor: 1.897
+      slab_thermal_tau_myr: 126.701
+      tomo_smooth_horiz_deg: 7.004
+      slab_sigma_deg: 3.626
+      upper_mantle_km: 818.219
+      initial_slab_depth_km: 1808.159
+  r195:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.846
+      slab_slowing_factor: 5.334
+      slab_thermal_tau_myr: 285.282
+      tomo_smooth_horiz_deg: 7.37
+      slab_sigma_deg: 2.732
+      upper_mantle_km: 986.906
+      initial_slab_depth_km: 956.028
+  r196:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.548
+      slab_slowing_factor: 1.659
+      slab_thermal_tau_myr: 313.194
+      tomo_smooth_horiz_deg: 8.814
+      slab_sigma_deg: 3.44
+      upper_mantle_km: 863.265
+      initial_slab_depth_km: 1209.639
+  r197:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.306
+      slab_slowing_factor: 6.384
+      slab_thermal_tau_myr: 137.442
+      tomo_smooth_horiz_deg: 9.416
+      slab_sigma_deg: 2.329
+      upper_mantle_km: 540.348
+      initial_slab_depth_km: 1008.124
+  r198:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.768
+      slab_slowing_factor: 2.206
+      slab_thermal_tau_myr: 333.603
+      tomo_smooth_horiz_deg: 6.315
+      slab_sigma_deg: 5.644
+      upper_mantle_km: 797.616
+      initial_slab_depth_km: 1973.191
+  r199:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.368
+      slab_slowing_factor: 6.11
+      slab_thermal_tau_myr: 164.307
+      tomo_smooth_horiz_deg: 6.194
+      slab_sigma_deg: 4.761
+      upper_mantle_km: 603.689
+      initial_slab_depth_km: 1012.061
+  r200:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.48
+      slab_slowing_factor: 2.185
+      slab_thermal_tau_myr: 120.269
+      tomo_smooth_horiz_deg: 4.491
+      slab_sigma_deg: 5.861
+      upper_mantle_km: 863.89
+      initial_slab_depth_km: 712.836
+  r201:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.923
+      slab_slowing_factor: 7.49
+      slab_thermal_tau_myr: 255.426
+      tomo_smooth_horiz_deg: 7.614
+      slab_sigma_deg: 3.065
+      upper_mantle_km: 508.153
+      initial_slab_depth_km: 1917.727
+  r202:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.438
+      slab_slowing_factor: 5.568
+      slab_thermal_tau_myr: 249.86
+      tomo_smooth_horiz_deg: 3.603
+      slab_sigma_deg: 4.336
+      upper_mantle_km: 752.252
+      initial_slab_depth_km: 1245.818
+  r203:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.366
+      slab_slowing_factor: 6.423
+      slab_thermal_tau_myr: 389.932
+      tomo_smooth_horiz_deg: 8.728
+      slab_sigma_deg: 5.458
+      upper_mantle_km: 913.079
+      initial_slab_depth_km: 1672.744
+  r204:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.603
+      slab_slowing_factor: 2.618
+      slab_thermal_tau_myr: 300.659
+      tomo_smooth_horiz_deg: 7.691
+      slab_sigma_deg: 3.155
+      upper_mantle_km: 644.582
+      initial_slab_depth_km: 1787.902
+  r205:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.454
+      slab_slowing_factor: 2.003
+      slab_thermal_tau_myr: 325.769
+      tomo_smooth_horiz_deg: 5.06
+      slab_sigma_deg: 5.794
+      upper_mantle_km: 578.093
+      initial_slab_depth_km: 1300.076
+  r206:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.647
+      slab_slowing_factor: 4.92
+      slab_thermal_tau_myr: 391.745
+      tomo_smooth_horiz_deg: 3.08
+      slab_sigma_deg: 5.776
+      upper_mantle_km: 829.742
+      initial_slab_depth_km: 1379.363
+  r207:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.967
+      slab_slowing_factor: 1.822
+      slab_thermal_tau_myr: 263.283
+      tomo_smooth_horiz_deg: 5.836
+      slab_sigma_deg: 4.113
+      upper_mantle_km: 997.381
+      initial_slab_depth_km: 1540.378
+  r208:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.513
+      slab_slowing_factor: 3.569
+      slab_thermal_tau_myr: 166.546
+      tomo_smooth_horiz_deg: 9.186
+      slab_sigma_deg: 5.006
+      upper_mantle_km: 620.259
+      initial_slab_depth_km: 1775.362
+  r209:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.782
+      slab_slowing_factor: 6.624
+      slab_thermal_tau_myr: 294.616
+      tomo_smooth_horiz_deg: 3.344
+      slab_sigma_deg: 3.164
+      upper_mantle_km: 964.904
+      initial_slab_depth_km: 1077.581
+  r210:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.576
+      slab_slowing_factor: 2.007
+      slab_thermal_tau_myr: 398.433
+      tomo_smooth_horiz_deg: 6.84
+      slab_sigma_deg: 4.059
+      upper_mantle_km: 792.632
+      initial_slab_depth_km: 1839.649
+  r211:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.605
+      slab_slowing_factor: 4.74
+      slab_thermal_tau_myr: 224.12
+      tomo_smooth_horiz_deg: 7.912
+      slab_sigma_deg: 5.187
+      upper_mantle_km: 619.878
+      initial_slab_depth_km: 665.949
+  r212:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.534
+      slab_slowing_factor: 2.238
+      slab_thermal_tau_myr: 307.889
+      tomo_smooth_horiz_deg: 5.972
+      slab_sigma_deg: 3.175
+      upper_mantle_km: 751.109
+      initial_slab_depth_km: 1136.663
+  r213:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.325
+      slab_slowing_factor: 2.59
+      slab_thermal_tau_myr: 102.514
+      tomo_smooth_horiz_deg: 6.973
+      slab_sigma_deg: 2.817
+      upper_mantle_km: 635.126
+      initial_slab_depth_km: 693.694
+  r214:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.57
+      slab_slowing_factor: 6.017
+      slab_thermal_tau_myr: 136.366
+      tomo_smooth_horiz_deg: 5.401
+      slab_sigma_deg: 4.592
+      upper_mantle_km: 970.472
+      initial_slab_depth_km: 1758.203
+  r215:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.386
+      slab_slowing_factor: 4.452
+      slab_thermal_tau_myr: 127.835
+      tomo_smooth_horiz_deg: 3.207
+      slab_sigma_deg: 3.433
+      upper_mantle_km: 613.922
+      initial_slab_depth_km: 690.545
+  r216:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.822
+      slab_slowing_factor: 6.688
+      slab_thermal_tau_myr: 130.219
+      tomo_smooth_horiz_deg: 3.816
+      slab_sigma_deg: 5.962
+      upper_mantle_km: 503.862
+      initial_slab_depth_km: 1223.797
+  r217:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.958
+      slab_slowing_factor: 5.816
+      slab_thermal_tau_myr: 174.114
+      tomo_smooth_horiz_deg: 4.689
+      slab_sigma_deg: 4.587
+      upper_mantle_km: 513.592
+      initial_slab_depth_km: 1686.142
+  r218:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.565
+      slab_slowing_factor: 4.355
+      slab_thermal_tau_myr: 186.371
+      tomo_smooth_horiz_deg: 5.127
+      slab_sigma_deg: 3.858
+      upper_mantle_km: 966.936
+      initial_slab_depth_km: 981.371
+  r219:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.816
+      slab_slowing_factor: 2.957
+      slab_thermal_tau_myr: 280.001
+      tomo_smooth_horiz_deg: 6.067
+      slab_sigma_deg: 4.87
+      upper_mantle_km: 764.85
+      initial_slab_depth_km: 809.166
+  r220:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.329
+      slab_slowing_factor: 1.948
+      slab_thermal_tau_myr: 128.52
+      tomo_smooth_horiz_deg: 9.33
+      slab_sigma_deg: 4.439
+      upper_mantle_km: 561.476
+      initial_slab_depth_km: 1366.156
+  r221:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.494
+      slab_slowing_factor: 2.931
+      slab_thermal_tau_myr: 343.281
+      tomo_smooth_horiz_deg: 8.187
+      slab_sigma_deg: 4.002
+      upper_mantle_km: 898.043
+      initial_slab_depth_km: 870.345
+  r222:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.467
+      slab_slowing_factor: 2.703
+      slab_thermal_tau_myr: 140.691
+      tomo_smooth_horiz_deg: 9.094
+      slab_sigma_deg: 5.471
+      upper_mantle_km: 774.423
+      initial_slab_depth_km: 1064.077
+  r223:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.483
+      slab_slowing_factor: 1.709
+      slab_thermal_tau_myr: 327.796
+      tomo_smooth_horiz_deg: 9.913
+      slab_sigma_deg: 3.879
+      upper_mantle_km: 564.456
+      initial_slab_depth_km: 1044.785
+  r224:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.376
+      slab_slowing_factor: 7.973
+      slab_thermal_tau_myr: 154.982
+      tomo_smooth_horiz_deg: 8.554
+      slab_sigma_deg: 3.279
+      upper_mantle_km: 617.733
+      initial_slab_depth_km: 1019.697
+  r225:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.883
+      slab_slowing_factor: 6.207
+      slab_thermal_tau_myr: 227.312
+      tomo_smooth_horiz_deg: 4.554
+      slab_sigma_deg: 3.314
+      upper_mantle_km: 917.392
+      initial_slab_depth_km: 906.924
+  r226:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.755
+      slab_slowing_factor: 7.85
+      slab_thermal_tau_myr: 155.484
+      tomo_smooth_horiz_deg: 6.389
+      slab_sigma_deg: 2.285
+      upper_mantle_km: 871.031
+      initial_slab_depth_km: 830.286
+  r227:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.325
+      slab_slowing_factor: 5.252
+      slab_thermal_tau_myr: 151.174
+      tomo_smooth_horiz_deg: 9.556
+      slab_sigma_deg: 2.397
+      upper_mantle_km: 553.541
+      initial_slab_depth_km: 1056.292
+  r228:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.628
+      slab_slowing_factor: 2.558
+      slab_thermal_tau_myr: 134.94
+      tomo_smooth_horiz_deg: 9.501
+      slab_sigma_deg: 5.593
+      upper_mantle_km: 710.335
+      initial_slab_depth_km: 1913.692
+  r229:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.897
+      slab_slowing_factor: 5.106
+      slab_thermal_tau_myr: 219.069
+      tomo_smooth_horiz_deg: 9.65
+      slab_sigma_deg: 5.561
+      upper_mantle_km: 980.062
+      initial_slab_depth_km: 1293.657
+  r230:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.635
+      slab_slowing_factor: 6.612
+      slab_thermal_tau_myr: 201.619
+      tomo_smooth_horiz_deg: 5.373
+      slab_sigma_deg: 2.574
+      upper_mantle_km: 961.235
+      initial_slab_depth_km: 742.717
+  r231:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.766
+      slab_slowing_factor: 4.502
+      slab_thermal_tau_myr: 339.6
+      tomo_smooth_horiz_deg: 4.26
+      slab_sigma_deg: 2.036
+      upper_mantle_km: 938.868
+      initial_slab_depth_km: 735.168
+  r232:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.393
+      slab_slowing_factor: 6.241
+      slab_thermal_tau_myr: 295.22
+      tomo_smooth_horiz_deg: 5.805
+      slab_sigma_deg: 2.635
+      upper_mantle_km: 813.346
+      initial_slab_depth_km: 1750.287
+  r233:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.321
+      slab_slowing_factor: 5.021
+      slab_thermal_tau_myr: 120.462
+      tomo_smooth_horiz_deg: 4.002
+      slab_sigma_deg: 5.806
+      upper_mantle_km: 836.96
+      initial_slab_depth_km: 1846.22
+  r234:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.522
+      slab_slowing_factor: 7.07
+      slab_thermal_tau_myr: 191.525
+      tomo_smooth_horiz_deg: 8.487
+      slab_sigma_deg: 4.299
+      upper_mantle_km: 916.535
+      initial_slab_depth_km: 1115.862
+  r235:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.643
+      slab_slowing_factor: 4.397
+      slab_thermal_tau_myr: 150.501
+      tomo_smooth_horiz_deg: 3.647
+      slab_sigma_deg: 2.42
+      upper_mantle_km: 709.317
+      initial_slab_depth_km: 1743.555
+  r236:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.979
+      slab_slowing_factor: 6.436
+      slab_thermal_tau_myr: 210.344
+      tomo_smooth_horiz_deg: 5.889
+      slab_sigma_deg: 2.983
+      upper_mantle_km: 583.905
+      initial_slab_depth_km: 1902.42
+  r237:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.502
+      slab_slowing_factor: 3.987
+      slab_thermal_tau_myr: 271.03
+      tomo_smooth_horiz_deg: 9.882
+      slab_sigma_deg: 3.709
+      upper_mantle_km: 607.839
+      initial_slab_depth_km: 1501.094
+  r238:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.431
+      slab_slowing_factor: 7.709
+      slab_thermal_tau_myr: 298.187
+      tomo_smooth_horiz_deg: 9.035
+      slab_sigma_deg: 5.441
+      upper_mantle_km: 658.88
+      initial_slab_depth_km: 1228.848
+  r239:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.714
+      slab_slowing_factor: 3.029
+      slab_thermal_tau_myr: 329.094
+      tomo_smooth_horiz_deg: 4.87
+      slab_sigma_deg: 3.036
+      upper_mantle_km: 924.351
+      initial_slab_depth_km: 1645.757
+  r240:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.542
+      slab_slowing_factor: 2.974
+      slab_thermal_tau_myr: 275.385
+      tomo_smooth_horiz_deg: 9.557
+      slab_sigma_deg: 5.221
+      upper_mantle_km: 952.647
+      initial_slab_depth_km: 966.343
+  r241:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.356
+      slab_slowing_factor: 3.482
+      slab_thermal_tau_myr: 308.872
+      tomo_smooth_horiz_deg: 5.745
+      slab_sigma_deg: 4.482
+      upper_mantle_km: 593.093
+      initial_slab_depth_km: 987.704
+  r242:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.341
+      slab_slowing_factor: 2.104
+      slab_thermal_tau_myr: 256.54
+      tomo_smooth_horiz_deg: 9.456
+      slab_sigma_deg: 5.347
+      upper_mantle_km: 704.278
+      initial_slab_depth_km: 1434.817
+  r243:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.331
+      slab_slowing_factor: 6.76
+      slab_thermal_tau_myr: 235.792
+      tomo_smooth_horiz_deg: 5.157
+      slab_sigma_deg: 2.216
+      upper_mantle_km: 569.479
+      initial_slab_depth_km: 1338.808
+  r244:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.789
+      slab_slowing_factor: 2.178
+      slab_thermal_tau_myr: 192.852
+      tomo_smooth_horiz_deg: 3.525
+      slab_sigma_deg: 3.758
+      upper_mantle_km: 779.963
+      initial_slab_depth_km: 1812.633
+  r245:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.84
+      slab_slowing_factor: 3.042
+      slab_thermal_tau_myr: 189.11
+      tomo_smooth_horiz_deg: 7.577
+      slab_sigma_deg: 5.075
+      upper_mantle_km: 744.603
+      initial_slab_depth_km: 1779.829
+  r246:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.38
+      slab_slowing_factor: 3.844
+      slab_thermal_tau_myr: 219.644
+      tomo_smooth_horiz_deg: 8.313
+      slab_sigma_deg: 4.605
+      upper_mantle_km: 771.478
+      initial_slab_depth_km: 1533.49
+  r247:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.456
+      slab_slowing_factor: 5.542
+      slab_thermal_tau_myr: 331.27
+      tomo_smooth_horiz_deg: 8.925
+      slab_sigma_deg: 4.966
+      upper_mantle_km: 531.993
+      initial_slab_depth_km: 781.406
+  r248:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.63
+      slab_slowing_factor: 3.929
+      slab_thermal_tau_myr: 132.754
+      tomo_smooth_horiz_deg: 8.994
+      slab_sigma_deg: 2.192
+      upper_mantle_km: 838.73
+      initial_slab_depth_km: 791.919
+  r249:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.776
+      slab_slowing_factor: 4.025
+      slab_thermal_tau_myr: 206.422
+      tomo_smooth_horiz_deg: 6.575
+      slab_sigma_deg: 5.558
+      upper_mantle_km: 696.122
+      initial_slab_depth_km: 1716.823
+  r250:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.953
+      slab_slowing_factor: 5.361
+      slab_thermal_tau_myr: 218.194
+      tomo_smooth_horiz_deg: 5.52
+      slab_sigma_deg: 3.078
+      upper_mantle_km: 645.627
+      initial_slab_depth_km: 1177.429
+  r251:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.508
+      slab_slowing_factor: 3.966
+      slab_thermal_tau_myr: 187.052
+      tomo_smooth_horiz_deg: 8.036
+      slab_sigma_deg: 4.538
+      upper_mantle_km: 844.944
+      initial_slab_depth_km: 1881.679
+  r252:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.728
+      slab_slowing_factor: 3.251
+      slab_thermal_tau_myr: 242.19
+      tomo_smooth_horiz_deg: 9.999
+      slab_sigma_deg: 4.136
+      upper_mantle_km: 914.614
+      initial_slab_depth_km: 939.484
+  r253:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.491
+      slab_slowing_factor: 4.203
+      slab_thermal_tau_myr: 353.579
+      tomo_smooth_horiz_deg: 4.896
+      slab_sigma_deg: 2.053
+      upper_mantle_km: 615.114
+      initial_slab_depth_km: 1251.718
+  r254:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.32
+      slab_slowing_factor: 2.446
+      slab_thermal_tau_myr: 252.983
+      tomo_smooth_horiz_deg: 5.406
+      slab_sigma_deg: 2.851
+      upper_mantle_km: 525.608
+      initial_slab_depth_km: 707.646
+  r255:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.525
+      slab_slowing_factor: 5.877
+      slab_thermal_tau_myr: 104.26
+      tomo_smooth_horiz_deg: 3.117
+      slab_sigma_deg: 2.317
+      upper_mantle_km: 887.91
+      initial_slab_depth_km: 1949.539
+  r256:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.365
+      slab_slowing_factor: 2.296
+      slab_thermal_tau_myr: 337.832
+      tomo_smooth_horiz_deg: 7.723
+      slab_sigma_deg: 2.507
+      upper_mantle_km: 986.325
+      initial_slab_depth_km: 683.83
+  r257:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.851
+      slab_slowing_factor: 2.527
+      slab_thermal_tau_myr: 207.536
+      tomo_smooth_horiz_deg: 3.145
+      slab_sigma_deg: 2.208
+      upper_mantle_km: 941.35
+      initial_slab_depth_km: 1431.624
+  r258:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.539
+      slab_slowing_factor: 7.773
+      slab_thermal_tau_myr: 290.607
+      tomo_smooth_horiz_deg: 6.166
+      slab_sigma_deg: 5.112
+      upper_mantle_km: 651.153
+      initial_slab_depth_km: 1219.81
+  r259:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.943
+      slab_slowing_factor: 3.549
+      slab_thermal_tau_myr: 214.203
+      tomo_smooth_horiz_deg: 4.449
+      slab_sigma_deg: 5.947
+      upper_mantle_km: 935.268
+      initial_slab_depth_km: 1700.704
+  r260:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.796
+      slab_slowing_factor: 2.427
+      slab_thermal_tau_myr: 146.331
+      tomo_smooth_horiz_deg: 7.137
+      slab_sigma_deg: 4.269
+      upper_mantle_km: 984.415
+      initial_slab_depth_km: 910.31
+  r261:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.476
+      slab_slowing_factor: 1.886
+      slab_thermal_tau_myr: 118.099
+      tomo_smooth_horiz_deg: 9.631
+      slab_sigma_deg: 5.933
+      upper_mantle_km: 856.136
+      initial_slab_depth_km: 1762.765
+  r262:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.902
+      slab_slowing_factor: 2.929
+      slab_thermal_tau_myr: 359.917
+      tomo_smooth_horiz_deg: 6.296
+      slab_sigma_deg: 5.252
+      upper_mantle_km: 799.089
+      initial_slab_depth_km: 1240.135
+  r263:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.427
+      slab_slowing_factor: 3.856
+      slab_thermal_tau_myr: 207.283
+      tomo_smooth_horiz_deg: 9.145
+      slab_sigma_deg: 4.236
+      upper_mantle_km: 608.913
+      initial_slab_depth_km: 1724.163
+  r264:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.671
+      slab_slowing_factor: 2.877
+      slab_thermal_tau_myr: 112.665
+      tomo_smooth_horiz_deg: 3.389
+      slab_sigma_deg: 2.429
+      upper_mantle_km: 534.779
+      initial_slab_depth_km: 1530.88
+  r265:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.403
+      slab_slowing_factor: 2.059
+      slab_thermal_tau_myr: 213.101
+      tomo_smooth_horiz_deg: 7.1
+      slab_sigma_deg: 3.96
+      upper_mantle_km: 641.597
+      initial_slab_depth_km: 886.585
+  r266:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.339
+      slab_slowing_factor: 5.221
+      slab_thermal_tau_myr: 179.9
+      tomo_smooth_horiz_deg: 8.177
+      slab_sigma_deg: 5.083
+      upper_mantle_km: 712.219
+      initial_slab_depth_km: 1158.725
+  r267:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.654
+      slab_slowing_factor: 7.341
+      slab_thermal_tau_myr: 145.495
+      tomo_smooth_horiz_deg: 6.515
+      slab_sigma_deg: 5.512
+      upper_mantle_km: 555.521
+      initial_slab_depth_km: 1613.451
+  r268:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.411
+      slab_slowing_factor: 1.689
+      slab_thermal_tau_myr: 104.19
+      tomo_smooth_horiz_deg: 3.609
+      slab_sigma_deg: 4.103
+      upper_mantle_km: 728.314
+      initial_slab_depth_km: 1554.44
+  r269:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.981
+      slab_slowing_factor: 3.769
+      slab_thermal_tau_myr: 286.027
+      tomo_smooth_horiz_deg: 4.292
+      slab_sigma_deg: 3.381
+      upper_mantle_km: 910.868
+      initial_slab_depth_km: 1595.476
+  r270:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.545
+      slab_slowing_factor: 4.833
+      slab_thermal_tau_myr: 162.906
+      tomo_smooth_horiz_deg: 6.055
+      slab_sigma_deg: 2.608
+      upper_mantle_km: 831.372
+      initial_slab_depth_km: 948.874
+  r271:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.31
+      slab_slowing_factor: 1.59
+      slab_thermal_tau_myr: 194.105
+      tomo_smooth_horiz_deg: 9.216
+      slab_sigma_deg: 4.518
+      upper_mantle_km: 587.733
+      initial_slab_depth_km: 1492.927
+  r272:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.321
+      slab_slowing_factor: 7.008
+      slab_thermal_tau_myr: 173.501
+      tomo_smooth_horiz_deg: 9.083
+      slab_sigma_deg: 5.583
+      upper_mantle_km: 823.14
+      initial_slab_depth_km: 1038.517
+  r273:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.992
+      slab_slowing_factor: 2.803
+      slab_thermal_tau_myr: 113.994
+      tomo_smooth_horiz_deg: 5.542
+      slab_sigma_deg: 5.305
+      upper_mantle_km: 781.298
+      initial_slab_depth_km: 1960.606
+  r274:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.387
+      slab_slowing_factor: 3.583
+      slab_thermal_tau_myr: 324.869
+      tomo_smooth_horiz_deg: 8.209
+      slab_sigma_deg: 2.773
+      upper_mantle_km: 666.028
+      initial_slab_depth_km: 1341.021
+  r275:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.996
+      slab_slowing_factor: 4.635
+      slab_thermal_tau_myr: 359.583
+      tomo_smooth_horiz_deg: 6.728
+      slab_sigma_deg: 5.975
+      upper_mantle_km: 536.367
+      initial_slab_depth_km: 1346.717
+  r276:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.515
+      slab_slowing_factor: 1.649
+      slab_thermal_tau_myr: 114.441
+      tomo_smooth_horiz_deg: 9.68
+      slab_sigma_deg: 2.116
+      upper_mantle_km: 804.806
+      initial_slab_depth_km: 960.692
+  r277:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.562
+      slab_slowing_factor: 2.223
+      slab_thermal_tau_myr: 149.556
+      tomo_smooth_horiz_deg: 3.451
+      slab_sigma_deg: 3.042
+      upper_mantle_km: 726.525
+      initial_slab_depth_km: 1149.838
+  r278:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.449
+      slab_slowing_factor: 4.505
+      slab_thermal_tau_myr: 240.218
+      tomo_smooth_horiz_deg: 7.116
+      slab_sigma_deg: 3.145
+      upper_mantle_km: 622.271
+      initial_slab_depth_km: 877.335
+  r279:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.806
+      slab_slowing_factor: 6.271
+      slab_thermal_tau_myr: 211.58
+      tomo_smooth_horiz_deg: 9.721
+      slab_sigma_deg: 2.857
+      upper_mantle_km: 586.188
+      initial_slab_depth_km: 1662.119
+  r280:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.461
+      slab_slowing_factor: 7.274
+      slab_thermal_tau_myr: 178.419
+      tomo_smooth_horiz_deg: 6.899
+      slab_sigma_deg: 5.742
+      upper_mantle_km: 595.88
+      initial_slab_depth_km: 1111.428
+  r281:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.636
+      slab_slowing_factor: 1.68
+      slab_thermal_tau_myr: 143.322
+      tomo_smooth_horiz_deg: 5.96
+      slab_sigma_deg: 2.835
+      upper_mantle_km: 975.427
+      initial_slab_depth_km: 1678.822
+  r282:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.855
+      slab_slowing_factor: 5.523
+      slab_thermal_tau_myr: 373.867
+      tomo_smooth_horiz_deg: 6.596
+      slab_sigma_deg: 3.495
+      upper_mantle_km: 557.3
+      initial_slab_depth_km: 1167.167
+  r283:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.371
+      slab_slowing_factor: 6.789
+      slab_thermal_tau_myr: 175.672
+      tomo_smooth_horiz_deg: 5.66
+      slab_sigma_deg: 5.057
+      upper_mantle_km: 957.892
+      initial_slab_depth_km: 1272.899
+  r284:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.609
+      slab_slowing_factor: 1.989
+      slab_thermal_tau_myr: 237.248
+      tomo_smooth_horiz_deg: 6.131
+      slab_sigma_deg: 2.268
+      upper_mantle_km: 530.305
+      initial_slab_depth_km: 867.061
+  r285:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.732
+      slab_slowing_factor: 1.853
+      slab_thermal_tau_myr: 123.434
+      tomo_smooth_horiz_deg: 3.721
+      slab_sigma_deg: 3.302
+      upper_mantle_km: 558.428
+      initial_slab_depth_km: 846.621
+  r286:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.574
+      slab_slowing_factor: 3.627
+      slab_thermal_tau_myr: 320.5
+      tomo_smooth_horiz_deg: 8.296
+      slab_sigma_deg: 4.323
+      upper_mantle_km: 611.097
+      initial_slab_depth_km: 1648.745
+  r287:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.611
+      slab_slowing_factor: 2.31
+      slab_thermal_tau_myr: 224.586
+      tomo_smooth_horiz_deg: 5.709
+      slab_sigma_deg: 2.879
+      upper_mantle_km: 765.128
+      initial_slab_depth_km: 1621.406
+  r288:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.62
+      slab_slowing_factor: 3.338
+      slab_thermal_tau_myr: 112.92
+      tomo_smooth_horiz_deg: 6.018
+      slab_sigma_deg: 5.152
+      upper_mantle_km: 809.421
+      initial_slab_depth_km: 1705.613
+  r289:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.597
+      slab_slowing_factor: 1.705
+      slab_thermal_tau_myr: 148.138
+      tomo_smooth_horiz_deg: 7.349
+      slab_sigma_deg: 5.171
+      upper_mantle_km: 796.41
+      initial_slab_depth_km: 1350.637
+  r290:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.358
+      slab_slowing_factor: 6.569
+      slab_thermal_tau_myr: 109.57
+      tomo_smooth_horiz_deg: 4.58
+      slab_sigma_deg: 4.898
+      upper_mantle_km: 551.464
+      initial_slab_depth_km: 1419.632
+  r291:
+    start_ma: 275
+    mantle:
+      slab_sink_rate_factor: 0.657
+      slab_slowing_factor: 7.569
+      slab_thermal_tau_myr: 394.618
+      tomo_smooth_horiz_deg: 8.01
+      slab_sigma_deg: 3.214
+      upper_mantle_km: 934.2
+      initial_slab_depth_km: 1584.185
+  r292:
+    start_ma: 325
+    mantle:
+      slab_sink_rate_factor: 0.759
+      slab_slowing_factor: 3.422
+      slab_thermal_tau_myr: 225.642
+      tomo_smooth_horiz_deg: 5.848
+      slab_sigma_deg: 3.326
+      upper_mantle_km: 570.685
+      initial_slab_depth_km: 834.867
+  r293:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.488
+      slab_slowing_factor: 3.808
+      slab_thermal_tau_myr: 167.221
+      tomo_smooth_horiz_deg: 5.562
+      slab_sigma_deg: 4.392
+      upper_mantle_km: 944.958
+      initial_slab_depth_km: 674.222
+  r294:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.334
+      slab_slowing_factor: 6.706
+      slab_thermal_tau_myr: 101.975
+      tomo_smooth_horiz_deg: 7.758
+      slab_sigma_deg: 3.459
+      upper_mantle_km: 801.926
+      initial_slab_depth_km: 785.933
+  r295:
+    start_ma: 300
+    mantle:
+      slab_sink_rate_factor: 0.378
+      slab_slowing_factor: 2.377
+      slab_thermal_tau_myr: 103.485
+      tomo_smooth_horiz_deg: 9.047
+      slab_sigma_deg: 3.563
+      upper_mantle_km: 676.422
+      initial_slab_depth_km: 1016.849
+  r296:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.332
+      slab_slowing_factor: 3.916
+      slab_thermal_tau_myr: 105.679
+      tomo_smooth_horiz_deg: 9.426
+      slab_sigma_deg: 5.424
+      upper_mantle_km: 746.881
+      initial_slab_depth_km: 1884.665
+  r297:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.559
+      slab_slowing_factor: 3.541
+      slab_thermal_tau_myr: 237.768
+      tomo_smooth_horiz_deg: 8.114
+      slab_sigma_deg: 3.816
+      upper_mantle_km: 843.332
+      initial_slab_depth_km: 745.75
+  r298:
+    start_ma: 350
+    mantle:
+      slab_sink_rate_factor: 0.396
+      slab_slowing_factor: 2.26
+      slab_thermal_tau_myr: 317.089
+      tomo_smooth_horiz_deg: 9.349
+      slab_sigma_deg: 4.413
+      upper_mantle_km: 832.176
+      initial_slab_depth_km: 1330.35
+  r299:
+    start_ma: 250
+    mantle:
+      slab_sink_rate_factor: 0.864
+      slab_slowing_factor: 3.459
+      slab_thermal_tau_myr: 216.552
+      tomo_smooth_horiz_deg: 4.235
+      slab_sigma_deg: 5.142
+      upper_mantle_km: 613.139
+      initial_slab_depth_km: 1598.081

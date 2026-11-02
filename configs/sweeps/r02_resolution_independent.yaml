@@ -1,0 +1,18 @@
+# As r01_resolution, with mantle.resolution_independent: slab amounts per 1 deg of trench and per 5 deg x 100 km
+# cell, so the spacings change how finely the model is drawn and not how strong slabs are.  r01 showed that without
+# it 0.5 deg slab spacing doubles slabs, 50 km layers halve them and a 2.5 deg dynamics grid quarters them.
+# The time-step variants (dt2, dt05) do not depend on the option at the default spacings; see r01.
+#   f05_dz50_s05       the drawn field and the slab spacing fine, 1 Myr steps (a candidate for the viewer)
+name: r02_resolution_independent
+base: configs/muller2022_dip_pile_sharp.yaml
+common: {mantle.resolution_independent: true}
+reference: ref
+variants:
+  fine_all: {mantle.mantle_field_spacing_deg: 0.5, mantle.mantle_depth_interval_km: 50, mantle.slab_sample_deg: 0.5, delta_time: 0.5}
+  f05_dz50_s05: {mantle.mantle_field_spacing_deg: 0.5, mantle.mantle_depth_interval_km: 50, mantle.slab_sample_deg: 0.5}
+  f05_dz50: {mantle.mantle_field_spacing_deg: 0.5, mantle.mantle_depth_interval_km: 50}
+  dyn25: {mantle.mantle_field_spacing_deg: 0.5, mantle.mantle_grid_spacing_deg: 2.5}
+  f05: {mantle.mantle_field_spacing_deg: 0.5}
+  s05: {mantle.slab_sample_deg: 0.5}
+  dz50: {mantle.mantle_depth_interval_km: 50}
+  ref: {}

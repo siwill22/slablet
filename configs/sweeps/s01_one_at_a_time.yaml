@@ -1,0 +1,64 @@
+# One change at a time from configs/muller2022.yaml (250 Ma start, llsvp heat, tau 100,
+# slab_at_cmb remove, area normalisation and suppression decay on).
+name: s01_one_at_a_time
+base: configs/muller2022.yaml
+common: {output_every_myr: 100000}
+variants:
+  base: {}
+  # slab thermal decay
+  tau_25: {mantle: {slab_thermal_tau_myr: 25}}
+  tau_50: {mantle: {slab_thermal_tau_myr: 50}}
+  tau_200: {mantle: {slab_thermal_tau_myr: 200}}
+  tau_400: {mantle: {slab_thermal_tau_myr: 400}}
+  tau_1000: {mantle: {slab_thermal_tau_myr: 1000}}
+  tau_1e6: {mantle: {slab_thermal_tau_myr: 1000000}}
+  # lower-mantle slowdown (lower-mantle rate = upper rate / factor)
+  slow_1: {mantle: {slab_slowing_factor: 1}}
+  slow_2: {mantle: {slab_slowing_factor: 2}}
+  slow_3: {mantle: {slab_slowing_factor: 3}}
+  slow_6: {mantle: {slab_slowing_factor: 6}}
+  slow_8: {mantle: {slab_slowing_factor: 8}}
+  # upper-mantle sinking = factor x convergence
+  sink_0.5: {mantle: {slab_sink_rate_factor: 0.5}}
+  sink_0.75: {mantle: {slab_sink_rate_factor: 0.75}}
+  sink_1.5: {mantle: {slab_sink_rate_factor: 1.5}}
+  sink_2: {mantle: {slab_sink_rate_factor: 2.0}}
+  maxsink_100: {mantle: {slab_max_sink_rate: 100}}
+  maxsink_200: {mantle: {slab_max_sink_rate: 200}}
+  # smoothing
+  sigma_1.5: {mantle: {slab_sigma_deg: 1.5}}
+  sigma_5: {mantle: {slab_sigma_deg: 5.0}}
+  sigma_8: {mantle: {slab_sigma_deg: 8.0}}
+  sigmaz_75: {mantle: {slab_sigma_depth_km: 75}}
+  sigmaz_300: {mantle: {slab_sigma_depth_km: 300}}
+  tomoh_0: {mantle: {tomo_smooth_horiz_deg: 0.0}}
+  tomoh_10: {mantle: {tomo_smooth_horiz_deg: 10.0}}
+  tomoz_0: {mantle: {tomo_smooth_depth_km: 0.0}}
+  tomoz_300: {mantle: {tomo_smooth_depth_km: 300.0}}
+  # initial condition and start time
+  init_none: {initial_slabs: none}
+  init_660: {mantle: {initial_slab_depth_km: 660}}
+  init_2000: {mantle: {initial_slab_depth_km: 2000}}
+  init_2890: {mantle: {initial_slab_depth_km: 2890}}
+  start_400: {start_ma: 400}
+  start_600: {start_ma: 600}
+  start_1000: {start_ma: 1000}
+  # CMB end of the slab, and the LLSVP model
+  rest: {mantle: {slab_at_cmb: rest}}
+  llsvp_none: {mantle: {llsvp: none}}
+  cmb_dVs_-0.25: {mantle: {cmb_dVs_scale: -0.25}}
+  cmb_dVs_-1: {mantle: {cmb_dVs_scale: -1.0}}
+  cmb_dVs_-2: {mantle: {cmb_dVs_scale: -2.0}}
+  cmb_coupling_0: {mantle: {cmb_surface_coupling: 0.0}}
+  cmb_coupling_0.5: {mantle: {cmb_surface_coupling: 0.5}}
+  cmb_heating_0.1: {mantle: {cmb_heating_rate: 0.1}}
+  cmb_sigma_5: {mantle: {cmb_sigma_deg: 5.0}}
+  cmb_decay_800: {mantle: {cmb_decay_km: 800.0}}
+  # binning fix, sample spacing
+  area_norm_off: {mantle: {mantle_bin_area_normalise: false}}
+  sample_0.5: {mantle: {slab_sample_deg: 0.5}}
+  sample_2: {mantle: {slab_sample_deg: 2.0}}
+  # reference frame (Müller 2022 holds three; only MantleOpt is a mantle frame)
+  frame_nnr: {name: muller2022_nnr, rotation_files: [optimisation/no_net_rotation_model.rot]}
+  frame_palaeomag: {name: muller2022_pmag, rotation_files: [Rotations/1000_0_rotfile.rot]}
+  frame_merdith_opt: {name: muller2022_merdithopt, rotation_files: [optimisation/1000_0_rotfile_Merdith_etal_opt.rot]}

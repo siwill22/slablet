@@ -1,0 +1,161 @@
+# Flow-driven pile (head 10000 km, bottom 1000 km of slabs, volume 150 km, mobility 30, dVs -3 / -6 %) and
+# no pile, for start times 250-1000 Ma.
+name: s12_flow_pile_starts
+base: configs/muller2022_tuned.yaml
+common:
+  output_every_myr: 100000
+variants:
+  none_st250:
+    start_ma: 250
+  flow_d6_st250:
+    start_ma: 250
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      pile_dVs: -6
+  flow_d3_st250:
+    start_ma: 250
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      pile_dVs: -3
+  none_st270:
+    start_ma: 270
+  flow_d6_st270:
+    start_ma: 270
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      pile_dVs: -6
+  flow_d3_st270:
+    start_ma: 270
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      pile_dVs: -3
+  none_st300:
+    start_ma: 300
+  flow_d6_st300:
+    start_ma: 300
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      pile_dVs: -6
+  flow_d3_st300:
+    start_ma: 300
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      pile_dVs: -3
+  none_st330:
+    start_ma: 330
+  flow_d6_st330:
+    start_ma: 330
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      pile_dVs: -6
+  flow_d3_st330:
+    start_ma: 330
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      pile_dVs: -3
+  none_st350:
+    start_ma: 350
+  flow_d6_st350:
+    start_ma: 350
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      pile_dVs: -6
+  flow_d3_st350:
+    start_ma: 350
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      pile_dVs: -3
+  none_st500:
+    start_ma: 500
+  flow_d6_st500:
+    start_ma: 500
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      pile_dVs: -6
+  flow_d3_st500:
+    start_ma: 500
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      pile_dVs: -3
+  none_st1000:
+    start_ma: 1000
+  flow_d6_st1000:
+    start_ma: 1000
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      pile_dVs: -6
+  flow_d3_st1000:
+    start_ma: 1000
+    mantle:
+      llsvp: pile
+      pile_drive: flow
+      pile_slab_head_km: 10000
+      pile_slab_layer_km: 1000
+      pile_mean_thickness_km: 150
+      pile_mobility_km_per_myr: 30
+      pile_dVs: -3

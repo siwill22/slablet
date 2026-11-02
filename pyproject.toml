@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "slablet"
+version = "0.1.0"
+description = "A simplified, kinematic mantle model driven by subduction history"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["numpy", "pandas", "xarray", "scipy", "scikit-learn", "netCDF4", "pyyaml"]
+
+[project.optional-dependencies]
+gplates = ["pygplates"]
+gprm = ["gprm"]
+pmm = ["plate-model-manager"]
+analysis = ["pyshtools"]
+test = ["pytest"]
+
+[project.scripts]
+slablet-run = "slablet.gplates.run_mantle:main"
+
+[tool.setuptools.packages.find]
+include = ["slablet*"]

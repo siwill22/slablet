@@ -1,0 +1,531 @@
+# Grid: upper-mantle sink factor x lower-mantle slowing factor x slab tau (250 Ma start).
+name: s02_sinking_tau_grid
+base: configs/muller2022.yaml
+common:
+  output_every_myr: 100000
+variants:
+  sink0.25_slow2_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 100
+  sink0.25_slow2_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 200
+  sink0.25_slow2_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 400
+  sink0.25_slow3_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 100
+  sink0.25_slow3_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 200
+  sink0.25_slow3_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 400
+  sink0.25_slow4_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 100
+  sink0.25_slow4_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 200
+  sink0.25_slow4_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 400
+  sink0.25_slow6_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 100
+  sink0.25_slow6_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 200
+  sink0.25_slow6_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 400
+  sink0.25_slow8_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 100
+  sink0.25_slow8_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 200
+  sink0.25_slow8_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 400
+  sink0.25_slow12_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 100
+  sink0.25_slow12_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 200
+  sink0.25_slow12_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 400
+  sink0.25_slow16_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 100
+  sink0.25_slow16_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 200
+  sink0.25_slow16_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.25
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 400
+  sink0.375_slow2_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 100
+  sink0.375_slow2_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 200
+  sink0.375_slow2_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 400
+  sink0.375_slow3_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 100
+  sink0.375_slow3_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 200
+  sink0.375_slow3_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 400
+  sink0.375_slow4_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 100
+  sink0.375_slow4_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 200
+  sink0.375_slow4_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 400
+  sink0.375_slow6_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 100
+  sink0.375_slow6_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 200
+  sink0.375_slow6_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 400
+  sink0.375_slow8_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 100
+  sink0.375_slow8_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 200
+  sink0.375_slow8_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 400
+  sink0.375_slow12_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 100
+  sink0.375_slow12_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 200
+  sink0.375_slow12_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 400
+  sink0.375_slow16_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 100
+  sink0.375_slow16_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 200
+  sink0.375_slow16_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.375
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 400
+  sink0.5_slow2_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 100
+  sink0.5_slow2_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 200
+  sink0.5_slow2_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 400
+  sink0.5_slow3_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 100
+  sink0.5_slow3_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 200
+  sink0.5_slow3_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 400
+  sink0.5_slow4_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 100
+  sink0.5_slow4_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 200
+  sink0.5_slow4_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 400
+  sink0.5_slow6_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 100
+  sink0.5_slow6_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 200
+  sink0.5_slow6_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 400
+  sink0.5_slow8_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 100
+  sink0.5_slow8_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 200
+  sink0.5_slow8_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 400
+  sink0.5_slow12_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 100
+  sink0.5_slow12_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 200
+  sink0.5_slow12_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 400
+  sink0.5_slow16_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 100
+  sink0.5_slow16_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 200
+  sink0.5_slow16_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.5
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 400
+  sink0.75_slow2_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 100
+  sink0.75_slow2_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 200
+  sink0.75_slow2_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 400
+  sink0.75_slow3_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 100
+  sink0.75_slow3_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 200
+  sink0.75_slow3_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 400
+  sink0.75_slow4_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 100
+  sink0.75_slow4_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 200
+  sink0.75_slow4_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 400
+  sink0.75_slow6_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 100
+  sink0.75_slow6_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 200
+  sink0.75_slow6_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 400
+  sink0.75_slow8_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 100
+  sink0.75_slow8_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 200
+  sink0.75_slow8_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 400
+  sink0.75_slow12_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 100
+  sink0.75_slow12_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 200
+  sink0.75_slow12_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 400
+  sink0.75_slow16_tau100:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 100
+  sink0.75_slow16_tau200:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 200
+  sink0.75_slow16_tau400:
+    mantle:
+      slab_sink_rate_factor: 0.75
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 400
+  sink1.0_slow2_tau100:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 100
+  sink1.0_slow2_tau200:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 200
+  sink1.0_slow2_tau400:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 2
+      slab_thermal_tau_myr: 400
+  sink1.0_slow3_tau100:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 100
+  sink1.0_slow3_tau200:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 200
+  sink1.0_slow3_tau400:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 3
+      slab_thermal_tau_myr: 400
+  sink1.0_slow4_tau100:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 100
+  sink1.0_slow4_tau200:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 200
+  sink1.0_slow4_tau400:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 4
+      slab_thermal_tau_myr: 400
+  sink1.0_slow6_tau100:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 100
+  sink1.0_slow6_tau200:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 200
+  sink1.0_slow6_tau400:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 6
+      slab_thermal_tau_myr: 400
+  sink1.0_slow8_tau100:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 100
+  sink1.0_slow8_tau200:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 200
+  sink1.0_slow8_tau400:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 8
+      slab_thermal_tau_myr: 400
+  sink1.0_slow12_tau100:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 100
+  sink1.0_slow12_tau200:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 200
+  sink1.0_slow12_tau400:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 12
+      slab_thermal_tau_myr: 400
+  sink1.0_slow16_tau100:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 100
+  sink1.0_slow16_tau200:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 200
+  sink1.0_slow16_tau400:
+    mantle:
+      slab_sink_rate_factor: 1.0
+      slab_slowing_factor: 16
+      slab_thermal_tau_myr: 400
