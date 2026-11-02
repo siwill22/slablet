@@ -64,6 +64,12 @@ class MantleParams:
                                              # cell's area relative to an equatorial cell, so a slab
                                              # counts the same at every latitude (False: a slab at 60°
                                              # gets half the area-integrated anomaly of one at the equator)
+    resolution_independent: bool = False    # True: slab amounts are per 1 deg of trench and per 5 deg x 100 km
+                                            # cell (the defaults), so slab_sample_deg, mantle_grid_spacing_deg,
+                                            # mantle_field_spacing_deg and mantle_depth_interval_km change how
+                                            # finely the model is drawn, not how strong slabs are (False: a slablet
+                                            # has the same weight at any spacing and binned sums are per cell;
+                                            # identical at the default spacings)
 
     # LLSVPs: heat = the CMB heat proxy below; pile = a conserved pile pushed by slabs
     # (mantle/pile.py); none = slab field only

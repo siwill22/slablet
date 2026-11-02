@@ -25,6 +25,8 @@ from . import pile as _pile
 # Slablets from trenches converging at least this fast (km/Myr = mm/yr) get full weight;
 # slower (near-stalled) boundaries contribute proportionally less.
 SLAB_FULL_WEIGHT_CONVERGENCE_KM_PER_MYR = 10.0
+# with p.resolution_independent, slab amounts are per REF_SAMPLE_DEG of trench and per REF_CELL_DEG x REF_LAYER_KM cell
+REF_SAMPLE_DEG, REF_CELL_DEG, REF_LAYER_KM = 1.0, 5.0, 100.0
 
 # slab_at_cmb: rest removes a resting slablet once exp(-age / tau) falls below this.
 SLAB_REST_MIN_FRACTION = 1e-3
@@ -179,12 +181,28 @@ def spread_cmb_slabs(slab_tracers, delta_time, p):
     return slab_tracers
 
 
+def _sample_scale(p):
+    """Slablet weight factor: the trench length each slablet stands for, in REF_SAMPLE_DEG (1 without
+    p.resolution_independent)."""
+    return p.slab_sample_deg / REF_SAMPLE_DEG if p.resolution_independent else 1.0
+
+
+def _cell_scale(spacing_deg, p, depth_interval_km=None):
+    """Factor turning a sum binned per cell into an amount per REF_CELL_DEG (x REF_LAYER_KM) cell
+    (1 without p.resolution_independent)."""
+    if not p.resolution_independent:
+        return 1.0
+    f = (REF_CELL_DEG / spacing_deg) ** 2
+    return f * REF_LAYER_KM / depth_interval_km if depth_interval_km else f
+
+
 def seed_slabs(slab_tracers, samples, delta_time, p):
     """Add one slablet at the surface for each trench sample.
 
     Sink rate: p.slab_sink_rate_factor × convergence, capped at p.slab_max_sink_rate.
     Weight: delta_time × min(1, convergence / 10 km/Myr), so the mantle signal per Myr
-    of subduction does not depend on the time step and near-stalled trenches add little.
+    of subduction does not depend on the time step and near-stalled trenches add little;
+    with p.resolution_independent also × slab_sample_deg (per 1 deg of trench).
     """
     if samples is None or not len(samples['lon']):
         return slab_tracers
@@ -192,7 +210,8 @@ def seed_slabs(slab_tracers, samples, delta_time, p):
     new = pd.DataFrame({
         'lon': samples['lon'], 'lat': samples['lat'], 'depth_km': 0.0, 'age': 0.0, 'active': True,
         'sink_rate_km_per_myr': np.minimum(convergence * p.slab_sink_rate_factor, p.slab_max_sink_rate),
-        'weight': delta_time * np.minimum(1.0, convergence / SLAB_FULL_WEIGHT_CONVERGENCE_KM_PER_MYR),
+        'weight': delta_time * np.minimum(1.0, convergence / SLAB_FULL_WEIGHT_CONVERGENCE_KM_PER_MYR)
+                  * _sample_scale(p),
         'attached': True})
     if _dipping(p) and 'downdip_azimuth_deg' in samples:
         for key, col in DIP_COLUMNS.items():
@@ -233,7 +252,8 @@ def initial_slab_columns(samples, delta_time, p, depth_km=None):
         'lon': s_lon[point], 'lat': s_lat[point],
         'depth_km': np.minimum(depth, depth_km), 'age': age, 'active': True,
         'sink_rate_km_per_myr': r,
-        'weight': delta_time * np.minimum(1.0, convergence[point] / SLAB_FULL_WEIGHT_CONVERGENCE_KM_PER_MYR),
+        'weight': delta_time * np.minimum(1.0, convergence[point] / SLAB_FULL_WEIGHT_CONVERGENCE_KM_PER_MYR)
+                  * _sample_scale(p),
         'attached': True})
     if _dipping(p) and 'downdip_azimuth_deg' in samples:
         # where the slablet would be had the trench kept its present velocity and dip: moved
@@ -402,7 +422,7 @@ def update_cmb_heat(cmb_heat, slab_tracers, delta_time, p):
             lat_idx = np.clip(np.floor((lats_f + 90)  / spacing_deg).astype(int), 0, nlat - 1)
             suppress = np.zeros_like(cmb_heat)
             np.add.at(suppress, (lat_idx, lon_idx), weights)
-            cmb_heat = np.maximum(cmb_heat - _per_area(suppress, lats_g, p), 0.0)
+            cmb_heat = np.maximum(cmb_heat - _per_area(suppress, lats_g, p) * _cell_scale(spacing_deg, p), 0.0)
 
     cmb_heat = spherical_gaussian_smooth(cmb_heat, lats_g, lons_g, p.cmb_sigma_deg * np.sqrt(delta_time))
 
@@ -533,7 +553,9 @@ def dvs_field(slab_tracers, llsvp_state, p):
                 np.floor(depths_f / depth_interval_km).astype(int), 0, ndepth - 1)
             np.add.at(field, (dep_idx, lat_idx, lon_idx), dVs)
             field = _per_area(field, lats_g, p)
-            if fine:                                  # a sum per cell: per coarse-cell area, as on the model grid
+            if p.resolution_independent:              # a sum per cell: per 5 deg x 100 km cell
+                field *= _cell_scale(spacing_deg, p, depth_interval_km)
+            elif fine:                                # a sum per cell: per coarse-cell area, as on the model grid
                 field *= (coarse_deg / spacing_deg) ** 2
 
             if p.slab_sigma_cmb_deg > 0:              # slab width profile: narrow above, widening below

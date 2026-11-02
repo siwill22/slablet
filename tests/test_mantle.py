@@ -361,3 +361,56 @@ def test_fine_field_has_the_same_integrated_slab_anomaly_as_the_model_grid():
         cell = np.radians(ds.lon.values[1] - ds.lon.values[0]) ** 2 * np.cos(np.radians(ds.lat.values))[:, None]
         out[name] = (f * cell).sum()
     assert out['fine'] == pytest.approx(out['coarse'], rel=0.05)
+
+
+def _slab_line(step_deg, depth_km=1050.0):
+    """A north-south slab 20° long at 32.5° E, one slablet every step_deg."""
+    lat = np.arange(-10, 10, step_deg) + step_deg / 2
+    n = len(lat)
+    return mantle.core.pd.DataFrame({'lon': np.full(n, 32.5), 'lat': lat, 'depth_km': depth_km, 'age': 0.0,
+                                     'active': True, 'sink_rate_km_per_myr': 50.0, 'weight': 1.0,
+                                     'attached': True})
+
+
+def _volume_anomaly(ds, var='dVs'):
+    f = ds[var].values.astype(float)
+    f = f - np.median(f, axis=(1, 2), keepdims=True)                 # undo the zero-mean shift per layer
+    cell = np.radians(ds.lon.values[1] - ds.lon.values[0]) ** 2 * np.cos(np.radians(ds.lat.values))[:, None]
+    return (f * cell).sum() * (ds.depth.values[1] - ds.depth.values[0])
+
+
+def test_resolution_independent_slab_strength_does_not_depend_on_the_grids():
+    base = dict(slab_thermal_tau_myr=1e9, mantle_bin_area_normalise=True, slab_sigma_deg=3.0,
+                resolution_independent=True)
+    ref = _volume_anomaly(mantle.dvs_field(_ns_slab(0.0), None, mantle.MantleParams(**base)))
+    for extra in ({'mantle_grid_spacing_deg': 2.5}, {'mantle_depth_interval_km': 50.0},
+                  {'mantle_field_spacing_deg': 0.5}, {'mantle_grid_spacing_deg': 2.5, 'mantle_field_spacing_deg': 0.5}):
+        got = _volume_anomaly(mantle.dvs_field(_ns_slab(0.0), None, mantle.MantleParams(**base, **extra)))
+        assert got == pytest.approx(ref, rel=0.05), extra
+    # without the option, 50 km layers halve the slab
+    old = mantle.MantleParams(**{**base, 'resolution_independent': False, 'mantle_depth_interval_km': 50.0})
+    assert _volume_anomaly(mantle.dvs_field(_ns_slab(0.0), None, old)) == pytest.approx(0.5 * ref, rel=0.05)
+
+
+def test_resolution_independent_seeding_weights_per_length_of_trench():
+    def total(step, flag):
+        lat = np.arange(-10, 10, step) + step / 2
+        s = {'lon': np.full(len(lat), 30.0), 'lat': lat, 'convergence_km_per_myr': np.full(len(lat), 50.0)}
+        p = mantle.MantleParams(slab_sample_deg=step, resolution_independent=flag)
+        empty = mantle.core.pd.DataFrame(columns=mantle.SLAB_COLUMNS)
+        return mantle.seed_slabs(empty, s, 1.0, p)['weight'].sum(), \
+            mantle.initial_slab_columns(s, 1.0, p, depth_km=700.0)['weight'].sum()
+    assert total(0.5, True) == pytest.approx(total(1.0, True))
+    assert total(0.5, False)[0] == pytest.approx(2 * total(1.0, False)[0])
+
+
+def test_resolution_independent_cmb_suppression_does_not_depend_on_the_grid():
+    removed = {}
+    for spacing in (5.0, 2.5):
+        p = mantle.MantleParams(mantle_grid_spacing_deg=spacing, resolution_independent=True, cmb_heating_rate=0.0,
+                                cmb_sigma_deg=0.0, cmb_slab_suppression=0.01, mantle_bin_area_normalise=True)
+        lons, lats = mantle.mantle_grid(spacing)
+        heat = np.ones((len(lats), len(lons)))
+        after = mantle.update_cmb_heat(heat, _ns_slab(0.0, depth_km=2850.0), 1.0, p)
+        removed[spacing] = ((heat - after) * np.radians(spacing) ** 2 * np.cos(np.radians(lats))[:, None]).sum()
+    assert removed[2.5] == pytest.approx(removed[5.0], rel=1e-6)
