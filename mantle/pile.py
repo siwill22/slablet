@@ -19,6 +19,11 @@ depends on all slabs, not only those overhead.  ψ is weighted towards long wave
 (degree l scaled by 1 / (l (l + 1))), so at rest the pile collects in a few compact piles
 where that flow converges, far from all slabs.
 
+With p.pile_flow_screen_deg = λ > 0 the equation is screened, ∇²ψ - ψ / λ² = -(L - mean L)
+(degree l scaled by 1 / (l (l + 1) + 1 / λ²), λ in radians): a slab's push reaches about λ, so
+the pile also collects in the gaps between neighbouring slabs, as hot ridges do in convection
+models; small λ tends to pile_drive: local, large λ to plain flow.
+
 The volume flux across a cell face is
 
     -p.pile_mobility_km_per_myr × h_face × (P_neighbour - P) × G
@@ -89,14 +94,16 @@ def flow_potential(load, p):
     of the load becomes load_l / (l (l + 1)) in ψ."""
     lons, lats, area_row = _grid(p)
     nlat, nlon = len(lats), len(lons)
-    key = (nlat, nlon)
+    screen = float(p.pile_flow_screen_deg)
+    key = (nlat, nlon, screen)
     if key not in _POISSON:
         from scipy.sparse.linalg import factorized
         area = np.repeat(area_row, nlon) / CMB_RADIUS_KM ** 2
         a, b, g = _face_arrays(lats, nlat, nlon, p)
         M = coo_matrix((np.concatenate([g, g, -g, -g]),
                         (np.concatenate([a, b, a, b]), np.concatenate([a, b, b, a]))), shape=(len(area), len(area)))
-        _POISSON[key] = (factorized((M + diags(1e-9 * area)).tocsc()), area)
+        k2 = 1.0 / np.radians(screen) ** 2 if screen > 0 else 1e-9
+        _POISSON[key] = (factorized((M + diags(k2 * area)).tocsc()), area)
     solve, area = _POISSON[key]
     f = load.ravel()
     rhs = area * (f - (f * area).sum() / area.sum())

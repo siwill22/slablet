@@ -1,0 +1,20 @@
+# Against OPT1, 0-240 Ma weighted (reconstructions/sweep_opt1.py), from the dip + pile model with faster lower-mantle
+# sinking (slowing 2, the best of o1_spread_life_sink): the warm layer's height, the pile volume, slab life on the
+# CMB, sinking that speeds up with depth, and no tomography blur.
+name: o1_halo_profile
+base: configs/real/muller2022_dip_pile_1000.yaml
+common: {mantle.slab_slowing_factor: 2}
+variants:
+  s2: {}
+  s2_tau100: {mantle.slab_cmb_tau_myr: 100}
+  s2_halo300: {mantle.pile_halo_km: 300}
+  s2_halo150: {mantle.pile_halo_km: 150}
+  s2_halo0: {mantle.pile_halo_km: 0}
+  s2_pile100: {mantle.pile_mean_thickness_km: 100}
+  s2_pile200: {mantle.pile_mean_thickness_km: 200}
+  s3_grad1: {mantle.slab_slowing_factor: 3, mantle.slab_lower_rate_gradient: 1}
+  s3_grad2: {mantle.slab_slowing_factor: 3, mantle.slab_lower_rate_gradient: 2}
+  s4_grad3: {mantle.slab_slowing_factor: 4, mantle.slab_lower_rate_gradient: 3}
+  s2_tau100_halo300: {mantle.slab_cmb_tau_myr: 100, mantle.pile_halo_km: 300}
+  s2_sharp: {mantle.tomo_smooth_horiz_deg: 0, mantle.tomo_smooth_depth_km: 0}
+  s2_tau100_halo300_sharp: {mantle.slab_cmb_tau_myr: 100, mantle.pile_halo_km: 300, mantle.tomo_smooth_horiz_deg: 0, mantle.tomo_smooth_depth_km: 0}

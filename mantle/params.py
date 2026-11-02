@@ -34,6 +34,10 @@ class MantleParams:
     slab_dip_shallow_km: float = 0.0        # slab near the trench; below it slab_dip_deg (0: one dip)
     slab_trench_follow: bool = False        # True: above upper_mantle_km a slablet also moves with the
                                             # velocity its trench had when it was seeded (attached slab)
+    slab_cmb_spread_km_per_myr: float = 0.0 # > 0: slablets within slab_cmb_spread_layer_km of the CMB also move
+                                            # sideways, down the gradient of the basal flow potential ψ (as for
+                                            # pile_drive: flow), at this rms speed over the sphere (0: off)
+    slab_cmb_spread_layer_km: float = 300.0
 
     # 3-D dVs field
     mantle_grid_spacing_deg: float = 5.0
@@ -62,6 +66,9 @@ class MantleParams:
                                             # slab-free area); flow: head = pile_slab_head_km × ψ with
                                             # ∇²ψ = -(L - mean L) on the unit sphere, the potential of the
                                             # basal flow away from slabs (the pile collects where it converges)
+    pile_flow_screen_deg: float = 0.0       # > 0: ψ solves the screened equation ∇²ψ - ψ / λ² = -(L - mean L),
+                                            # λ this many great-circle degrees, so slabs push only within about λ
+                                            # and the pile also fills the gaps between them (0: plain Poisson)
     pile_slab_layer_km: float = 300.0       # slablets this close to the CMB load it
     pile_dVs: float = -1.0                  # dVs % inside the pile
     pile_halo_km: float = 0.0               # > 0: warm layer above the pile top, decaying upward as

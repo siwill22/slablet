@@ -290,3 +290,27 @@ def test_shallow_dip_near_the_trench_then_the_main_dip():
     cols = mantle.initial_slab_columns(_dip_samples(), 1.0, p, depth_km=300.0)
     deepest = cols.iloc[cols.depth_km.astype(float).argmax()]
     assert np.radians(deepest.lon) * 6371.0 == pytest.approx(expected, rel=0.06)   # same shape at the start
+
+
+@pytest.mark.parametrize('l, pattern', [(2, lambda lon, lat: 1.5 * np.sin(lat) ** 2 - 0.5),
+                                        (3, lambda lon, lat: np.cos(lat) ** 3 * np.cos(3 * lon))])
+def test_screened_flow_potential_damps_each_degree_by_l_l1_plus_screen(l, pattern):
+    p = mantle.MantleParams(pile_drive='flow', pile_flow_screen_deg=20.0)
+    lons, lats = mantle.mantle_grid(p.mantle_grid_spacing_deg)
+    lon, lat = np.meshgrid(np.radians(lons), np.radians(lats))
+    load = pattern(lon, lat)
+    k = l * (l + 1) + 1.0 / np.radians(20.0) ** 2
+    np.testing.assert_allclose(mantle.pile.flow_potential(load, p), load / k, atol=0.01 * np.abs(load).max() / k)
+
+
+def test_slabs_on_the_cmb_spread_away_from_the_slab_pile_and_shallower_ones_do_not():
+    p = mantle.MantleParams(slab_at_cmb='rest', slab_thermal_tau_myr=1e9, slab_cmb_spread_km_per_myr=20.0)
+    deep = _ns_slab(0.0, depth_km=p.cmb_depth_km)
+    deep['lon'] = 32.5 + np.tile([-1.5, 1.5], len(deep) // 2)       # two lines 3° apart, either side of 32.5°E
+    mid = _ns_slab(0.0, depth_km=1500.0)
+    out = mantle.sink_slabs(mantle.core.pd.concat([deep, mid], ignore_index=True), 5.0, p)
+    d, m = out[out.depth_km == p.cmb_depth_km], out[out.depth_km < 2000]
+    assert (np.abs(d.lon.values - 32.5) > 1.5 + 0.2).mean() > 0.8   # moved apart, away from the slab
+    assert (m.lon.values == 32.5).all()                              # the mid-mantle slab is untouched
+    still = mantle.sink_slabs(deep, 5.0, mantle.MantleParams(slab_at_cmb='rest', slab_thermal_tau_myr=1e9))
+    np.testing.assert_array_equal(still.lon.values, deep.lon.values)  # off by default

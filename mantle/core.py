@@ -132,6 +132,50 @@ def sink_slabs(slab_tracers, delta_time, p):
             slab_tracers = slab_tracers[~faded].reset_index(drop=True)
         else:
             slab_tracers = slab_tracers[slab_tracers['depth_km'] < p.cmb_depth_km].reset_index(drop=True)
+        if p.slab_cmb_spread_km_per_myr > 0:
+            slab_tracers = spread_cmb_slabs(slab_tracers, delta_time, p)
+    return slab_tracers
+
+
+def spread_cmb_slabs(slab_tracers, delta_time, p):
+    """Move slablets within p.slab_cmb_spread_layer_km of the CMB sideways, down the gradient of
+    the basal flow potential ψ (mantle/pile.py flow_potential, from the slab load on the CMB): slab
+    material arriving at the base spreads away from where slabs pile up, as in convection models.
+    The velocity is -∇ψ scaled so that its rms over the sphere is p.slab_cmb_spread_km_per_myr; each
+    slablet takes that velocity interpolated (bilinear between cell centres) to its position and
+    moves along a great circle on the CMB.
+    Returns the DataFrame with lon and lat updated."""
+    deep = (slab_tracers['active'].astype(bool)
+            & (slab_tracers['depth_km'].astype(float) >= p.cmb_depth_km - p.slab_cmb_spread_layer_km)).values
+    if not deep.any():
+        return slab_tracers
+    lons_g, lats_g = mantle_grid(p.mantle_grid_spacing_deg)
+    psi = _pile.flow_potential(_pile.slab_load(slab_tracers, p), p)
+    d = np.radians(p.mantle_grid_spacing_deg)
+    v_north = -np.gradient(psi, d, axis=0)
+    v_east = -(np.roll(psi, -1, axis=1) - np.roll(psi, 1, axis=1)) / (2 * d * np.cos(np.radians(lats_g))[:, None])
+    w = np.cos(np.radians(lats_g))[:, None] * np.ones(len(lons_g))
+    rms = np.sqrt(((v_north ** 2 + v_east ** 2) * w).sum() / w.sum())
+    if rms <= 0:
+        return slab_tracers
+    scale = p.slab_cmb_spread_km_per_myr / rms
+    s = slab_tracers.loc[deep]
+    fi = np.clip((s['lat'].values.astype(float) + 90) / p.mantle_grid_spacing_deg - 0.5, 0.0, len(lats_g) - 1.0)
+    fj = (s['lon'].values.astype(float) + 180) / p.mantle_grid_spacing_deg - 0.5
+    i0 = np.minimum(np.floor(fi).astype(int), len(lats_g) - 2)
+    j0 = np.floor(fj).astype(int)
+    ti, tj = fi - i0, fj - j0
+    j0, j1 = j0 % len(lons_g), (j0 + 1) % len(lons_g)
+
+    def bilinear(f):                                     # between cell centres, wrapping in longitude
+        return ((1 - ti) * ((1 - tj) * f[i0, j0] + tj * f[i0, j1])
+                + ti * ((1 - tj) * f[i0 + 1, j0] + tj * f[i0 + 1, j1]))
+
+    ve, vn = scale * bilinear(v_east), scale * bilinear(v_north)
+    lon, lat = move_along_azimuth(s['lon'].values.astype(float), s['lat'].values.astype(float),
+                                  np.degrees(np.arctan2(ve, vn)), np.hypot(ve, vn) * delta_time, _pile.CMB_RADIUS_KM)
+    slab_tracers.loc[deep, 'lon'] = lon
+    slab_tracers.loc[deep, 'lat'] = lat
     return slab_tracers
 
 
