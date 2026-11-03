@@ -31,11 +31,11 @@ _MODEL = {}
 
 
 def _masks(cfg, age):
-    if 'rm' not in _MODEL:
-        recon = load_reconstruction(cfg)
-        _MODEL['rm'] = pygplates.RotationModel(sorted(recon.rotation_files),
-                                               default_anchor_plate_id=int(cfg.get('anchor_plate_id', 0)))
-        _MODEL['polys'] = {}
+    recon = load_reconstruction(cfg)
+    key = (recon.label, tuple(recon.rotation_files), int(cfg.get('anchor_plate_id', 0)))
+    if key not in _MODEL:                       # one entry per reconstruction (a process may run several)
+        rm = pygplates.RotationModel(recon.rotation_files, default_anchor_plate_id=key[2])
+        polys = {}
         for k, files in (('continent', recon.continent_files), ('craton', recon.craton_files)):
             if files is None:
                 raise SystemExit('{}: no {} polygons for the lithosphere lid; give {}_files in the reconstruction '
@@ -43,12 +43,18 @@ def _masks(cfg, age):
             fc = pygplates.FeatureCollection()
             for f in files:
                 fc.add(pygplates.FeatureCollection(f))
-            _MODEL['polys'][k] = fc
+            polys[k] = fc if files else None    # []: none of this kind
+        _MODEL[key] = (rm, polys)
+    if 'points' not in _MODEL:
         lo, la = np.meshgrid(LONS, LATS)
         _MODEL['points'] = [pygplates.PointOnSphere(float(a), float(b)) for a, b in zip(la.ravel(), lo.ravel())]
+    rm, polys = _MODEL[key]
     out = {}
-    for k, fc in _MODEL['polys'].items():
-        part = pygplates.PlatePartitioner(fc, _MODEL['rm'], float(age))
+    for k, fc in polys.items():
+        if fc is None:
+            out[k] = np.zeros((len(LATS), len(LONS)), bool)
+            continue
+        part = pygplates.PlatePartitioner(fc, rm, float(age))
         out[k] = np.array([part.partition_point(pt) is not None for pt in _MODEL['points']]).reshape(len(LATS), len(LONS))
     return out
 

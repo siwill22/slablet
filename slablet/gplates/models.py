@@ -28,9 +28,10 @@ Every source also takes:
                      cannot tell
 
 Configs without a reconstruction block are read as source: files, from model_dir,
-rotation_files and topology_files at the top level (the original form).  The files are
-sorted by path within each kind (as the original form's patterns sorted their matches), so
-the same files reach the same trench-sample cache whichever source named them.
+rotation_files and topology_files at the top level (the original form).  Topology and polygon files are sorted by path (as the original form's patterns
+sort their matches), so the same files reach the same trench-sample cache whichever source named
+them.  Rotation files keep the source's own order: where two files define the same plate
+sequence, or a sequence switches at a boundary age, the order can decide which rotation is used.
 """
 import dataclasses
 import glob
@@ -158,7 +159,7 @@ def _from_gprm(b, anchor):
         raise SystemExit('gprm has no model {!r}; it has {}'.format(name, ', '.join(known)))
     options = dict(b.get('options') or {})
     m = fetch(**options)
-    rot = sorted(os.path.abspath(f) for f in m.rotation_files)
+    rot = [os.path.abspath(f) for f in m.rotation_files]          # the source's order
     top = sorted(os.path.abspath(f) for f in m.dynamic_polygon_files)
     cont = sorted(os.path.abspath(f) for f in m.continent_polygons_files) or None
     if not top:
@@ -178,7 +179,7 @@ def _from_pmm(b, anchor):
     m = PlateModelManager().get_model(b['model'], data_dir=data_dir)
     if m is None:
         raise SystemExit('plate_model_manager has no model {!r}'.format(b['model']))
-    rot = sorted(os.path.abspath(f) for f in m.get_rotation_model())
+    rot = [os.path.abspath(f) for f in m.get_rotation_model()]   # the source's order
     top = sorted(os.path.abspath(f) for f in (m.get_topologies(return_none_if_not_exist=True) or []))
     if not top:
         raise SystemExit('plate_model_manager model {} has no topologies: slablet needs them'.format(b['model']))

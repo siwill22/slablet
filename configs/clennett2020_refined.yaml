@@ -1,0 +1,129 @@
+# Clennett et al. (2020), the M2019 version (Muller et al. 2019 with a revised North American Cordillera)
+# The refined mantle model (configs/muller2022_refined.yaml: same mantle block, seafloor ages and lithosphere lid)
+# driven by Clennett et al. (2020, G3) M2019 version via gprm: Muller et al. (2019) with deforming meshes and a revised northern Cordillera (intra-oceanic subduction off North America), from 250 Ma (the reconstruction's oldest age).  Slabs start as columns
+# (initial_slabs: columns) and the pile as a uniform layer at 250 Ma, so the deep mantle has only 250 Myr of
+# history; compare with muller2019_refined.yaml / muller2022_refined_250.yaml, which start the same way.
+# No craton polygons in this model (craton_files: []): continents get the continental lid only.
+#
+#   conda run -n pygmt17 python -m slablet.gplates.seafloor_tracker configs/clennett2020_refined.yaml   # once
+#   conda run -n pygmt17 python -m slablet.gplates.run_mantle configs/clennett2020_refined.yaml
+name: clennett2020
+reconstruction:
+  source: gprm
+  model: Clennett
+  craton_files: []
+anchor_plate_id: 0
+start_ma: 250
+end_ma: 0
+delta_time: 1
+output_every_myr: 10
+initial_slabs: columns
+output_dir: runs_real/clennett2020_refined
+cache_dir: runs_real/cache
+mantle:
+  mantle_field_spacing_deg: 1.0
+  slab_sigma_deg: 0.75
+  slab_sigma_lower_deg: 2.0
+  slab_sigma_cmb_deg: 3.5
+  slab_sigma_depth_upper_km: 50
+  dvs_save_native: true
+  slab_sink_rate_factor: 0.5
+  slab_slowing_factor: 3
+  slab_max_sink_rate: 400
+  slab_thermal_tau_myr: 200
+  slab_at_cmb: rest
+  mantle_bin_area_normalise: true
+  cmb_suppression_thermal_decay: true
+  initial_slab_depth_km: 1320
+  mantle_grid_spacing_deg: 5.0
+  mantle_depth_interval_km: 100
+  cmb_heating_rate: 0.02
+  cmb_slab_suppression: 0.05
+  cmb_surface_coupling: 0.1
+  cmb_sigma_deg: 10.0
+  cmb_max_heat: 3.0
+  cmb_dVs_scale: -0.5
+  cmb_decay_km: 400.0
+  tomo_smooth_horiz_deg: 5.0
+  tomo_smooth_depth_km: 150.0
+  llsvp: pile
+  pile_drive: flow
+  pile_slab_head_km: 10000
+  pile_slab_layer_km: 1000
+  pile_mean_thickness_km: 150
+  pile_mobility_km_per_myr: 30
+  pile_dVs: -5
+  pile_halo_km: 600
+  pile_halo_dVs: -2
+  pile_halo_h_km: 300
+  slab_cmb_tau_myr: 25
+  slab_dip_deg: 40
+  slab_dip_shallow_deg: 30
+  slab_dip_shallow_km: 100
+  slab_lower_rate_km_per_myr: 15
+  slab_lower_rate_exponent: 0.5
+  pile_flow_screen_deg: 35
+  plume_dVs: -1.5
+  plume_source: sites
+  plume_spacing_deg: 12
+  plume_min_fraction: 0.2
+  lithosphere_dVs: 6.0
+  slab_dVs_max: 3.0
+  slab_dVs_max_depth_km: 670.0
+  wedge_dVs: -3.0
+  wedge_bottom_km: 300.0
+  resolution_independent: true
+tomography:
+- name: REVEAL
+  file: /Users/simon/Data/SeismicTomography/Schouten_Supplementary_material/Models/REVEAL_downsampled_anomaly.nc
+  variable: vs_anomaly
+  depths_km:
+  - 1000
+  - 1100
+  - 1200
+  - 1300
+  - 1400
+  - 1500
+  - 1600
+  - 1700
+  - 1800
+  - 1900
+  - 2000
+  - 2100
+  - 2200
+  - 2300
+  - 2400
+  - 2500
+  - 2600
+  - 2700
+  - 2800
+  slow_fraction: 0.3
+  fast_fraction: 0.2
+  lmax: 8
+- name: SEMUCB-WM1
+  file: /Users/simon/Data/SeismicTomography/Schouten_Supplementary_material/Models/SEMUCB_WM1_anomaly.nc
+  variable: vs_anomaly
+  depths_km:
+  - 1000
+  - 1100
+  - 1200
+  - 1300
+  - 1400
+  - 1500
+  - 1600
+  - 1700
+  - 1800
+  - 1900
+  - 2000
+  - 2100
+  - 2200
+  - 2300
+  - 2400
+  - 2500
+  - 2600
+  - 2700
+  - 2800
+  slow_fraction: 0.3
+  fast_fraction: 0.2
+  lmax: 8
+seafloor: true

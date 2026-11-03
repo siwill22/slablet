@@ -78,8 +78,21 @@ def trench_samples_at(rotation_model, features, time_ma, sample_deg=1.0, anchor_
 
 
 def _model_key(model_dir, files):
-    """Short hash of the files' names, sizes and modification times, so a different file
-    choice or an edited model never reads samples cached from the old one."""
+    """Short hash of the files' names and contents, so a different file choice or an edited model
+    never reads samples cached from the old one, while the same files re-extracted (new modification
+    times, as gprm does for some archives on every load) still find their cache."""
+    h = hashlib.sha1()
+    for f in files:
+        c = hashlib.sha1()
+        with open(f, 'rb') as fh:
+            for block in iter(lambda: fh.read(1 << 20), b''):
+                c.update(block)
+        h.update('{}|{}'.format(os.path.relpath(f, model_dir), c.hexdigest()).encode())
+    return h.hexdigest()[:10]
+
+
+def _legacy_model_key(model_dir, files):
+    """The key before 4 Nov 2026: names, sizes and modification times."""
     h = hashlib.sha1()
     for f in files:
         st = os.stat(f)
@@ -95,8 +108,13 @@ class CachedTrenchSamples:
         """recon: a slablet.gplates.models.Reconstruction."""
         self.files = (recon.rotation_files, recon.topology_files)
         self.sample_deg, self.anchor_plate_id = sample_deg, anchor_plate_id
-        self.folder = os.path.join(cache_dir, '{}-{}'.format(name, _model_key(recon.model_dir, sum(self.files, []))),
-                                   'anchor{}_s{:g}_v2'.format(anchor_plate_id, sample_deg))
+        files = sum(self.files, [])
+        top = os.path.join(cache_dir, '{}-{}'.format(name, _model_key(recon.model_dir, files)))
+        legacy = os.path.join(cache_dir, '{}-{}'.format(name, _legacy_model_key(recon.model_dir, files)))
+        if not os.path.exists(top) and os.path.isdir(legacy):   # a cache made under the old key: keep using it
+            os.makedirs(cache_dir, exist_ok=True)
+            os.symlink(os.path.basename(legacy), top)
+        self.folder = os.path.join(top, 'anchor{}_s{:g}_v2'.format(anchor_plate_id, sample_deg))
         os.makedirs(self.folder, exist_ok=True)
         self._model = None
         self.n_resolved = 0
