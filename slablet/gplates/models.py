@@ -24,6 +24,8 @@ Every source also takes:
                      how to choose another frame.  The frame is then 'unknown' unless frame: says
     continent_files, craton_files   the same, replacing the model's polygons (gprm models have no
                      cratons: give craton_files for the lithosphere lid, or [] for none)
+    coastline_files  the same, for maps and the Geode viewer only (gprm's Muller2022 lists none:
+                     give [Coastlines/shapes_coastlines_Merdith_etal.gpmlz])
     frame            'mantle' or 'spin axis': what the anchor plate is fixed to, when the source
                      cannot tell
 
@@ -54,12 +56,14 @@ class Reconstruction:
     craton_files: list
     frame: str                 # what the anchor plate is fixed to: 'mantle', 'spin axis' or 'unknown'
     frame_note: str = ''
+    coastline_files: list = None   # for maps only; None: not known
 
     def summary(self):
         return {'label': self.label, 'model_dir': self.model_dir, 'frame': self.frame,
                 'frame_note': self.frame_note,
                 **{k: [os.path.relpath(f, self.model_dir) for f in getattr(self, k) or []]
-                   for k in ('rotation_files', 'topology_files', 'continent_files', 'craton_files')}}
+                   for k in ('rotation_files', 'topology_files', 'continent_files', 'craton_files',
+                             'coastline_files')}}
 
 
 def find(model_dir, patterns, what):
@@ -86,7 +90,7 @@ def block(cfg):
     if missing:
         raise SystemExit('no reconstruction block and no {} in the config'.format(', '.join(missing)))
     out = {'source': 'files', **{k: cfg[k] for k in LEGACY_KEYS}}
-    out.update({k: cfg[k] for k in ('continent_files', 'craton_files', 'frame') if k in cfg})
+    out.update({k: cfg[k] for k in ('continent_files', 'craton_files', 'coastline_files', 'frame') if k in cfg})
     return out
 
 
@@ -126,6 +130,8 @@ def _apply_overrides(r, b):
     for k in ('continent_files', 'craton_files'):
         if k in b and b.get('source', 'files') != 'files':
             setattr(r, k, find(r.model_dir, b[k], k))
+    if 'coastline_files' in b:
+        r.coastline_files = find(r.model_dir, b['coastline_files'], 'coastline_files')
     if 'frame' in b:
         r.frame, r.frame_note = b['frame'], 'given in the config'
 
@@ -169,7 +175,8 @@ def _from_gprm(b, anchor):
         if int(fr['plate_id']) == anchor:
             frame, note = fr['reference'], fr['description']
     return Reconstruction(' '.join(['gprm', name] + ([str(options)] if options else [])), _common_dir(rot + top + (cont or [])),
-                          rot, top, cont, None, frame, note)
+                          rot, top, cont, None, frame, note,
+                          sorted(os.path.abspath(f) for f in m.coastlines_files) or None)
 
 
 def _from_pmm(b, anchor):
@@ -187,5 +194,6 @@ def _from_pmm(b, anchor):
     cont = (sorted(os.path.abspath(f) for f in m.get_continental_polygons())
             if 'ContinentalPolygons' in layers else None)
     crat = sorted(os.path.abspath(f) for f in m.get_layer('Cratons')) if 'Cratons' in layers else None
+    coast = sorted(os.path.abspath(f) for f in m.get_coastlines()) if 'Coastlines' in layers else None
     return Reconstruction('plate_model_manager {}'.format(b['model']), _common_dir(rot + top + (cont or []) + (crat or [])),
-                          rot, top, cont, crat, 'unknown', 'plate_model_manager records no frame')
+                          rot, top, cont, crat, 'unknown', 'plate_model_manager records no frame', coast)
