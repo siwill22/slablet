@@ -540,6 +540,20 @@ Settled during the grilling, in order:
     boxes), or part of the observed step, at 26–21°S by the Easter microplate and hotspot, is not the layer. Untested:
     start time, ridge sink rule, crustal correction. Figures: PlateDriver `show-me/2026-11-09-asthenosphere-layer-sweep/`.
 
+    Stage 5 so far (2026-11-09): passive tracers in the layer (`advance(tracers=...)`, `run_layer(tracers0=...)`,
+    `52a032a`). Benchmark: the grid-cell (upwind) scheme keeps a front's middle in place but blurs it to about 400 km
+    in 10 Myr and 800 km in 40 Myr on the 40,000-cell mesh; particles keep it to one cell; neither leaks across a
+    starved ridge. Decision 18's domain test therefore uses particles, and the 80 Ma boundary is inverted for, not
+    chosen (Simon). 49 isotope samples (Pyle 1995, Lanyon 1995, Christie 1998; table by a sub-agent) were traced back
+    through the baseline's flow to 80 Ma, and the simplest starting map (one round Pacific region; supply type fitted)
+    fitted to them. It gets 39 of 49 right: eight of the misses lie on segment B5, inside the boundary zone and finer
+    than a cell; the others are DSDP 274 (plume-influenced) and 282 (a mix). The fit puts the boundary at 80 Ma beneath
+    eastern Australia, a few hundred km east of the craton keels; the mantle now under the whole AAD came from there
+    and moved about 1,100 km west, mostly 30–5 Ma, so the boundary is carried, not made. Recent westward motion is
+    only about 10 mm/yr (mantle frame) against 25–40 mm/yr observed relative to the ridge; a forward run from the
+    best start is the proper comparison. Fertility's sources are not built. Figures: PlateDriver
+    `show-me/2026-11-09-asthenosphere-fertility-domains/`.
+
     Not in v1, each for its own session: continental deformation from defamation (case 9); defamation's trench side and
     IPV's continent definition (case 10); PlateDriver's `contains_xy` fix; the spherical rasterise function in gprm;
     the global catalogues; moving the rest of IPV beyond fertility into slablet; the volcanism mixture and the
