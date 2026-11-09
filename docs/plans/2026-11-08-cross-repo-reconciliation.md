@@ -3,7 +3,8 @@
 Recorded on 2026-11-08 from a read-only review of the four repositories, then settled in a grilling session on
 2026-11-08 and 2026-11-09 whose decisions are in section 8. The architecture, the scoring rule and v1 (the AAD
 region on Müller 2022, built in the stages of decision 20) are decided. Stages 0 and 1 were built on 2026-11-09
-(slablet `2500381`, PlateDriver `50743e0`), and stages 2–4 the same day; stage 5 is next. The cases deferred from v1 are listed at the end of
+(slablet `2500381`, PlateDriver `50743e0`), stages 2–5 the same day, and a first look at stage 6 (chain directions, no
+observations) on 2026-11-10. The cases deferred from v1 are listed at the end of
 decision 20.
 
 ## 1. Aim
