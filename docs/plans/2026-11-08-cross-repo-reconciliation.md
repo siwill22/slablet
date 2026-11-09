@@ -554,6 +554,18 @@ Settled during the grilling, in order:
     best start is the proper comparison. Fertility's sources are not built. Figures: PlateDriver
     `show-me/2026-11-09-asthenosphere-fertility-domains/`.
 
+    Stage 6, first look (2026-11-10; observations deferred by Simon): `slablet/asthenosphere_volcanism.py` gives, per
+    cell, the chain direction (depth-mean layer velocity minus plate velocity, towards a chain's young end), the
+    plate-motion direction a fixed source would give, and the rate at which the layer rises along the plate's base,
+    w = -(u_layer - u_plate) . grad L. The plan's formula used u_layer alone; the base moves with the plate, so the
+    relative velocity is used. L is GDH1 under oceans and 150 km under continents (an assumption), smoothed over about
+    150 km but not across trench walls or into keels. On the stage 3 baseline: chains on the Australian plate near the
+    AAD turn a median 22 deg from plate motion; on the slow Antarctic plate a median 47 deg (half the area over 45 deg),
+    converging on the AAD; over all oceans a median 9 deg. The layer rises mainly in bands either side of ridges (it
+    flows back towards the ridge relative to the plate), at some margins and in back-arc basins. Not built: a solidus
+    depth limit, fertility's sources, shear-driven upwelling, chains as tracks, fabric directions, plumes. Figures:
+    PlateDriver `show-me/2026-11-09-flow-driven-volcanism/`.
+
     Not in v1, each for its own session: continental deformation from defamation (case 9); defamation's trench side and
     IPV's continent definition (case 10); PlateDriver's `contains_xy` fix; the spherical rasterise function in gprm;
     the global catalogues; moving the rest of IPV beyond fertility into slablet; the volcanism mixture and the
