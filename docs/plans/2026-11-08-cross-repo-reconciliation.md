@@ -344,8 +344,11 @@ Settled during the grilling, in order:
 7. PlateDriver keeps an editable install of slablet, with guard rails (2026-11-08): `gate.py` and
    `regression_check.py` stop when slablet has uncommitted changes, and ordinary runs write a warning into
    `run_info.yaml`; slablet gets a test that calls every function PlateDriver uses, the way PlateDriver calls it, so a
-   signature change fails in slablet's own tests (the private `_spherical_kernel` becomes public); and a change to
-   that set lands in the same session as the matching PlateDriver commit.
+   signature change fails in slablet's own tests (`tests/test_platedriver_api.py`); and a change to that set lands
+   in the same session as the matching PlateDriver commit. Built in stage 0: rather than make the private
+   `_spherical_kernel` public, PlateDriver keeps its own copies of the three generic sphere helpers it used from
+   slablet (`lonlat_to_xyz`, `xyz_to_lonlat`, the spherical Gaussian kernel), which decision 8 needs anyway; a
+   PlateDriver test checks them against slablet's whenever slablet is installed.
 8. slablet stays private and becomes optional in public PlateDriver (2026-11-08): it is imported only when a mantle
    or slab option needs it, with an error naming the option otherwise, so PlateDriver stays runnable for teaching
    with its simpler slab-pull modes.
