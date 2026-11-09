@@ -325,6 +325,17 @@ Settled during the grilling, in order:
    shapely. A cached lookup grid is not part of the contract unless a benchmark shows it gives identical results on
    the queries actually made and is much faster; a plain nearest-cell grid fails the first test (section 6). In a
    synthetic world the plate-ID raster is PlateDriver's state itself, not a cache.
+
+   Built in stage 1 (2026-11-09): `slablet/plate_history.py` (the contract: `PlateStep`, `check`, `velocity_at`,
+   `on_grid`, `cell_centred_grid`), `slablet/gplates/plate_history.py` (`RealPlateHistory`) and PlateDriver's
+   `self_driving_plates.plate_step`. Four details settled while building it, to confirm: the continent and craton
+   masks are point queries like plate identity (exact for real reconstructions; `on_grid` gives a grid when one is
+   wanted), since a mask grid would fail the same identical-results test as a plate-ID grid; an optional
+   `trench_lines` field carries the subduction zones as lines, because the asthenosphere layer's walls need lines,
+   not samples; the real driver supports only 1 Myr steps, the interval of its cached samples; and a PlateDriver
+   world has no craton polygons, so its craton query is its continent query. The seafloor tracker's cache for
+   Müller et al. (2022) holds ages of 200 Myr and more inside and around continents (tracked points carried onto
+   continents keep ageing), so consumers mask ages with the continent query.
 5. Small numerical inconsistencies are acceptable in synthetic worlds, because there is no truth to be wrong about;
    they are not acceptable in the real-world tools (2026-11-08). On that basis PlateDriver's plate rebuild cycle
    (polygonize, topojson, shapely `make_valid` and `clip`, rasterio) is an accepted exception to the no-shapely

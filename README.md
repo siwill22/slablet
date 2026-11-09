@@ -14,7 +14,8 @@ source: synthetic plate models (PlateDriver) or real GPlates reconstructions (`s
 |---|---|
 | `slablet/` (core) | the model: `MantleParams`, `seed_slabs`, `sink_slabs`, `update_llsvp`, `dvs_field`. Needs numpy, pandas, xarray, scipy, scikit-learn only |
 | `slablet/dyntopo.py`, `slablet/sphharm.py` (core) | dynamic topography, geoid and instantaneous flow from the field (needs pyshtools: `slablet[dyntopo]`) |
-| `slablet/gplates/` | real reconstructions (pygplates): trench samples, seafloor tracking, lithosphere, the run driver |
+| `slablet/plate_history.py` (core) | the plate-history contract: what a driver (a PlateDriver world or a real reconstruction) hands the response models each step (`PlateStep`, `check`, `velocity_at`) |
+| `slablet/gplates/` | real reconstructions (pygplates): the plate-history driver (`plate_history.RealPlateHistory`), trench samples, seafloor tracking, lithosphere, the run driver |
 | `slablet/analysis/` | scoring against tomography and OPT1, parameter sweeps, the stall sweep |
 | `slablet/frame/` | fitting and scoring absolute reference frames |
 | `configs/` | run configs and sweeps |

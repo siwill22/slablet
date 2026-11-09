@@ -21,6 +21,11 @@ A published plate reconstruction taken as the record of Earth's plate history, a
 that is compared with observations.
 _Avoid_: plate model, GPlates model
 
+**Plate step**:
+One interval of a plate history as a driver hands it over: plate identity at any point, a rotation vector per
+plate, trench and ridge samples, the seafloor age, and the continent and craton at any point.
+_Avoid_: snapshot (pygplates' term for one resolved time, without rates)
+
 **Response model**:
 A model of how the Earth responds to a plate history: the mantle model, the asthenosphere layer, intraplate
 volcanism, crustal deformation. All but crustal deformation run on synthetic worlds as well as real reconstructions.

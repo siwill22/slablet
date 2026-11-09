@@ -58,6 +58,20 @@ def test_one_platedriver_step():
     assert len(slabs) > 0
 
 
+def test_plate_history_contract_as_plate_step_builds_it():
+    from slablet import plate_history as PH                                         # self_driving_plates.plate_step
+    lons, lats = PH.cell_centred_grid(1.0)
+    step = PH.PlateStep(time=5.0, delta_time=1.0,
+                        plate_id_at=lambda lon, lat: np.ones(np.shape(lon), int),
+                        omega={1: np.zeros(3)}, trench=PH.empty_trench(), ridge=PH.empty_ridge(),
+                        seafloor_age=xr.DataArray(np.full((len(lats), len(lons)), np.nan), dims=('lat', 'lon'),
+                                                  coords={'lat': lats, 'lon': lons}),
+                        continent_at=lambda lon, lat: np.zeros(np.shape(lon), bool),
+                        craton_at=lambda lon, lat: np.zeros(np.shape(lon), bool), trench_lines=[])
+    assert PH.check(step) is step
+    assert PH.RADIUS_KM > 0 and 'seafloor_age_myr' in PH.TRENCH_KEYS
+
+
 def test_slab_depth_near_with_platedriver_keywords():
     p = slablet.MantleParams.from_config(_platedriver_params())
     slabs = slablet.initial_slab_columns(_samples(), 1.0, p)
