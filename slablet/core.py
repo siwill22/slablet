@@ -37,6 +37,78 @@ SLAB_COLUMNS = ['lon', 'lat', 'depth_km', 'age', 'active', 'sink_rate_km_per_myr
 DIP_COLUMNS = {'downdip_azimuth_deg': 'dip_azimuth_deg', 'trench_east_km_per_myr': 'trench_east',
                'trench_north_km_per_myr': 'trench_north'}
 SURFACE_RADIUS_KM = 6371.0
+# Extra columns, present only with stalls on (p.slab_stall_fraction > 0): the stall patch (site index and window
+# index; -1 for initial slab columns), the patch's stall time and the time held so far.
+STALL_COLUMNS = ['stall_site', 'stall_window', 'stall_myr', 'held_myr']
+# Held slab sits this far above p.upper_mantle_km, so it still counts as upper mantle.
+STALL_GAP_KM = 1.0
+# Added to the window index so the random generator's key is never negative.
+_STALL_WINDOW_OFFSET = 1_000_000
+
+
+def _stalling(p):
+    return p.slab_stall_fraction > 0
+
+
+def stall_sites(spacing_deg):
+    """lon, lat of the stall sites: a Fibonacci lattice, near-evenly spaced on the sphere, one per
+    spacing_deg x spacing_deg on average; the same in every run, so patches are comparable between seeds."""
+    n = max(1, int(round(4 * np.pi / np.radians(spacing_deg) ** 2)))
+    k = np.arange(n) + 0.5
+    lat = np.degrees(np.arcsin(1.0 - 2.0 * k / n))
+    lon = (np.degrees(np.pi * (1.0 + np.sqrt(5.0)) * k) + 180.0) % 360.0 - 180.0
+    return lon, lat
+
+
+def stall_window(time_myr, p):
+    """Index of the window of seeding time that contains time_myr."""
+    return int(np.floor(float(time_myr) / p.slab_stall_window_myr))
+
+
+def stall_times(window, p):
+    """Stall time (Myr; 0: no stall) of every stall site's patch in one window.  The uniform numbers come from a
+    generator keyed on (p.slab_stall_seed, window) and do not depend on the fraction or the time, so the patches
+    that stall at one fraction also stall at any larger one, with stall times in proportion to the time
+    (the same random numbers across settings)."""
+    n = len(stall_sites(p.slab_stall_site_deg)[0])
+    u = np.random.default_rng([int(p.slab_stall_seed), window + _STALL_WINDOW_OFFSET]).random((2, n))
+    if p.slab_stall_form == 'exponential':
+        t = -p.slab_stall_time_myr * np.log1p(-u[1])
+    elif p.slab_stall_form == 'fixed':
+        t = np.full(n, float(p.slab_stall_time_myr))
+    else:
+        raise ValueError('slab_stall_form must be exponential or fixed, not {!r}'.format(p.slab_stall_form))
+    return np.where(u[0] < p.slab_stall_fraction, t, 0.0)
+
+
+def nearest_stall_site(lon, lat, p):
+    """Index of the stall site nearest each point (great-circle distance)."""
+    s_lon, s_lat = stall_sites(p.slab_stall_site_deg)
+    return np.argmax(lonlat_to_xyz(np.asarray(lon, float), np.asarray(lat, float))
+                     @ lonlat_to_xyz(s_lon, s_lat).T, axis=1)
+
+
+def _flat_step(slab_tracers, moving, held_time, hold_km, p):
+    """Held slab lying flat: move the slablets in `moving` down-dip (towards the overriding plate) along the
+    hold depth, at p.slab_stall_flat_factor x their trench's convergence rate (sink rate / slab_sink_rate_factor),
+    for the time each was held this step.  NaN azimuth: no motion."""
+    s = slab_tracers.loc[moving]
+    az = s['dip_azimuth_deg'].values.astype(float)
+    dist = (p.slab_stall_flat_factor * s['sink_rate_km_per_myr'].values.astype(float) / p.slab_sink_rate_factor
+            * held_time[moving])
+    dist = np.where(np.isfinite(az), dist, 0.0)
+    lon, lat = move_along_azimuth(s['lon'].values.astype(float), s['lat'].values.astype(float), np.nan_to_num(az),
+                                  dist, SURFACE_RADIUS_KM - hold_km)
+    slab_tracers.loc[moving, 'lon'] = lon
+    slab_tracers.loc[moving, 'lat'] = lat
+
+
+def trench_retreat(samples):
+    """Trench retreat rate (km/Myr): the trench's velocity away from the overriding plate, in the mantle frame
+    (< 0: advance).  Needs the dip keys of the trench samples."""
+    az = np.radians(np.asarray(samples['downdip_azimuth_deg'], float))
+    return -(np.asarray(samples['trench_east_km_per_myr'], float) * np.sin(az)
+             + np.asarray(samples['trench_north_km_per_myr'], float) * np.cos(az))
 
 
 def _dipping(p):
@@ -70,8 +142,13 @@ def _horizontal_step(lon, lat, depth, azimuth, east, north, vertical_km, delta_t
         de += along * np.sin(az)
         dn += along * np.cos(az)
     if p.slab_trench_follow:
-        de += np.nan_to_num(east) * delta_time
-        dn += np.nan_to_num(north) * delta_time
+        k = p.slab_trench_follow_fraction
+        if p.slab_trench_follow_retreating_only:          # retreat: trench motion away from the overriding plate
+            a = np.radians(azimuth)
+            retreat = -(np.asarray(east, float) * np.sin(a) + np.asarray(north, float) * np.cos(a))
+            k = np.where(retreat > p.slab_trench_follow_retreat_km_per_myr, k, 0.0)   # NaN: does not follow
+        de += np.nan_to_num(east) * delta_time * k
+        dn += np.nan_to_num(north) * delta_time * k
     return move_along_azimuth(lon, lat, np.degrees(np.arctan2(de, dn)), np.hypot(de, dn),
                               SURFACE_RADIUS_KM - depth)
 
@@ -93,6 +170,12 @@ def sink_slabs(slab_tracers, delta_time, p, flow=None):
     (p.slab_at_cmb = 'remove'), or stop there and stay until their thermal anomaly is below
     SLAB_REST_MIN_FRACTION of its start ('rest').  With p.slab_cmb_tau_myr > 0 a resting
     slablet's weight also decays as exp(-time resting / p.slab_cmb_tau_myr).
+
+    With stalls on (p.slab_stall_fraction > 0) a slablet owed a stall stops STALL_GAP_KM above
+    p.upper_mantle_km (or at p.slab_stall_depth_km, above or below it), fixed in the mantle frame, until it has been held for its stall_myr; it is then put at
+    p.upper_mantle_km and sinks at its lower-mantle rate from the next step (so a stall is rounded up to the
+    end of a step).  Its age, and so its thermal decay, runs on while it is held.  With p.slab_stall_flat_factor > 0
+    held slab also moves down-dip along the hold depth (_flat_step), lying flat as stagnant slabs do.
     Returns a new DataFrame.
     """
     if p.slab_at_cmb not in ('remove', 'rest'):
@@ -102,17 +185,42 @@ def sink_slabs(slab_tracers, delta_time, p, flow=None):
         active = slab_tracers['active'].astype(bool)
         upper = active & (slab_tracers['depth_km'] < p.upper_mantle_km)
         lower = active & (slab_tracers['depth_km'] >= p.upper_mantle_km)
+        stalling = _stalling(p) and 'stall_myr' in slab_tracers
+        if stalling:
+            # slablets still owed a stall: those already held count the time (and stay where they are); the rest
+            # sink no further than the hold depth, and those reaching it start counting from their arrival
+            at_660 = p.slab_stall_depth_km <= 0                  # the default hold, just above upper_mantle_km
+            hold_km = p.upper_mantle_km - STALL_GAP_KM if at_660 else p.slab_stall_depth_km
+            depth0 = slab_tracers['depth_km'].values.astype(float)
+            rate = slab_tracers['sink_rate_km_per_myr'].values.astype(float)
+            stall = np.nan_to_num(slab_tracers['stall_myr'].values.astype(float))
+            held = np.nan_to_num(slab_tracers['held_myr'].values.astype(float))
+            held_before = held.copy()
+            waiting = active.values & (held < stall)
+            holding = waiting & (depth0 >= hold_km)
+            held[holding] += delta_time
+            vertical = rate * delta_time
+            arriving = waiting & ~holding & upper.values & (depth0 + vertical >= hold_km)
+            vertical[arriving] = hold_km - depth0[arriving]
+            held[arriving] += delta_time - vertical[arriving] / rate[arriving]
+            sinking_lower = waiting & ~holding & lower.values  # may reach a hold below upper_mantle_km this step
+            upper = upper & ~holding
+            lower = lower & ~holding
         if _dipping(p) and 'dip_azimuth_deg' in slab_tracers and upper.any():
             u = slab_tracers.loc[upper]
             lon, lat = _horizontal_step(
                 u['lon'].values.astype(float), u['lat'].values.astype(float), u['depth_km'].values.astype(float),
                 u['dip_azimuth_deg'].values.astype(float), u['trench_east'].values.astype(float),
                 u['trench_north'].values.astype(float),
-                u['sink_rate_km_per_myr'].values.astype(float) * delta_time, delta_time, p)
+                vertical[upper.values] if stalling else u['sink_rate_km_per_myr'].values.astype(float) * delta_time,
+                delta_time, p)
             slab_tracers.loc[upper, 'lon'] = lon
             slab_tracers.loc[upper, 'lat'] = lat
-        slab_tracers.loc[upper, 'depth_km'] += (
-            slab_tracers.loc[upper, 'sink_rate_km_per_myr'] * delta_time)
+        if stalling:
+            slab_tracers.loc[upper, 'depth_km'] += vertical[upper.values]
+        else:
+            slab_tracers.loc[upper, 'depth_km'] += (
+                slab_tracers.loc[upper, 'sink_rate_km_per_myr'] * delta_time)
         if p.slab_lower_rate_gradient:
             frac = ((slab_tracers.loc[lower, 'depth_km'].astype(float) - p.upper_mantle_km)
                     / (p.cmb_depth_km - p.upper_mantle_km)).clip(0.0, 1.0)
@@ -128,6 +236,20 @@ def sink_slabs(slab_tracers, delta_time, p, flow=None):
         else:
             slab_tracers.loc[lower, 'depth_km'] += (
                 slab_tracers.loc[lower, 'sink_rate_km_per_myr'] / p.slab_slowing_factor * delta_time)
+        if stalling:
+            if sinking_lower.any():                          # reached a hold below upper_mantle_km this step
+                d1 = slab_tracers['depth_km'].values.astype(float)
+                low = sinking_lower & (d1 >= hold_km)
+                held[low] += delta_time * (d1[low] - hold_km) / np.maximum(d1[low] - depth0[low], 1e-12)
+                arriving = arriving | low
+            # a stall that ends during this step: the slablet sinks on from the next step (from upper_mantle_km for
+            # the default hold, so it enters the lower mantle)
+            done = (holding | arriving) & (held >= stall)
+            slab_tracers.loc[arriving & ~done, 'depth_km'] = hold_km
+            slab_tracers.loc[done, 'depth_km'] = p.upper_mantle_km if at_660 else hold_km
+            if p.slab_stall_flat_factor > 0 and 'dip_azimuth_deg' in slab_tracers:
+                _flat_step(slab_tracers, holding | arriving, np.minimum(held, stall) - held_before, hold_km, p)
+            slab_tracers['held_myr'] = held
         slab_tracers.loc[active, 'age'] += delta_time
         if p.slab_at_cmb == 'rest':
             slab_tracers['depth_km'] = np.minimum(slab_tracers['depth_km'].astype(float), p.cmb_depth_km)
@@ -243,22 +365,28 @@ def _grid_bilinear(f, lats_g, lons_g, lat, lon):
 def flow_lower_slabs(slab_tracers, delta_time, p, flow):
     """Move lower-mantle slablets sideways with a fraction of the plate velocity above them: p.slab_flow_top at
     upper_mantle_km to p.slab_flow_bottom at the CMB, linear in depth (the same angular rate as that fraction of
-    the plate's).  flow: {'lats', 'lons' (cell centres), 'vel_e', 'vel_n' (km/Myr at the surface; NaN = 0)}."""
-    if flow is None or (p.slab_flow_top == 0 and p.slab_flow_bottom == 0):
+    the plate's); and upper-mantle slablets with p.slab_flow_upper of it (on top of their dip and trench-following
+    motion).  flow: {'lats', 'lons' (cell centres), 'vel_e', 'vel_n' (km/Myr at the surface; NaN = 0)}."""
+    lower_on = p.slab_flow_top != 0 or p.slab_flow_bottom != 0
+    if flow is None or not (lower_on or p.slab_flow_upper != 0):
         return slab_tracers
-    lower = (slab_tracers['active'].astype(bool) & (slab_tracers['depth_km'].astype(float) >= p.upper_mantle_km)).values
-    if not lower.any():
+    active = slab_tracers['active'].astype(bool).values
+    depth = slab_tracers['depth_km'].astype(float).values
+    lower = active & (depth >= p.upper_mantle_km) if lower_on else np.zeros(len(depth), bool)
+    upper = active & (depth < p.upper_mantle_km) if p.slab_flow_upper != 0 else np.zeros(len(depth), bool)
+    moving = lower | upper
+    if not moving.any():
         return slab_tracers
-    s = slab_tracers.loc[lower]
+    s = slab_tracers.loc[moving]
     lon, lat = s['lon'].values.astype(float), s['lat'].values.astype(float)
-    frac = np.clip((s['depth_km'].values.astype(float) - p.upper_mantle_km) / (p.cmb_depth_km - p.upper_mantle_km), 0, 1)
-    k = p.slab_flow_top + (p.slab_flow_bottom - p.slab_flow_top) * frac
+    frac = np.clip((depth[moving] - p.upper_mantle_km) / (p.cmb_depth_km - p.upper_mantle_km), 0, 1)
+    k = np.where(upper[moving], p.slab_flow_upper, p.slab_flow_top + (p.slab_flow_bottom - p.slab_flow_top) * frac)
     ve = k * _grid_bilinear(flow['vel_e'], flow['lats'], flow['lons'], lat, lon)
     vn = k * _grid_bilinear(flow['vel_n'], flow['lats'], flow['lons'], lat, lon)
     lon, lat = move_along_azimuth(lon, lat, np.degrees(np.arctan2(ve, vn)), np.hypot(ve, vn) * delta_time,
                                   SURFACE_RADIUS_KM)
-    slab_tracers.loc[lower, 'lon'] = lon
-    slab_tracers.loc[lower, 'lat'] = lat
+    slab_tracers.loc[moving, 'lon'] = lon
+    slab_tracers.loc[moving, 'lat'] = lat
     return slab_tracers
 
 
@@ -277,13 +405,15 @@ def _cell_scale(spacing_deg, p, depth_interval_km=None):
     return f * REF_LAYER_KM / depth_interval_km if depth_interval_km else f
 
 
-def seed_slabs(slab_tracers, samples, delta_time, p):
+def seed_slabs(slab_tracers, samples, delta_time, p, time_myr=None):
     """Add one slablet at the surface for each trench sample.
 
     Sink rate: p.slab_sink_rate_factor × convergence, capped at p.slab_max_sink_rate.
     Weight: delta_time × min(1, convergence / 10 km/Myr), so the mantle signal per Myr
     of subduction does not depend on the time step and near-stalled trenches add little;
     with p.resolution_independent also × slab_sample_deg (per 1 deg of trench).
+    With stalls on, time_myr (the model time, in Ma or forward; only its window matters) is needed:
+    each slablet gets its stall patch and that patch's stall time (STALL_COLUMNS).
     """
     if samples is None or not len(samples['lon']):
         return slab_tracers
@@ -299,6 +429,19 @@ def seed_slabs(slab_tracers, samples, delta_time, p):
             new[col] = np.asarray(samples[key], dtype=float)
     if p.slab_age_ref_myr > 0:
         _add_plate_age(new, samples.get('seafloor_age_myr', np.full(len(new), np.nan)), p)
+    if _stalling(p):
+        if time_myr is None:
+            raise ValueError('slab_stall_fraction > 0 needs the time: seed_slabs(..., time_myr=...)')
+        window = stall_window(time_myr, p)
+        new['stall_site'] = nearest_stall_site(samples['lon'], samples['lat'], p)
+        new['stall_window'] = window
+        new['stall_myr'] = stall_times(window, p)[new['stall_site'].values]
+        if p.slab_stall_retreat_km_per_myr >= 0:      # only slab from retreating trenches can stall
+            if 'downdip_azimuth_deg' not in samples:
+                raise ValueError('slab_stall_retreat_km_per_myr >= 0 needs the trench samples\' dip keys')
+            retreat = np.nan_to_num(trench_retreat(samples), nan=-np.inf)
+            new['stall_myr'] = np.where(retreat > p.slab_stall_retreat_km_per_myr, new['stall_myr'].values, 0.0)
+        new['held_myr'] = 0.0
     return new if len(slab_tracers) == 0 else pd.concat([slab_tracers, new], ignore_index=True)
 
 
@@ -355,6 +498,8 @@ def initial_slab_columns(samples, delta_time, p, depth_km=None):
         'attached': True})
     if p.slab_age_ref_myr > 0:
         _add_plate_age(out, np.asarray(samples.get('seafloor_age_myr', np.full(len(s_lon), np.nan)), float)[point], p)
+    if _stalling(p):                                     # a built history: never stalls
+        out['stall_site'], out['stall_window'], out['stall_myr'], out['held_myr'] = -1, -1, 0.0, 0.0
     if _dipping(p) and 'downdip_azimuth_deg' in samples:
         # where the slablet would be had the trench kept its present velocity and dip: moved
         # down-dip while in the upper mantle; seeded where the trench was age Myr ago and then
@@ -369,7 +514,10 @@ def initial_slab_columns(samples, delta_time, p, depth_km=None):
             de += along * np.sin(np.radians(np.nan_to_num(az)))
             dn += along * np.cos(np.radians(np.nan_to_num(az)))
         if p.slab_trench_follow:
-            back = np.maximum(0.0, age - t_um)
+            # carried with a fraction k of the trench's velocity while in the upper mantle: offset from the present
+            # trench -v x (age - k x time in the upper mantle so far)
+            back = (np.maximum(0.0, age - t_um) if p.slab_trench_follow_fraction == 1.0
+                    else age - p.slab_trench_follow_fraction * np.minimum(age, t_um))
             de -= np.nan_to_num(east) * back
             dn -= np.nan_to_num(north) * back
         lon, lat = move_along_azimuth(out['lon'].values, out['lat'].values, np.degrees(np.arctan2(de, dn)),
@@ -675,7 +823,8 @@ def dvs_field(slab_tracers, llsvp_state, p, lithosphere_km=None):
     p.upper_mantle_km, widening with depth below it.  With p.mantle_field_spacing_deg the field is drawn
     on that finer grid (float32); the LLSVP state stays on the model grid and is interpolated up, and
     kernels wider than _COARSE_PATH_FRACTION of the model grid are applied on the model grid.  With
-    p.dvs_save_native the field before the tomography blur is also returned, as dVs_native.
+    p.dvs_save_native the field before the tomography blur is also returned, as dVs_native.  With
+    p.dvs_save_components each source of that field is returned too, as dVs_native__<source>.
 
     Each depth layer has zero area-weighted mean, like tomography models.
     Returns xr.Dataset with variables 'dVs' and 'cmb_heat' (heat) or 'pile_thickness_km'
@@ -760,6 +909,16 @@ def dvs_field(slab_tracers, llsvp_state, p, lithosphere_km=None):
         capped = depths_g < p.slab_dVs_max_depth_km
         field[capped] = p.slab_dVs_max * np.tanh(field[capped] / p.slab_dVs_max)
 
+    parts = {} if p.dvs_save_components else None
+
+    def _part(name, increment):
+        """Record one source's contribution to the field (dvs_save_components)."""
+        if parts is not None:
+            parts[name] = parts.get(name, 0.0) + increment
+
+    if parts is not None:
+        parts['slabs'] = field.copy()
+
     if p.wedge_dVs < 0 and len(slab_tracers) > 0 and 'dip_azimuth_deg' in slab_tracers:
         w = slab_tracers[slab_tracers['active'].astype(bool).values
                          & (slab_tracers['depth_km'].astype(float) >= p.wedge_top_km).values
@@ -782,7 +941,9 @@ def dvs_field(slab_tracers, llsvp_state, p, lithosphere_km=None):
                 wf *= (coarse_deg / spacing_deg) ** 2
             upper = depths_g < p.upper_mantle_km
             wf[upper] = _hsmooth(wf[upper], p.wedge_sigma_deg)
-            field += p.wedge_dVs * np.tanh(wf / p.wedge_saturation)
+            wedge = p.wedge_dVs * np.tanh(wf / p.wedge_saturation)
+            field += wedge
+            _part('wedge', wedge)
 
     if fine and cmb_heat is not None:
         cmb_heat = _upsample(cmb_heat, lats_c, lons_c, lats_g, lons_g)
@@ -806,6 +967,10 @@ def dvs_field(slab_tracers, llsvp_state, p, lithosphere_km=None):
             if decay < 1e-4:
                 break
             field[dep_i] += cmb_heat * p.cmb_dVs_scale * decay
+            if parts is not None:
+                inc = np.zeros_like(field)
+                inc[dep_i] = cmb_heat * p.cmb_dVs_scale * decay
+                _part('cmb_heat', inc)
             _n_injected += 1
         print(f'  [mantle] LLSVP injected into {_n_injected} depth layers; '
               f'cmb_heat range {cmb_heat.min():.3f}–{cmb_heat.max():.3f}; '
@@ -813,31 +978,46 @@ def dvs_field(slab_tracers, llsvp_state, p, lithosphere_km=None):
     elif cmb_heat is not None:
         print(f'  [mantle] WARNING: cmb_heat shape {cmb_heat.shape} != expected ({nlat},{nlon}) — LLSVP skipped')
     if pile_h is not None:
-        field += p.pile_dVs * _pile.pile_layer_fractions(pile_h, depths_g, depth_interval_km, max_depth_km)
+        inc = p.pile_dVs * _pile.pile_layer_fractions(pile_h, depths_g, depth_interval_km, max_depth_km)
+        field += inc
+        _part('pile', inc)
         if p.pile_halo_km > 0:                 # warm layer above the pile top
             top = max_depth_km - pile_h
             above = np.clip(top[None, :, :] - depths_g[:, None, None], 0.0, None)
             strength = np.clip(pile_h / p.pile_halo_h_km, 0.0, 1.0)
-            field += np.where(depths_g[:, None, None] < top[None, :, :],
-                              p.pile_halo_dVs * strength[None, :, :] * np.exp(-above / p.pile_halo_km), 0.0)
+            inc = np.where(depths_g[:, None, None] < top[None, :, :],
+                           p.pile_halo_dVs * strength[None, :, :] * np.exp(-above / p.pile_halo_km), 0.0)
+            field += inc
+            _part('pile_halo', inc)
     if tbl_h is not None:                      # the boundary layer, on top of the pile
         both = pile_h + tbl_h
-        field += p.tbl_dVs * (_pile.pile_layer_fractions(both, depths_g, depth_interval_km, max_depth_km)
-                              - _pile.pile_layer_fractions(pile_h, depths_g, depth_interval_km, max_depth_km))
+        inc = p.tbl_dVs * (_pile.pile_layer_fractions(both, depths_g, depth_interval_km, max_depth_km)
+                           - _pile.pile_layer_fractions(pile_h, depths_g, depth_interval_km, max_depth_km))
+        field += inc
+        _part('tbl', inc)
         if p.tbl_halo_km > 0:
             top = max_depth_km - both
             above = np.clip(top[None, :, :] - depths_g[:, None, None], 0.0, None)
             strength = np.clip(tbl_h / max(p.tbl_thickness_km, 1e-9), 0.0, 1.0)
-            field += np.where(depths_g[:, None, None] < top[None, :, :],
-                              p.tbl_dVs * strength[None, :, :] * np.exp(-above / p.tbl_halo_km), 0.0)
+            inc = np.where(depths_g[:, None, None] < top[None, :, :],
+                           p.tbl_dVs * strength[None, :, :] * np.exp(-above / p.tbl_halo_km), 0.0)
+            field += inc
+            _part('tbl', inc)
     if plumes is not None and len(plumes[0]):
-        field += plume_field(plumes, lats_g, lons_g, depths_g, p)
+        inc = plume_field(plumes, lats_g, lons_g, depths_g, p)
+        field += inc
+        _part('plumes', inc)
 
     if p.lithosphere_dVs > 0 and lithosphere_km is not None:
-        field += lithosphere_field(lithosphere_km, lats_g, lons_g, depths_g, depth_interval_km, p)
+        inc = lithosphere_field(lithosphere_km, lats_g, lons_g, depths_g, depth_interval_km, p)
+        field += inc
+        _part('lithosphere', inc)
 
     field = _remove_area_weighted_mean(field, lats_g)
     native = None
+    if parts is not None:
+        parts = {k: _remove_area_weighted_mean(np.broadcast_to(v, field.shape).astype(float), lats_g)
+                 for k, v in parts.items()}
 
     if p.tomo_smooth_horiz_deg > 0 or p.tomo_smooth_depth_km > 0:
         if p.dvs_save_native:
@@ -859,6 +1039,12 @@ def dvs_field(slab_tracers, llsvp_state, p, lithosphere_km=None):
         data_vars['dVs_native'] = xr.DataArray(
             native, dims=['depth', 'lat', 'lon'], coords={'depth': depths_g, 'lat': lats_g, 'lon': lons_g},
             attrs={'units': '%', 'long_name': 'dVs/Vs before the tomography blur (tomo_smooth_*)'})
+    for name, part in (parts or {}).items():
+        data_vars['dVs_native__' + name] = xr.DataArray(
+            part.astype(np.float32), dims=['depth', 'lat', 'lon'],
+            coords={'depth': depths_g, 'lat': lats_g, 'lon': lons_g},
+            attrs={'units': '%', 'long_name': 'the {} part of the field before the tomography blur'.format(name),
+                   'source': name})
     if cmb_heat is not None and cmb_heat.shape == (nlat, nlon):
         data_vars['cmb_heat'] = xr.DataArray(
             cmb_heat, dims=['lat', 'lon'],

@@ -484,3 +484,173 @@ def test_mantle_wedge_is_slow_on_the_overriding_side():
     assert eq.min() < eq.max() and 32.5 < east < 42.5                # slowest about 4.5 deg east of the slab
     none = slablet.dvs_field(slab.drop(columns='dip_azimuth_deg'), None, p).dVs.sel(depth=250).values
     assert none.min() >= np.median(none) - 1e-9                       # no azimuth: no wedge
+
+
+def test_stall_sites_cover_the_sphere_evenly():
+    lon, lat = slablet.stall_sites(10.0)
+    assert len(lon) == round(4 * np.pi / np.radians(10.0) ** 2)
+    # every point of a fine grid is within about one spacing of a site
+    g_lon, g_lat = np.meshgrid(np.arange(-179.5, 180, 2.0), np.arange(-89.5, 90, 2.0))
+    p = slablet.MantleParams(slab_stall_fraction=1.0)
+    site = slablet.core.nearest_stall_site(g_lon.ravel(), g_lat.ravel(), p)
+    xyz = slablet.lonlat_to_xyz(g_lon.ravel(), g_lat.ravel())
+    d = np.degrees(np.arccos(np.clip((xyz * slablet.lonlat_to_xyz(lon[site], lat[site])).sum(axis=1), -1, 1)))
+    assert d.max() < 10.0
+    counts = np.bincount(site, weights=np.cos(np.radians(g_lat.ravel())), minlength=len(lon))
+    assert counts.min() > 0.5 * counts.mean() and counts.max() < 1.5 * counts.mean()   # near-equal areas
+
+
+def test_stall_draws_nest_across_fractions_and_scale_with_the_time():
+    def times(**kw):
+        return slablet.stall_times(7, slablet.MantleParams(**kw))
+    a = times(slab_stall_fraction=0.25, slab_stall_time_myr=10.0)
+    b = times(slab_stall_fraction=0.75, slab_stall_time_myr=40.0)
+    assert np.all(b[a > 0] > 0)                                   # stalled at 0.25: also stalled at 0.75
+    np.testing.assert_allclose(b[a > 0], 4.0 * a[a > 0])
+    assert 0.6 < (b > 0).mean() < 0.9
+    np.testing.assert_array_equal(times(slab_stall_fraction=1.0, slab_stall_form='fixed', slab_stall_time_myr=25.0),
+                                  25.0)
+    many = np.concatenate([slablet.stall_times(w, slablet.MantleParams(slab_stall_fraction=1.0))
+                           for w in range(50)])
+    assert many.mean() == pytest.approx(25.0, rel=0.05)           # exponential about the default mean
+    assert not np.array_equal(times(slab_stall_fraction=1.0), times(slab_stall_fraction=1.0, slab_stall_seed=1))
+    with pytest.raises(ValueError):
+        times(slab_stall_fraction=1.0, slab_stall_form='gamma')
+
+
+def test_stalled_slab_waits_above_670_km_then_sinks_at_its_lower_mantle_rate():
+    p = slablet.MantleParams(slab_stall_fraction=1.0, slab_stall_form='fixed', slab_stall_time_myr=10.0,
+                             slab_sink_rate_factor=2.0, slab_lower_rate_km_per_myr=10.0)   # 100 km/Myr above
+    empty = slablet.core.pd.DataFrame(columns=slablet.SLAB_COLUMNS)
+    with pytest.raises(ValueError):
+        slablet.seed_slabs(empty, _dip_samples(), 1.0, p)
+    slabs = slablet.seed_slabs(empty, _dip_samples(), 1.0, p, time_myr=0.0)
+    assert list(slabs.columns[-4:]) == slablet.STALL_COLUMNS
+    depths = []
+    for _ in range(20):
+        slabs = slablet.sink_slabs(slabs, 1.0, p)
+        depths.append(float(slabs.depth_km.iloc[0]))
+    hold = p.upper_mantle_km - slablet.core.STALL_GAP_KM
+    # reaches 669 km at 6.69 Myr, held until 16.69 Myr, released at the end of that step (17 Myr)
+    assert depths[5] == pytest.approx(600.0) and depths[6] == pytest.approx(hold)
+    assert depths[6:16] == pytest.approx([hold] * 10)
+    assert depths[16] == pytest.approx(p.upper_mantle_km)
+    assert depths[17:20] == pytest.approx([680.0, 690.0, 700.0])
+    assert slabs.age.iloc[0] == pytest.approx(20.0)              # age (thermal decay) runs on while held
+
+
+def test_held_slab_stays_put_and_unstalled_or_initial_slab_goes_straight_through():
+    p = slablet.MantleParams(slab_stall_fraction=1.0, slab_stall_form='fixed', slab_stall_time_myr=30.0,
+                             slab_dip_deg=45.0)                    # 50 km/Myr, dipping east
+    empty = slablet.core.pd.DataFrame(columns=slablet.SLAB_COLUMNS)
+    slabs = slablet.seed_slabs(empty, _dip_samples(), 1.0, p, time_myr=100.0)
+    for _ in range(15):                                           # arrives at 669 km during step 14
+        slabs = slablet.sink_slabs(slabs, 1.0, p)
+    held_at = slabs[['lon', 'lat', 'depth_km']].iloc[0].values.astype(float)
+    for _ in range(10):
+        slabs = slablet.sink_slabs(slabs, 1.0, p)
+    np.testing.assert_allclose(slabs[['lon', 'lat', 'depth_km']].iloc[0].values.astype(float), held_at)
+    off = slablet.MantleParams(slab_stall_fraction=1e-12, slab_dip_deg=45.0)   # on, but no patch stalls
+    plain = slablet.MantleParams(slab_dip_deg=45.0)
+    a, b = slablet.seed_slabs(empty, _dip_samples(), 1.0, off, time_myr=0.0), slablet.seed_slabs(empty, _dip_samples(), 1.0, plain)
+    for _ in range(30):
+        a, b = slablet.sink_slabs(a, 1.0, off), slablet.sink_slabs(b, 1.0, plain)
+    np.testing.assert_allclose(a[['lon', 'lat', 'depth_km']].values.astype(float),
+                               b[['lon', 'lat', 'depth_km']].values.astype(float))
+    cols = slablet.initial_slab_columns(_dip_samples(), 1.0, p)
+    assert (cols.stall_myr == 0).all() and (cols.stall_site == -1).all()
+
+
+def test_stalls_off_adds_no_columns():
+    empty = slablet.core.pd.DataFrame(columns=slablet.SLAB_COLUMNS)
+    p = slablet.MantleParams()
+    slabs = slablet.sink_slabs(slablet.seed_slabs(empty, _dip_samples(), 1.0, p, time_myr=5.0), 1.0, p)
+    assert not set(slablet.STALL_COLUMNS) & set(slabs.columns)
+
+
+def test_flat_stall_moves_held_slab_down_dip_at_the_convergence_rate():
+    p = slablet.MantleParams(slab_stall_fraction=1.0, slab_stall_form='fixed', slab_stall_time_myr=30.0,
+                             slab_dip_deg=45.0, slab_stall_flat_factor=1.0)   # 50 km/Myr sinking, 50 km/Myr convergence
+    empty = slablet.core.pd.DataFrame(columns=slablet.SLAB_COLUMNS)
+    slabs = slablet.seed_slabs(empty, _dip_samples(), 1.0, p, time_myr=0.0)
+    for _ in range(15):
+        slabs = slablet.sink_slabs(slabs, 1.0, p)
+    held0 = float(slabs.held_myr.iloc[0])
+    lon0 = float(slabs.lon.iloc[0])
+    for _ in range(10):
+        slabs = slablet.sink_slabs(slabs, 1.0, p)
+    r = 6371.0 - (p.upper_mantle_km - slablet.core.STALL_GAP_KM)
+    assert slabs.depth_km.iloc[0] == pytest.approx(p.upper_mantle_km - slablet.core.STALL_GAP_KM)
+    assert np.radians(slabs.lon.iloc[0] - lon0) * r == pytest.approx(500.0, rel=1e-6)   # 10 Myr x 50 km/Myr, east
+    assert abs(slabs.lat.iloc[0]) < 1e-9 and held0 > 0
+
+
+def test_retreat_only_stalls_hold_slab_from_retreating_trenches():
+    p = slablet.MantleParams(slab_stall_fraction=1.0, slab_stall_form='fixed', slab_stall_time_myr=30.0,
+                             slab_dip_deg=45.0, slab_stall_retreat_km_per_myr=10.0)
+    empty = slablet.core.pd.DataFrame(columns=slablet.SLAB_COLUMNS)
+    s = _dip_samples(azimuth=90.0)                                  # overriding plate to the east
+    s = {k: np.repeat(v, 3) for k, v in s.items()}
+    s['trench_east_km_per_myr'] = np.array([-20.0, -5.0, 20.0])     # retreating fast, slowly, advancing
+    np.testing.assert_allclose(slablet.trench_retreat(s), [20.0, 5.0, -20.0])
+    slabs = slablet.seed_slabs(empty, s, 1.0, p, time_myr=0.0)
+    np.testing.assert_allclose(slabs.stall_myr, [30.0, 0.0, 0.0])
+    with pytest.raises(ValueError):
+        slablet.seed_slabs(empty, {k: s[k] for k in ('lon', 'lat', 'convergence_km_per_myr')}, 1.0, p, time_myr=0.0)
+
+
+def test_trench_follow_fraction_scales_the_carried_distance():
+    s = _dip_samples()
+    s['trench_east_km_per_myr'] = np.array([20.0])
+    empty = slablet.core.pd.DataFrame(columns=slablet.SLAB_COLUMNS)
+    lons = {}
+    for k in (1.0, 0.5):
+        p = slablet.MantleParams(slab_dip_deg=90.0, slab_trench_follow=True, slab_trench_follow_fraction=k)
+        slabs = slablet.seed_slabs(empty, s, 1.0, p)
+        for _ in range(10):
+            slabs = slablet.sink_slabs(slabs, 1.0, p)
+        lons[k] = float(slabs.lon.iloc[0])
+    assert lons[0.5] == pytest.approx(0.5 * lons[1.0], rel=0.05)    # depth-dependent radius: nearly half
+
+
+@pytest.mark.parametrize('k', [0.0, -0.5])
+def test_upper_mantle_flow_moves_upper_slablets_only(k):
+    lats, lons = np.arange(-89.0, 90, 2.0), np.arange(-179.0, 180, 2.0)
+    flow = {'lats': lats, 'lons': lons, 'vel_e': np.full((len(lats), len(lons)), 100.0),
+            'vel_n': np.zeros((len(lats), len(lons)))}
+    p = slablet.MantleParams(slab_flow_upper=k)
+    slabs = slablet.core.pd.DataFrame({'lon': [0.0, 0.0], 'lat': [0.0, 0.0], 'depth_km': [300.0, 1000.0],
+                                       'active': [True, True]})
+    out = slablet.core.flow_lower_slabs(slabs.copy(), 1.0, p, flow)
+    east_deg = 100.0 * k / (slablet.core.SURFACE_RADIUS_KM * np.pi / 180.0)
+    assert out.lon.iloc[0] == pytest.approx(east_deg, abs=1e-6)       # same angular rate as k x the plate's
+    assert out.lon.iloc[1] == 0.0                                     # lower mantle: slab_flow_top/bottom only
+
+
+@pytest.mark.parametrize('east, moves', [(-20.0, True), (20.0, False), (-5.0, False)])
+def test_trench_follow_retreating_only(east, moves):
+    s = _dip_samples()                                    # overriding plate to the east (down-dip azimuth 90)
+    s['trench_east_km_per_myr'] = np.array([east])        # -20: retreating 20 km/Myr; +20: advancing; -5: too slow
+    p = slablet.MantleParams(slab_dip_deg=90.0, slab_trench_follow=True, slab_trench_follow_retreating_only=True,
+                             slab_trench_follow_retreat_km_per_myr=10.0)
+    slabs = slablet.seed_slabs(slablet.core.pd.DataFrame(columns=slablet.SLAB_COLUMNS), s, 1.0, p)
+    for _ in range(5):
+        slabs = slablet.sink_slabs(slabs, 1.0, p)
+    assert (abs(float(slabs.lon.iloc[0])) > 0.5) == moves
+
+
+@pytest.mark.parametrize('hold', [450.0, 1000.0])
+def test_stall_depth_can_be_above_or_below_660(hold):
+    p = slablet.MantleParams(slab_stall_fraction=1.0, slab_stall_form='fixed', slab_stall_time_myr=10.0,
+                             slab_sink_rate_factor=2.0, slab_lower_rate_km_per_myr=50.0, slab_stall_depth_km=hold)
+    empty = slablet.core.pd.DataFrame(columns=slablet.SLAB_COLUMNS)
+    slabs = slablet.seed_slabs(empty, _dip_samples(), 1.0, p, time_myr=0.0)
+    depths = []
+    for _ in range(40):
+        slabs = slablet.sink_slabs(slabs, 1.0, p)
+        depths.append(float(slabs.depth_km.iloc[0]))
+    d = np.array(depths)
+    at = np.isclose(d, hold)
+    assert 10 <= at.sum() <= 11                                  # held for 10 Myr, rounded up to whole steps
+    assert d[np.nonzero(at)[0][-1] + 1] > hold                    # then sinks on
+    assert np.all(np.diff(d) >= -1e-9)

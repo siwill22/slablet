@@ -39,6 +39,7 @@ class MantleParams:
     slab_flow_top: float = 0.0              # fraction of the overlying plate's velocity at upper_mantle_km ...
     slab_flow_bottom: float = 0.0           # ... and at the CMB, linear in between; < 0: against the plate
                                             # (return flow).  Applies to lower-mantle slablets (0, 0: off)
+    slab_flow_upper: float = 0.0            # the same for upper-mantle slablets, one fraction (0: off)
     upper_mantle_km: float = 670.0
     cmb_depth_km: float = 2890.0            # slablets are removed here (slab_at_cmb: remove)
     slab_at_cmb: str = 'remove'             # remove: delete slablets that reach the CMB;
@@ -54,6 +55,29 @@ class MantleParams:
     slab_dip_shallow_km: float = 0.0        # slab near the trench; below it slab_dip_deg (0: one dip)
     slab_trench_follow: bool = False        # True: above upper_mantle_km a slablet also moves with the
                                             # velocity its trench had when it was seeded (attached slab)
+    slab_trench_follow_fraction: float = 1.0  # with slab_trench_follow: the fraction of that velocity (1: fully
+                                            # attached; between 0 and 1: partly anchored in the mantle)
+    slab_trench_follow_retreating_only: bool = False  # with slab_trench_follow: only slablets whose trench was
+                                            # retreating (away from the overriding plate) faster than
+    slab_trench_follow_retreat_km_per_myr: float = 0.0  # this when they were seeded follow it; the rest stay put
+    # stalls: slab held at the base of the upper mantle before it enters the lower mantle.  Slab from one stall
+    # patch (the stall site nearest its trench point x a window of seeding time) shares one stall time; each
+    # slablet is held that long from when it arrives, fixed in the mantle frame, then sinks at its lower-mantle
+    # rate.  Needs the time from the caller (seed_slabs time_myr).  Initial slab columns never stall.
+    slab_stall_fraction: float = 0.0        # share of patches that stall (0: off; the rest go straight through)
+    slab_stall_time_myr: float = 25.0       # stall time: the mean (exponential) or the time itself (fixed)
+    slab_stall_form: str = 'exponential'    # exponential (a constant chance of breaking through per Myr) or fixed
+    slab_stall_site_deg: float = 10.0       # spacing of the stall sites (a Fibonacci lattice, the same in every run)
+    slab_stall_window_myr: float = 25.0     # length of a patch's window of seeding time
+    slab_stall_seed: int = 0                # the random draws: one ensemble member per seed
+    slab_stall_depth_km: float = 0.0        # > 0: hold slab at this depth, above or below upper_mantle_km (0: just
+                                            # above upper_mantle_km, then released into the lower mantle)
+    slab_stall_flat_factor: float = 0.0     # > 0: held slab moves down-dip (towards the overriding plate) along the
+                                            # hold depth at this x its trench's convergence rate, lying flat (0: it
+                                            # stays where it arrives).  Needs dipping slabs
+    slab_stall_retreat_km_per_myr: float = -1.0  # >= 0: only slab from trenches retreating faster than this at
+                                            # seeding (velocity away from the overriding plate, mantle frame) can
+                                            # stall (< 0: any slab).  Needs the trench samples' dip keys
     slab_cmb_spread_km_per_myr: float = 0.0 # > 0: slablets within slab_cmb_spread_layer_km of the CMB also move
                                             # sideways, down the gradient of the basal flow potential ψ (as for
                                             # pile_drive: flow), at this rms speed over the sphere (0: off)
@@ -113,6 +137,9 @@ class MantleParams:
     lithosphere_dVs: float = 0.0            # > 0 (with a thickness grid from the caller): a fast lid, +this % at the
                                             # surface falling linearly to 0 at the lithosphere's base (0: none)
     dvs_save_native: bool = False           # True: also write the field before the tomography blur, as dVs_native
+    dvs_save_components: bool = False       # True: also write each source of that field (slabs, wedge, pile,
+                                            # pile_halo, cmb_heat, tbl, plumes, lithosphere), each with zero mean
+                                            # per layer, as dVs_native__<source>; they sum to dVs_native
     mantle_bin_area_normalise: bool = False  # True: divide each lon/lat cell's binned slab sum by the
                                              # cell's area relative to an equatorial cell, so a slab
                                              # counts the same at every latitude (False: a slab at 60°
