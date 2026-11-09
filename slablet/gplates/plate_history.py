@@ -37,12 +37,17 @@ def _points(lon, lat):
             zip(np.ravel(np.asarray(lon, float)), np.ravel(np.asarray(lat, float)))]
 
 
-def _query(polygons, proxies, fill):
-    """A point query over polygons: the proxy of the polygon holding each point, else fill."""
+def _query(polygons, proxies, fill, overlaps='any'):
+    """A point query over polygons: the proxy of the polygon holding each point, else fill.  Where polygons overlap,
+    overlaps='highest' takes the highest proxy (for plate IDs: pygplates PlatePartitioner's default order, highest
+    plate ID first); 'any' takes whichever ptt meets first (enough for a mask, where every proxy is True)."""
     def at(lon, lat):
         shape = np.shape(lon)
         if not polygons:
             return np.full(shape, fill)
+        if overlaps == 'highest':
+            found = points_in_polygons.find_polygons(_points(lon, lat), polygons, proxies, all_polygons=True)
+            return np.array([fill if not f else max(f) for f in found]).reshape(shape)
         found = points_in_polygons.find_polygons(_points(lon, lat), polygons, proxies)
         return np.array([fill if f is None else f for f in found]).reshape(shape)
     return at
@@ -129,7 +134,7 @@ class RealPlateHistory:
         trench['downdip_azimuth_deg'] = np.asarray(trench['downdip_azimuth_deg'], float) % 360.0
         return PH.check(PH.PlateStep(
             time=t, delta_time=delta_time,
-            plate_id_at=_query(polys, pids, 0),
+            plate_id_at=_query(polys, pids, 0, overlaps='highest'),
             omega=self._omega(pids, t),
             trench={k: np.asarray(trench[k], float) for k in PH.TRENCH_KEYS},
             ridge={k: np.asarray(v, float) for k, v in self.ridges.samples(t).items()},

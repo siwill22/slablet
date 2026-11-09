@@ -3,7 +3,7 @@
 Recorded on 2026-11-08 from a read-only review of the four repositories, then settled in a grilling session on
 2026-11-08 and 2026-11-09 whose decisions are in section 8. The architecture, the scoring rule and v1 (the AAD
 region on Müller 2022, built in the stages of decision 20) are decided. Stages 0 and 1 were built on 2026-11-09
-(slablet `2500381`, PlateDriver `50743e0`), and stage 2 the same day; stage 3 is next. The cases deferred from v1 are listed at the end of
+(slablet `2500381`, PlateDriver `50743e0`), and stages 2 and 3 the same day; stage 4 is next. The cases deferred from v1 are listed at the end of
 decision 20.
 
 ## 1. Aim
@@ -497,6 +497,18 @@ Settled during the grilling, in order:
       then the isotopic-boundary observation (decisions 17, 18).
     - Stage 6, flow-driven volcanism, and the orientation test once SWOT chains exist (decisions 18, 19).
     - Alongside: anisotropy, by request to the authors and by digitising Figure 7 as a fallback (decision 10).
+
+    Stage 3 built (2026-11-09): `slablet/asthenosphere_plates.py` drives the layer from any plate step
+    (`forcing_from_step`, `run_layer`); `gplates/run_asthenosphere.PlateSetting` is a thin wrapper over it. Plate
+    identity where polygons overlap now takes the highest plate ID, as pygplates' PlatePartitioner does; cells in
+    gaps between plates have no plate motion. The mantle-frame AAD baseline is bit-identical to the 2026-11-06 run
+    (deepest SEIR point −387 m at 120.2°E); the Antarctica-fixed run differs by at most 0.13 km of layer thickness.
+    Vs test (decision 15): at 80–200 km the AAD is faster than the ridge east of it in Aus22 and SL2013sv (4.3%,
+    5.2%) and faster than the ridge west of it in SL2013sv only (2.0%; Aus22 0.1%); the fast anomaly is gone by
+    300 km. Along 88–158°E, Vs correlates with the layer's thinness at r = 0.74 and 0.77 (ceiling 0.87; skill 0.88
+    and 0.92 against a longitude-shift null), but the profile is one broad east–west swing, so the evidence rests on
+    few independent samples and does not separate the layer from other causes of a warm ridge east of the AAD.
+    Figures: PlateDriver `show-me/2026-11-09-asthenosphere-on-contract/`.
 
     Not in v1, each for its own session: continental deformation from defamation (case 9); defamation's trench side and
     IPV's continent definition (case 10); PlateDriver's `contains_xy` fix; the spherical rasterise function in gprm;

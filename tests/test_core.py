@@ -24,7 +24,8 @@ FORBIDDEN = ('self_driving_plates', 'run_SDP', 'plate_driver', 'reconstructions'
 
 
 def test_core_imports_no_plate_model_code():
-    code = ('import sys, slablet; '
+    code = ('import sys, slablet, slablet.plate_history, slablet.cooling, slablet.asthenosphere, '
+            'slablet.asthenosphere_plates, slablet.sphere_mesh; '
             'print(",".join(m for m in {!r} if m in sys.modules))'.format(FORBIDDEN))
     out = subprocess.run([sys.executable, '-c', code], capture_output=True, text=True, check=True)
     assert out.stdout.strip() == '', 'slablet imported: ' + out.stdout.strip()
