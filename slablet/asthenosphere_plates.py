@@ -19,8 +19,9 @@ synthetic world (PlateDriver's plate_step).  Over each step [t + dt, t], from th
   ridges     sink = normal divergence x lithosphere_km x length, into the cell holding each ridge sample; none
              where that cell is continent (rifts) or keel.
 run_layer moves the keels between steps (uncovered cells start empty, covered layer is bulldozed or deleted, the
-params' covered_mode) and can cap the thickness (cap_km: any excess is spread over the supply cells, keeping the
-volume).  All geometry is on the sphere.  No pygplates: this is shared physics.
+params' covered_mode), can share the supply out unevenly (share_at, slablet/asthenosphere_supply.py) and can cap
+the thickness (cap_km: any excess is spread over the supply cells, keeping the volume).  All geometry is on the
+sphere.  No pygplates: this is shared physics.
 """
 import numpy as np
 
@@ -98,15 +99,18 @@ def forcing_from_step(mesh, step, p):
     return f, info
 
 
-def run_layer(step_at, mesh, p, start_ma, end_ma=0, delta_time=1.0, cap_km=None, h0=None):
+def run_layer(step_at, mesh, p, start_ma, end_ma=0, delta_time=1.0, cap_km=None, h0=None, share_at=None):
     """Run the layer from start_ma to end_ma through a plate history; yields (t, h, forcing, info, log) after each
     step over [t + delta_time, t].  step_at(t) returns the PlateStep for that interval.  The layer starts uniform at
-    h_a outside keels (or h0).  Between steps the keels move (asthenosphere.move_keels, p.covered_mode)."""
+    h_a outside keels (or h0).  Between steps the keels move (asthenosphere.move_keels, p.covered_mode).
+    share_at(t, forcing) -> per-cell supply share (slablet/asthenosphere_supply.py); None: by area."""
     h, closed_old = None, None
     n = int(round((start_ma - end_ma) / delta_time))
     for k in range(1, n + 1):
         t = start_ma - k * delta_time
         f, info = forcing_from_step(mesh, step_at(t), p)
+        if share_at is not None:
+            f.supply_share = share_at(t, f)
         closed = np.asarray(f.closed, bool)
         if h is None:
             h = np.where(closed, 0.0, p.h_a_km if h0 is None else h0)

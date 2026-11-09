@@ -3,7 +3,7 @@
 Recorded on 2026-11-08 from a read-only review of the four repositories, then settled in a grilling session on
 2026-11-08 and 2026-11-09 whose decisions are in section 8. The architecture, the scoring rule and v1 (the AAD
 region on Müller 2022, built in the stages of decision 20) are decided. Stages 0 and 1 were built on 2026-11-09
-(slablet `2500381`, PlateDriver `50743e0`), and stages 2 and 3 the same day; stage 4 is next. The cases deferred from v1 are listed at the end of
+(slablet `2500381`, PlateDriver `50743e0`), and stages 2–4 the same day; stage 5 is next. The cases deferred from v1 are listed at the end of
 decision 20.
 
 ## 1. Aim
@@ -509,6 +509,18 @@ Settled during the grilling, in order:
     and 0.92 against a longitude-shift null), but the profile is one broad east–west swing, so the evidence rests on
     few independent samples and does not separate the layer from other causes of a warm ridge east of the AAD.
     Figures: PlateDriver `show-me/2026-11-09-asthenosphere-on-contract/`.
+
+    Stage 4 built (2026-11-09): `slablet/asthenosphere_supply.py` (uniform, plume and deep parts, mixed by weight;
+    `Forcing.supply_share`; `run_layer(share_at=...)`), with u_r at 400 km and plume sites from the mantle run
+    `runs_real/muller2022_refined` (flow solved every 10 Myr, 0–80 Ma). Six mixtures beside the uniform baseline:
+    the SEIR low stays at 120–122°E in all, and the AAD contrast grows from −89 to −121 m with deep supply; the SEIR
+    profile skill is 0.98–0.99 for all, so it cannot rank them. The EPR half fails in all: the model puts the EPR
+    194–534 m below the AAD, observed 483 m above, and the all-ridge skill is 0.06–0.07. Named ingredients: the mantle
+    run has no distinct EPR upwelling at 400 km (it rises at 2–4 cm/yr over 80% of the ocean); linear max(u_r, 0)
+    weighting; the ridge sink growing with spreading rate; the balance rule. Buck et al. (2009) treated the EPR and
+    AAD together, so their handling of the EPR is to be checked first. Not built: draining above downwellings,
+    buoyant plume material in the mixture, catalogue plumes, a finer weight fit. Figures: PlateDriver
+    `show-me/2026-11-09-asthenosphere-supply-mixture/`.
 
     Not in v1, each for its own session: continental deformation from defamation (case 9); defamation's trench side and
     IPV's continent definition (case 10); PlateDriver's `contains_xy` fix; the spherical rasterise function in gprm;

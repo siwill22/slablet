@@ -135,6 +135,8 @@ class Forcing:
     outflow: object = None                      # (n,) km^2/Myr: cell loses h x outflow (open edge, trench sink)
     supply: str = 'balance'                     # 'balance' | 'none' | 'constant'
     supply_mask: object = None                  # (n,) bool: cells that receive the supply (default: all open cells)
+    supply_share: object = None                 # (n,) >= 0: how the supply is shared among the fed cells (volume
+                                                # weights, normalised over them); None: in proportion to cell area
     balance_outflow: bool = True                # 'balance' also replaces what the outflow takes (Buck AAD1: no)
     supply_rate: float = 0.0                    # km/Myr over open cells, for 'constant'
     source_plume: bool = False                  # sources deliver plume material (c = 1), when c is carried
@@ -197,6 +199,13 @@ def advance(mesh, h, forcing, p, duration_myr, max_dt_myr=None, c=None):
     open_cell = ~closed
     fed = open_cell if f.supply_mask is None else open_cell & np.asarray(f.supply_mask, bool)
     fed_area = mesh.area[fed].sum()
+    if f.supply_share is None:
+        share = mesh.area[fed] / fed_area
+    else:
+        share = np.maximum(np.asarray(f.supply_share, float)[fed], 0.0)
+        if not share.sum() > 0:
+            raise ValueError('supply_share is zero over every fed cell')
+        share = share / share.sum()
     sink = np.zeros(n) if f.sink is None else np.where(open_cell, f.sink, 0.0)
     source = np.zeros(n) if f.source is None else np.where(open_cell, f.source, 0.0)
     outflow = np.zeros(n) if f.outflow is None else np.where(open_cell, f.outflow, 0.0)
@@ -244,7 +253,7 @@ def advance(mesh, h, forcing, p, duration_myr, max_dt_myr=None, c=None):
         else:
             add = 0.0
         if add > 0.0:
-            vol[fed] += add * mesh.area[fed] / fed_area
+            vol[fed] += add * mesh.area[fed] / fed_area if f.supply_share is None else add * share
             log.supplied += add
         elif add < 0.0:                 # sources exceed sinks: take the excess back in proportion to what each fed
             have = np.maximum(vol[fed], 0.0)    # cell holds, so no cell goes negative
