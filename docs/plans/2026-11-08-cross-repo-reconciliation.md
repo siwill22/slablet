@@ -523,9 +523,22 @@ Settled during the grilling, in order:
     up beneath 21% of its ridge samples, the model PAR deepens steadily towards the EPR where the observed one is
     flat, the AAD is not deep relative to the PAR (+92 m model, −899 m observed), and the all-ridge skill is
     0.06–0.07. Buck's properties were set in closed 10,000 km boxes; the wider real Pacific and the western trench
-    walls need a more mobile layer (critical Rm h_a / W ≈ 7). Not built: draining above downwellings, buoyant plume
-    material in the mixture, catalogue plumes, a finer weight fit. Figures: PlateDriver
+    walls may need a more mobile layer (critical Rm h_a / W ≈ 7; tested below). Not built: draining above
+    downwellings, buoyant plume material in the mixture, catalogue plumes, a finer weight fit. Figures: PlateDriver
     `show-me/2026-11-09-asthenosphere-supply-mixture/`.
+
+    Layer sweep after stage 4 (2026-11-09): the baseline rerun with μ × 2 (which also stands for a free-slip base,
+    Buck et al. 2009 para. 27), × 0.5, × 0.25, × 0.125, h_a 400 km, h_a 400 km at Buck's mobility, and trench sinks.
+    No setting fits both regions. The AAD stays at 120–122°E only at mobility (Δρ* h_a³/μ) at or below Buck's, and is
+    strongest with a free-slip base (contrast −492 m, the only run with the AAD deeper than the PAR). The PAR's
+    north–south change matches the observed −158 m only at about twice Buck's mobility (−189 m, h_a 400 km −159 m),
+    where the AAD has gone and the EPR step is −59 to −89 m against −354 m observed. Mobility moves the step and the
+    PAR gradient together: the observed step is 2.2 times the PAR's change, the runs 0.37–0.65 (1.13 with trench
+    sinks, by deepening the EPR). A larger reservoir at Buck's mobility helps the EPR (used up beneath 8% of samples,
+    not 21%) and keeps the AAD, but not the PAR's shape. Mobility is therefore not the missing ingredient. Either a
+    thin layer driven by these plates cannot make a sharp step on the sphere (Buck's step is between two separate
+    boxes), or part of the observed step, at 26–21°S by the Easter microplate and hotspot, is not the layer. Untested:
+    start time, ridge sink rule, crustal correction. Figures: PlateDriver `show-me/2026-11-09-asthenosphere-layer-sweep/`.
 
     Not in v1, each for its own session: continental deformation from defamation (case 9); defamation's trench side and
     IPV's continent definition (case 10); PlateDriver's `contains_xy` fix; the spherical rasterise function in gprm;
