@@ -3,7 +3,7 @@
 Recorded on 2026-11-08 from a read-only review of the four repositories, then settled in a grilling session on
 2026-11-08 and 2026-11-09 whose decisions are in section 8. The architecture, the scoring rule and v1 (the AAD
 region on Müller 2022, built in the stages of decision 20) are decided. Stages 0 and 1 were built on 2026-11-09
-(slablet `2500381`, PlateDriver `50743e0`); stage 2 is next. The cases deferred from v1 are listed at the end of
+(slablet `2500381`, PlateDriver `50743e0`), and stage 2 the same day; stage 3 is next. The cases deferred from v1 are listed at the end of
 decision 20.
 
 ## 1. Aim
@@ -401,6 +401,18 @@ Settled during the grilling, in order:
     fits are explored across all of them. Within each law, lithosphere thickness, seafloor depth and heat flow come
     from one temperature field, with the lithosphere base defined as one isotherm, and residual depth is made with
     the same law as the model it is compared with.
+
+    Built in stage 2 (2026-11-09): `slablet/cooling.py` with half-space (GDH1's properties), GDH1, PS77, Crosby
+    (2007, with its empirical 94 Myr term) and RHCW18 (read from the authors' output, Tp 1333 °C, 130 km, 2500 m);
+    the isotherm is 0.9 of the law's mantle temperature, as in IPV. Not built: the Crosby thermal-boundary-layer law
+    (its definition is unknown; the old residual grid matches none of the analytic forms) and Grose & Afonso (2013)
+    as a law of its own (no output to check a port against; RHCW18 uses their property laws). slablet's lithosphere
+    lid and the Buck layer's ridge sink do not use the cooling module yet; that change belongs with stage 3.
+    `slablet/analysis/residual_depth.py` makes residual depth under any law from Seton (2020) ages, SRTM15+ v2.7 and
+    GlobSed, with a compaction-aware sediment correction and no crustal correction. In the AAD region the pattern is
+    the same under all five laws, and the AAD box sits 533–613 m below the regional median; the laws differ mainly in
+    overall level (median −106 m under GDH1, −399 m under RHCW18). Figures and numbers:
+    PlateDriver `show-me/2026-11-09-cooling-laws-residual-depth/`.
 12. v1 runs on Müller et al. (2022) in its optimised mantle frame, slablet's reference reconstruction, and only on it;
     no second reconstruction is assigned (2026-11-09). IPV's physics moves off Merdith 2021 for v1, which settles
     case 7 for the AAD, whose history lies well within the span where mantle frames are constrained.
@@ -408,6 +420,11 @@ Settled during the grilling, in order:
     (`~/Data/AgeGrids/2020`), so the observation stays independent of the model; the model runs on the tracker's
     ages through time. At 0 Ma the two are compared and their differences mapped. The Seton (2020) full spreading-rate
     grid checks the ridge samples.
+
+    Checked in stage 2 (2026-11-09): the tracker's 0 Ma ages on Müller 2022 are within 5 Myr of Seton's over 83% of
+    the ocean (89% in the AAD region). 60% of ridge length is within 5 mm/yr of Seton's rate. A further 29% has a
+    normal rate under half of Seton's, mostly transform and oblique segments, where the samples carry the normal rate
+    by design.
 14. In v1, space vacated by a continental root starts empty and fills by flow and supply (Buck's rule, as in the
     existing AAD result) (2026-11-09). Filling it with stripped keel material or ambient asthenosphere (case 11) is
     recorded but not scheduled.

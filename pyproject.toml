@@ -14,7 +14,7 @@ dependencies = ["numpy", "pandas", "xarray", "scipy", "scikit-learn", "netCDF4",
 gplates = ["pygplates"]
 gprm = ["gprm"]
 pmm = ["plate-model-manager"]
-analysis = ["pyshtools"]
+analysis = ["pyshtools", "pygmt"]
 dyntopo = ["pyshtools"]
 test = ["pytest"]
 

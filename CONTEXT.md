@@ -118,7 +118,8 @@ silently.
 
 **Residual topography**:
 Observed topography after removing the isostatic effects of crust and lithosphere; the observation that
-dynamic topography is compared with (e.g. Hoggard et al.).
+dynamic topography is compared with (e.g. Hoggard et al.). In the oceans it is called residual depth: the depth a
+cooling law predicts from the observed seafloor age minus the sediment-corrected depth, so it depends on the law.
 _Avoid_: observed dynamic topography
 
 **Reference dynamic topography**:

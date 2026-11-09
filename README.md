@@ -15,8 +15,9 @@ source: synthetic plate models (PlateDriver) or real GPlates reconstructions (`s
 | `slablet/` (core) | the model: `MantleParams`, `seed_slabs`, `sink_slabs`, `update_llsvp`, `dvs_field`. Needs numpy, pandas, xarray, scipy, scikit-learn only |
 | `slablet/dyntopo.py`, `slablet/sphharm.py` (core) | dynamic topography, geoid and instantaneous flow from the field (needs pyshtools: `slablet[dyntopo]`) |
 | `slablet/plate_history.py` (core) | the plate-history contract: what a driver (a PlateDriver world or a real reconstruction) hands the response models each step (`PlateStep`, `check`, `velocity_at`) |
+| `slablet/cooling.py` (core) | cooling laws (half-space, GDH1 default, PS77, Crosby 2007, RHCW18): depth, heat flow and lithosphere thickness from one temperature field per law; RHCW18 reads the authors' output from `$SLABLET_DATA/CoolingModels/RHCW18_Plate_Model` |
 | `slablet/gplates/` | real reconstructions (pygplates): the plate-history driver (`plate_history.RealPlateHistory`), trench samples, seafloor tracking, lithosphere, the run driver |
-| `slablet/analysis/` | scoring against tomography and OPT1, parameter sweeps, the stall sweep |
+| `slablet/analysis/` | scoring against tomography and OPT1, parameter sweeps, the stall sweep; residual depth under any cooling law from Seton (2020) ages, SRTM15+ and GlobSed (`residual_depth.py`, needs pygmt) |
 | `slablet/frame/` | fitting and scoring absolute reference frames |
 | `configs/` | run configs and sweeps |
 | `scripts/check_against_hc.py` | compares `slablet.dyntopo` with HC |
