@@ -14,8 +14,11 @@ Config keys (see configs/muller2022.yaml):
     output_dir, cache_dir, initial_slabs (columns | none), mantle: {MantleParams keys},
     frame_lon_offset_deg, frame_lon_drift_deg_per_myr (optional, default 0: every trench sample
         is rotated about the spin axis by offset + drift x age degrees, east positive; a test of
-        longitude errors in the frame, not a correction)
-    frame_rotation (optional): {pole_lat, pole_lon, deg_per_myr, from_ma (default 0)}: every trench
+        longitude errors in the frame, not a correction); frame_lon_drift_until_ma (optional): the
+        drift stops growing at this age (drift x min(age, until)); frame_lon_drift_zero_by_ma
+        (optional, with until): beyond until the shift falls linearly back to 0 at this age
+    frame_rotation (optional): {pole_lat, pole_lon, deg_per_myr, from_ma (default 0), until_ma and
+        zero_by_ma (optional; as for the drift, counted from from_ma)}: every trench
         sample older than from_ma is rotated about the pole (right-hand rule, anticlockwise seen from
         above the pole) by deg_per_myr x (age - from_ma) degrees, with its down-dip azimuth and trench
         velocity; present-day trenches stay put.  A test of age-dependent frame errors such as
@@ -31,12 +34,15 @@ Config keys (see configs/muller2022.yaml):
         velocity grid (for mantle.slab_flow_top / slab_flow_bottom).  The velocities are in the reconstruction's
         own frame, so the flow cannot be combined with the frame_* options.  With mantle.lithosphere_dVs > 0
         the field also gets a lid from slablet/gplates/lithosphere.py (which needs the same cache)
+    dynamic_topography (optional): {DynTopoParams keys} for slablet/dyntopo.py; with after_run: true the dynamic
+        topography of the last age (normally 0 Ma) is computed when the run ends (default false)
 Outputs in output_dir:
     mantle_temp_<age>Ma.nc   dVs (and cmb_heat or pile_thickness_km), with age_ma and the model as attributes
     steps.csv                one row per step: trench samples, trench length, slablets, seconds
     slabs_upper_mantle_<end>Ma.npz   the slablets above 700 km at the end (lon, lat, depth_km, age, weight)
     run_info.yaml            the config as run, with the full mantle parameters, the files the
                              reconstruction resolved to and the slablet version
+    dyntopo_<age>Ma.nc       with dynamic_topography: {after_run: true}, see slablet/dyntopo.py
 """
 import argparse
 import dataclasses
@@ -126,6 +132,8 @@ def run(cfg, verbose=True):
     unknown = set(cfg.get('mantle', {})) - {f.name for f in dataclasses.fields(slablet.MantleParams)}
     if unknown:
         raise SystemExit('unknown mantle parameters: ' + ', '.join(sorted(unknown)))
+    from slablet.dyntopo import DynTopoParams
+    dyntopo_after = DynTopoParams.from_config(cfg.get('dynamic_topography')).after_run   # checks the keys now
     start, end = float(cfg['start_ma']), float(cfg['end_ma'])
     dt = float(cfg.get('delta_time', 1.0))
     every = float(cfg.get('output_every_myr', 10.0))
@@ -156,6 +164,13 @@ def run(cfg, verbose=True):
 
     lon_offset = float(cfg.get('frame_lon_offset_deg', 0.0))
     lon_drift = float(cfg.get('frame_lon_drift_deg_per_myr', 0.0))
+    drift_until = float(cfg.get('frame_lon_drift_until_ma', np.inf))
+    drift_zero_by = float(cfg.get('frame_lon_drift_zero_by_ma', np.inf))
+
+    def drift_at(age):
+        if age <= drift_until:
+            return lon_drift * age
+        return lon_drift * drift_until * max(0.0, 1.0 - (age - drift_until) / (drift_zero_by - drift_until))
 
     rot = cfg.get('frame_rotation')
     fa = cfg.get('frame_africa')
@@ -168,7 +183,7 @@ def run(cfg, verbose=True):
     if cfg.get('seafloor'):
         from slablet.gplates.seafloor_tracker import SeafloorCache, VEL_DEG
         seafloor = SeafloorCache(cfg, p.slab_sample_deg)
-        uses_flow = p.slab_flow_top != 0 or p.slab_flow_bottom != 0
+        uses_flow = p.slab_flow_top != 0 or p.slab_flow_bottom != 0 or p.slab_flow_upper != 0
         if uses_flow and (lon_offset or lon_drift or rot or fa):
             raise SystemExit('the lower-mantle flow (slab_flow_*) is in the reconstruction frame: no frame_* options')
         vel_lats = np.arange(-90 + VEL_DEG / 2, 90, VEL_DEG)
@@ -184,14 +199,18 @@ def run(cfg, verbose=True):
         s = trenches.samples(age)
         if seafloor is not None:
             s = {**s, 'seafloor_age_myr': seafloor.at(age)['trench_age']}
-        shift = lon_offset + lon_drift * age
+        shift = lon_offset + drift_at(age)
         if shift:
             s = {**s, 'lon': ((s['lon'] + shift + 180.0) % 360.0) - 180.0}
         if fa and age > 0 and len(s['lon']):
             c = africa_new(age) * file_model.get_rotation(float(age), 701, anchor_plate_id=anchor).get_inverse()
             s = rotate_samples(s, matrix_from_finite_rotation(c))
         if rot:
-            angle = float(rot['deg_per_myr']) * max(0.0, age - float(rot.get('from_ma', 0.0)))
+            t = max(0.0, age - float(rot.get('from_ma', 0.0)))
+            until, zero_by = float(rot.get('until_ma', np.inf)), float(rot.get('zero_by_ma', np.inf))
+            if t > until:                                 # optional: stop growing, then back to 0 by zero_by
+                t = until * max(0.0, 1.0 - (t - until) / (zero_by - until))
+            angle = float(rot['deg_per_myr']) * t
             if angle and len(s['lon']):
                 s = rotate_samples(s, rotation_matrix(float(rot['pole_lat']), float(rot['pole_lon']), angle))
         return s
@@ -208,7 +227,7 @@ def run(cfg, verbose=True):
     for age in ages:
         t0 = time.perf_counter()
         samples = samples_at(age)
-        slabs = slablet.seed_slabs(slablet.sink_slabs(slabs, dt, p, flow_at(age)), samples, dt, p)
+        slabs = slablet.seed_slabs(slablet.sink_slabs(slabs, dt, p, flow_at(age)), samples, dt, p, time_myr=age)
         llsvp_state = slablet.update_llsvp(llsvp_state, slabs, dt, p)
         if abs((start - age) / every - round((start - age) / every)) < 1e-6 or age == ages[-1]:
             save(age)
@@ -226,6 +245,9 @@ def run(cfg, verbose=True):
               'present-day trench {:.0f} km; {} slablets'.format(
                   cfg['name'], start, end, summary['seconds'], summary['n_resolved'],
                   summary['trench_km'], summary['n_slablets']))
+    if dyntopo_after:
+        from slablet import dyntopo
+        dyntopo.run(cfg, ages=[ages[-1]])
     return summary
 
 
