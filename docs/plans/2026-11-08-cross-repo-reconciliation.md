@@ -514,12 +514,17 @@ Settled during the grilling, in order:
     `Forcing.supply_share`; `run_layer(share_at=...)`), with u_r at 400 km and plume sites from the mantle run
     `runs_real/muller2022_refined` (flow solved every 10 Myr, 0–80 Ma). Six mixtures beside the uniform baseline:
     the SEIR low stays at 120–122°E in all, and the AAD contrast grows from −89 to −121 m with deep supply; the SEIR
-    profile skill is 0.98–0.99 for all, so it cannot rank them. The EPR half fails in all: the model puts the EPR
-    194–534 m below the AAD, observed 483 m above, and the all-ridge skill is 0.06–0.07. Named ingredients: the mantle
-    run has no distinct EPR upwelling at 400 km (it rises at 2–4 cm/yr over 80% of the ocean); linear max(u_r, 0)
-    weighting; the ridge sink growing with spreading rate; the balance rule. Buck et al. (2009) treated the EPR and
-    AAD together, so their handling of the EPR is to be checked first. Not built: draining above downwellings,
-    buoyant plume material in the mixture, catalogue plumes, a finer weight fit. Figures: PlateDriver
+    profile skill is 0.98–0.99 for all, so it cannot rank them. The EPR is tested as Buck et al. (2009) tested it,
+    by its step below the slower Pacific-Antarctic Ridge (observed residual depth −354 m; Small & Danyushevsky 2003
+    about −400 m): uniform supply gives −393 m, and deep or plume supply weakens it to −125 to −260 m by feeding the
+    EPR. Ridge depth therefore gives no support for extra supply beneath the EPR in this mantle run, and the deep
+    part of decision 16 worsens the fit. (An EPR – AAD contrast scored first mixes two anomalies and the AAD's
+    crustal part, and is not a test.) What fails is the layer on the sphere, not the supply: the model EPR is used
+    up beneath 21% of its ridge samples, the model PAR deepens steadily towards the EPR where the observed one is
+    flat, the AAD is not deep relative to the PAR (+92 m model, −899 m observed), and the all-ridge skill is
+    0.06–0.07. Buck's properties were set in closed 10,000 km boxes; the wider real Pacific and the western trench
+    walls need a more mobile layer (critical Rm h_a / W ≈ 7). Not built: draining above downwellings, buoyant plume
+    material in the mixture, catalogue plumes, a finer weight fit. Figures: PlateDriver
     `show-me/2026-11-09-asthenosphere-supply-mixture/`.
 
     Not in v1, each for its own session: continental deformation from defamation (case 9); defamation's trench side and
