@@ -236,3 +236,160 @@ Twenty variants of the mantle-frame result; see `~/GIT/PlateDriver/show-me/2026-
 - **Found on the way:** bulldozing piles the layer without limit into enclosed pockets (Karakoram cell 4,564 km at
   0 Ma in the baseline; far worse with continents as keels). The continent-keel runs cap h at 560 km. Any global use
   needs a physical rule for this.
+
+### Issues to deal with (list started 2026-11-08)
+
+Planning only: none of these is started. Each would be its own gated stage.
+
+0. **Literature review: how original is this?** A quick search (2026-11-08) shows most pieces exist: the AAD
+   mechanism (Buck et al. 2009), pressure-driven flow on plate reconstructions (Stotz et al. 2021; Wang et al. 2023;
+   Proc. R. Soc. A 2025), a global plume-fed lubrication layer (Yamamoto et al. 2007), shear-driven volcanism
+   (Conrad et al. 2011), depth-rotating anisotropy (Natarov & Conrad 2012; EPSL 2025). Read them and pin down what
+   each did. Key question: does any earlier model give the layer its own memory (thickness conserved and carried
+   forward, opened seafloor starting empty, keels displacing it)? Ours does: present-day plates held fixed give no
+   AAD low, while starts at 60, 80 or 120 Ma all do. In the Stotz/Bunge/Wang models the flow seems to be
+   recomputed at each time from an imposed pressure field (mantle circulation model, or sources and sinks).
+1. **Volcanism likelihood, and the trend of seamount trails made by migrating asthenosphere.**
+   - The present proxy is the shear-forced upwelling w at 50 km into the layer. It ignores two things volcanism needs.
+     First, enough total rise (melt depends on how far a parcel climbs, roughly 1 % per km above the solidus, not on
+     the rate). Second, rise at shallow enough depth (dry ambient mantle starts melting at about 60–80 km).
+   - Add the upwelling forced by flow climbing the sloping base of the plate, w = u · ∇(plate thickness), with
+     thickness from the age grids and a cooling model. Ridge-ward refill (e.g. south of Australia) climbs that slope
+     and may outweigh the shear term.
+   - Proxy in rising order of effort: (a) total w = shear + slope terms; (b) only where the plate is thinner than a
+     tunable cutoff; (c) rise accumulated along layer flow paths, volcanism where it passes a threshold.
+   - Trend: the axis of the top-of-layer shear s = u_p − 6 v_P, younging towards −s (as in the shear-lineation
+     figures). Test against non-hotspot seamount chains and volcanic ridges in the SE Indian Ocean.
+   - Eastern Australia: Aus22 places all Cenozoic intraplate volcanism (dated, last eruptions 0–40 Ma) on thin
+     Phanerozoic lithosphere east of the cratonic edge. A time-dependent test of keel-edge upwelling and of the
+     thin-plate condition, as well as the hotspot tracks (East Australia, Tasmantid, Lord Howe).
+2. **Likelihood of complex spreading fabric (microplates, propagators, rotated or "swirly" fabric).** A regional
+   tendency in space and time, not individual microplates.
+   - Model: for every ridge point in every 5 Myr snapshot, sample both flanks 150–300 km off-axis (avoiding the
+     ridge sink) for pressure-flow strength, cross-ridge contrast in h and in pressure flow, along-axis layer flow,
+     along-axis gradient and variability of h, and layer-minus-plate velocity with its curl. Show as ridge-coloured
+     map sequences.
+   - Turn time into space: take each present-day ocean cell back to where it formed (age grid + reconstruction,
+     great-circle nearest ridge point) and read the tendency there and then, giving a present-day map of tendency
+     at the time of formation.
+   - Observations: pseudofaults, extinct ridges, discordant zones and fracture-zone spacing (e.g. Matthews et al.
+     2011); known microplates; angle between observed fabric and the reconstruction's spreading direction; small
+     plates and ridge jumps in Müller 2022 (not independent: the layer runs on that plate model).
+   - Compare within spreading-rate bins (rate is the main control on ridge style), with along-ridge and time
+     shuffles as nulls. Read relative contrasts, given the East Pacific Rise sign problem. Mostly Pacific crust
+     before about 80 Ma.
+3. **Match to seismic azimuthal anisotropy.**
+   - Prediction: olivine fast axes align with the direction of shear (simple shear at large strain). In the layer
+     u(ζ) = u_p(1 − ζ) + 6 v_P ζ(1 − ζ), ζ = z/h, so the shear du/dz ∝ −u_p + 6 v_P(1 − 2ζ) turns with depth: along
+     u_p − 6 v_P at the top, along plate motion at mid-layer, along u_p + 6 v_P at the base. Where pressure flow
+     is weak all depths follow plate motion; where it is strong the fast axis rotates with depth. That depth
+     rotation is the model's distinctive signature.
+   - Data: depth-dependent surface-wave azimuthal anisotropy models (2ψ fast azimuth and amplitude at about
+     100–300 km), smoothed comparably (resolution about 500–1000 km). SKS splitting where available (ocean
+     islands, OBS), predicted by integrating over depth. The lithosphere above holds frozen-in fabric from
+     spreading, so compare only below the plate.
+   - Nulls: absolute plate motion direction (the standard explanation) and fossil spreading direction. The model
+     only adds something where its shear differs from plate motion, so score it on that subset, with the axial
+     (180°-periodic) angle misfit weighted by observed amplitude.
+   - Refinements: finite strain accumulated along flow paths (fabric lags where flow changes fast, e.g. near
+     ridges); D-Rex style texture later. Amplitude is a weaker test than direction.
+   - Frame: shear relative to a resting mesosphere needs the mantle frame; the Antarctica-fixed run is not a
+     physical prediction here. Anisotropy could therefore also test frames.
+   - Regional model: Aus22 (de Laat et al. 2023, GJI 234: 153–189), waveform tomography with azimuthal anisotropy
+     to 660 km, about 150 km node spacing, slices 56–485 km, robust directions flagged by a 90°-rotation test. Its
+     reading of the AAD region (their Fig. 7, section 5.3): a strong N–S, spreading-parallel fast direction in the
+     asthenosphere beneath the AAD, continuing towards southern Australia and northern Antarctica; east of the AAD
+     the fast direction turns ridge-parallel towards the Balleny hotspot, which they read as hot plume material
+     flowing along the ridge. Our layer predicts along-axis flow converging on the AAD from both ends (westward east
+     of it), so ridge-parallel shear east of the AAD from refill alone, and plate-parallel (N–S) shear at the
+     meeting point. To check against the run before claiming: direction and depth (top and base of the layer
+     versus mid-layer), and whether a westward-flow signal shows west of the AAD.
+4. **Geographic mesosphere** (2026-11-06). Let the supply depend on the deep mantle beneath each cell, using slablet's
+   refined mantle model (dVs every 10 Myr): less refill above slabs (e.g. under the AAD at 30 Ma, +0.6 % at
+   1200–2000 km), more above hot upwellings (EPR, about −1 % at 700–2000 km). Keep the global total balancing the
+   sinks; one strength parameter and a depth window. It would address the global misfit that the starved-ridge logic
+   puts the deepest hole on the East Pacific Rise.
+5. **Ridge-segment predictions** (2026-11-07). In the baseline the AAD axis is thinned (about 210 km against 250 km)
+   but never used up, so it predicts a depth anomaly without a cold or thin-crust segment. The stiffer and
+   continent-keel runs use the axis up, and so predict cold mantle there, as observed. Along-axis layer flow converges
+   on the AAD from both ends (1–4 cm/yr; meeting at about 118°E at 20 Ma and 122°E today), near the Indian–Pacific
+   isotopic boundary (~126°E). To do:
+   - a passive-tracer run (plume_delta_rho = delta_rho) labelling layer east and west of the AAD;
+   - per-segment diagnostics through time (axis h, share fed by mesosphere, along-axis flow, flank upwelling).
+   Overlaps with issue 2.
+6. **Present-day depth and residual depth.**
+   - Compare the model depth anomaly with observed residual depth (bathymetry corrected for plate cooling, sediment
+     load and, where known, crustal thickness), at long wavelengths only. Amplitude is not a target; score pattern
+     and sign (AAD low, East Pacific Rise, western Pacific) and along-ridge profiles.
+   - Through time: the model gives each place a depth-anomaly history, which could be checked against palaeodepth
+     or subsidence anomalies at drill sites.
+7. **Geochemistry.**
+   - Isotopic provenance: a passive tracer labelling layer by where it came from (issue 5) predicts where the
+     Indian–Pacific isotopic boundary sits along the SEIR and how it has migrated. Test with samples along flowlines
+     on older crust, as well as on axis.
+   - Melting conditions: Na8 and Fe8 (degree and pressure of melting) record mantle temperature beneath the ridge.
+     Predict them from an axis temperature proxy (below), using segment averages from a global MORB compilation.
+   - Plume contribution: in the plume run the plume fraction c at the ridge predicts enriched signatures where
+     ridges approach hotspots.
+   - Off-axis volcanism (issue 1): provenance of the layer feeding it.
+8. **Crustal thickness.**
+   - Crust records melt supply when it formed, so it depends on mantle temperature beneath the axis and on spreading
+     rate (thin crust at slow rates). Predict it from the axis temperature proxy; control for spreading rate.
+   - Time into space as in issue 2: predicted thickness at the time of formation, painted on present-day seafloor.
+     Compare with seismic refraction compilations and gravity-derived crustal thickness. Links to issue 6: thin crust
+     also makes seafloor deeper.
+
+Shared missing ingredient for issues 7 and 8 (and 1): the model has no temperature. Simplest proxy: the layer is hot
+(Δρ = 10 kg/m³ is about 100 K at α = 3 × 10⁻⁵ /K), the mesosphere is not, so axis temperature follows the share of
+axis supply drawn from the layer against from the mesosphere (e.g. AAD axis used up in the stiffer and continent-keel
+runs → cold: thin crust, high Na8 and low Fe8, as reported for the AAD). Shared tool with issue 2: sampling the ridge each snapshot and
+mapping it onto present-day crust by age.
+
+9. **Stotz recomputed with continents.** Stotz (2025, Proc. R. Soc. A 481: 20250085; read 2026-11-08) builds
+   asthenosphere flow as Couette (v_plate/2) plus Poiseuille from prescribed sources (25 plumes, radial outflow) and
+   sinks (slabs), in a uniform 110 km, 5 × 10¹⁹ Pa s channel with "no distinction between continents and oceans"
+   (listed as a limitation). The flow is recomputed at each time with no continuity or thickness memory; ridges are
+   passive; anisotropy is taken as the flow direction, strength V/L. Against SL2016svA/svAr at 200 km (median
+   axial misfit): Couette alone 18° (smooth) / 26° (rough), Poiseuille 29° / 32°, all combined about 25–33°, random
+   44–45°. Fits are good under the Australian plate (Couette and Poiseuille alike), poor under Antarctica. Near the
+   EPR the anisotropy departs from Couette for about 500 km (read as ~10 Myr fabric memory); at the MAR it doesn't
+   (read as active lateral flow across the ridge).
+   - Recompute with continents, using his metric and data so numbers compare directly: our shear axis at the
+     matching depth, per plate and globally. The bar to beat is plate motion alone (18° against the smooth model).
+   - Our differences to test, one at a time: keels (and all continents) as barriers; ridges as sinks (ridge-ward
+     flow, against his cross-ridge flow at the MAR); mass conservation with thickness memory; shear direction at
+     depth rather than mean flow direction.
+   - Also Stotz et al. (2021): with our layer, compute the drive on the Australian plate through time (basal drag
+     plus layer pressure on keel edges) and compare with their no-continent case for the Eocene separation.
+10. **Keels from Aus22.** de Laat et al. (2023, Fig. 15) map cratonic (dVs > 5 % at 110–150 km), intermediate and
+    Phanerozoic lithosphere beneath Australia. The southern margins of the Yilgarn and Gawler cratons, the keel
+    edges facing the AAD, lack a cratonic root, possibly eroded during Australia–Antarctica rifting. Rerun with this
+    outline as keels (rotated with the Australian plate), and with intermediate lithosphere as partial keels, to
+    test how much the AAD low rests on the Merdith keel polygons. Caveat: a present-day shape applied back in time.
+    Aus22 also images fast material beneath the AAD (the Gurnis et al. slab), a possible second component.
+11. **Arctic pile and North Atlantic flow; plume weighting** (2026-11-08). In the 150 Ma viewer runs (baseline and
+    plumes alike) a strong pressure-driven flow runs from the Arctic through the Fram Strait gap (about 4 cm/yr),
+    south-west past Iceland, and weakly into the Labrador Sea.
+    - Cause: the Arctic layer is a long-standing pile, mean h north of 75°N 314 km at 145 Ma, about 400–430 km from
+      120 to 60 Ma, 369 km today (h_a 300, global ocean mean 288). From 120 to 60 Ma the Arctic was enclosed
+      (continents, keels, trench walls) with almost no ridge sink, while supply balancing the global sinks is spread
+      evenly beneath all ocean, so it inflated. Keels pushing layer into the closed basin may add to it (not yet
+      separated). The opening of the Norwegian–Greenland Sea and Eurasia Basin (from about 55 Ma) gave it an outlet;
+      thickness falls Arctic 360 → Greenland Sea 335 → off Iceland 320 → North Atlantic 305 → Labrador Sea 200–260 km.
+    - Labrador Sea: opened 62–33 Ma with an empty layer, boxed in by the Canadian Shield and Greenland keels, refilled
+      only through its mouth; North America moving NW in the mantle frame keeps thinning it along the Labrador margin
+      (minimum about 200 km). Inflow is weak (0.2–1.4 cm/yr) because the layer there is thin.
+    - Plume run: Iceland barely registers (plume fraction 0.11–0.14, h 306–309 km, below the Arctic's 340–370 km).
+      Equal shares of Sleep's total give Iceland about 1 Mg/s, about 1 × 10⁶ km³/Myr of layer, against an Arctic
+      outflow through the Fram gap of about 7–8 × 10⁶ km³/Myr; the ridge near Iceland consumes about 2 × 10⁶ km³/Myr
+      on the spot. Reversing the flow would need Iceland at perhaps 5–10 × its present supply.
+    - Read as an artefact of the even-supply rule (one of the forced choices that is not justifiable globally), and
+      at odds with the usual picture of North Atlantic layer spreading out from Iceland, including northward.
+    - To do, in order, about 15 min each at 4 workers:
+      1. a supply rule that does not inflate enclosed basins without ridges (geographic mesosphere, issue 4, or supply
+         tied to nearby sinks), then see whether the Arctic-to-Atlantic flow survives;
+      2. separate supply from keel push in the Arctic;
+      3. weight plumes by a published catalogue (Sleep 1990 per-hotspot values, or Hoggard et al., where Iceland is
+         the strongest) instead of equal shares, and see whether Iceland then sets the North Atlantic pattern;
+      4. note that hotspots are fixed at present positions in the mantle frame for 150 Myr (matters for the Greenland
+         and Labrador opening history, not for present-day flow).
