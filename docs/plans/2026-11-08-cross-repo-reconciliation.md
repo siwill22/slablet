@@ -2,8 +2,9 @@
 
 Recorded on 2026-11-08 from a read-only review of the four repositories, then settled in a grilling session on
 2026-11-08 and 2026-11-09 whose decisions are in section 8. The architecture, the scoring rule and v1 (the AAD
-region on Müller 2022, built in the stages of decision 20) are decided; nothing has been built yet. The cases deferred
-from v1 are listed at the end of decision 20.
+region on Müller 2022, built in the stages of decision 20) are decided. Stages 0 and 1 were built on 2026-11-09
+(slablet `2500381`, PlateDriver `50743e0`); stage 2 is next. The cases deferred from v1 are listed at the end of
+decision 20.
 
 ## 1. Aim
 
@@ -333,7 +334,9 @@ Settled during the grilling, in order:
    wanted), since a mask grid would fail the same identical-results test as a plate-ID grid; an optional
    `trench_lines` field carries the subduction zones as lines, because the asthenosphere layer's walls need lines,
    not samples; the real driver supports only 1 Myr steps, the interval of its cached samples; and a PlateDriver
-   world has no craton polygons, so its craton query is its continent query. The seafloor tracker's cache for
+   world has no craton polygons, so its craton query is its continent query (confirmed 2026-11-09 as a known
+   limitation; separating cratons from continents in synthetic worlds is planned, see the end of decision 20). The
+   seafloor tracker's cache for
    Müller et al. (2022) holds ages of 200 Myr and more inside and around continents (tracked points carried onto
    continents keep ageing), so consumers mask ages with the continent query.
 5. Small numerical inconsistencies are acceptable in synthetic worlds, because there is no truth to be wrong about;
@@ -481,7 +484,9 @@ Settled during the grilling, in order:
     Not in v1, each for its own session: continental deformation from defamation (case 9); defamation's trench side and
     IPV's continent definition (case 10); PlateDriver's `contains_xy` fix; the spherical rasterise function in gprm;
     the global catalogues; moving the rest of IPV beyond fertility into slablet; the volcanism mixture and the
-    asthenosphere layer in synthetic worlds.
+    asthenosphere layer in synthetic worlds; cratons distinct from continents in synthetic worlds (2026-11-09: a
+    PlateDriver world's craton raster marks all continental lithosphere, so keels cannot yet differ from continents
+    there).
 
 ## 9. Proposed order for the grilling
 
