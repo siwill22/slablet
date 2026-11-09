@@ -140,6 +140,9 @@ class Forcing:
     balance_outflow: bool = True                # 'balance' also replaces what the outflow takes (Buck AAD1: no)
     supply_rate: float = 0.0                    # km/Myr over open cells, for 'constant'
     source_plume: bool = False                  # sources deliver plume material (c = 1), when c is carried
+    supply_tracers: object = None               # (k,) or (k, n): what the supply carries of each passive tracer
+                                                # (concentration; default 0)
+    source_tracers: object = None               # (k,) or (k, n): the same for the sources
 
 
 @dataclass
@@ -151,6 +154,7 @@ class StepLog:
     outflow: float = 0.0                        # km^3 lost through outflow
     supplied: float = 0.0                       # km^3
     c: object = None                            # (n,) plume fraction at the end, when carried
+    tracers: object = None                      # (k, n) passive tracer concentrations at the end, when carried
 
 
 def _pressure_drive(h, c, p, i, j):
@@ -183,11 +187,16 @@ def _edge_fluxes(mesh, h, f, p, open_edge, c=None):
     return flux, out
 
 
-def advance(mesh, h, forcing, p, duration_myr, max_dt_myr=None, c=None):
+def advance(mesh, h, forcing, p, duration_myr, max_dt_myr=None, c=None, tracers=None):
     """Advance h (km, per cell) by duration_myr under fixed forcing.  Returns (h, StepLog).
     With p.plume_delta_rho set and c given (plume fraction per cell), c is carried with the layer (upwind),
     sinks take the local mixture, the uniform supply carries none, and sources carry c = 1 when
-    forcing.source_plume; the end state is log.c."""
+    forcing.source_plume; the end state is log.c.
+    tracers (k, n): passive concentrations (fertility, mantle domain fractions) carried upwind with the same flux.
+    They do not change h or the time step.  Sinks and outflow take the local mixture, the supply and sources bring
+    forcing.supply_tracers and forcing.source_tracers (default 0), and an empty cell holds 0 (it has no layer to
+    hold anything); the end state is log.tracers.  First-order upwind smears a front by numerical diffusion, about
+    u dx / 2 per unit time, more where the sub-steps are short; see the stage 5 benchmark."""
     f = forcing
     n = mesh.n
     h = np.array(h, float)
@@ -213,6 +222,16 @@ def advance(mesh, h, forcing, p, duration_myr, max_dt_myr=None, c=None):
     track = c is not None and p.plume_delta_rho is not None
     if track:
         c = np.where(open_cell, np.clip(np.asarray(c, float), 0.0, 1.0), 0.0)
+    carry = tracers is not None
+    if carry:
+        T = np.where(open_cell, np.atleast_2d(np.asarray(tracers, float)), 0.0)
+        k = T.shape[0]
+        ts = np.broadcast_to(np.zeros((k, 1)) if f.supply_tracers is None
+                             else np.asarray(f.supply_tracers, float).reshape(k, -1), (k, n))
+        tq = np.broadcast_to(np.zeros((k, 1)) if f.source_tracers is None
+                             else np.asarray(f.source_tracers, float).reshape(k, -1), (k, n))
+        lo = np.minimum(T[:, open_cell].min(axis=1, initial=np.inf), np.minimum(ts.min(axis=1), tq.min(axis=1)))
+        hi = np.maximum(T[:, open_cell].max(axis=1, initial=-np.inf), np.maximum(ts.max(axis=1), tq.max(axis=1)))
     log = StepLog(taken=np.zeros(n), deficit=np.zeros(n))
     t = 0.0
     while t < duration_myr - 1e-12:
@@ -238,11 +257,19 @@ def advance(mesh, h, forcing, p, duration_myr, max_dt_myr=None, c=None):
                                           - np.bincount(mesh.edge_i, cf, minlength=n)) * dt
                     + (source * dt if f.source_plume else 0.0) - c * lost)
             cvol = np.clip(cvol, 0.0, np.maximum(vol, 0.0))
+        if carry:                       # each tracer's volume, carried upwind with the same flux
+            up = np.where(flux > 0, T[:, mesh.edge_i], T[:, mesh.edge_j]) * flux
+            tvol = T * (h * mesh.area - lost) + tq * (source * dt)
+            for q in range(k):
+                tvol[q] += (np.bincount(mesh.edge_j, up[q], minlength=n)
+                            - np.bincount(mesh.edge_i, up[q], minlength=n)) * dt
         log.outflow += lost.sum()
         want = sink * dt
         take = np.minimum(want, np.maximum(vol, 0.0))
         if track:                       # sinks take the local mixture
             cvol -= cvol / np.where(vol > 0, vol, np.inf) * take
+        if carry:
+            tvol -= tvol / np.where(vol > 0, vol, np.inf) * take
         vol -= take
         log.taken += take
         log.deficit += want - take
@@ -253,7 +280,10 @@ def advance(mesh, h, forcing, p, duration_myr, max_dt_myr=None, c=None):
         else:
             add = 0.0
         if add > 0.0:
-            vol[fed] += add * mesh.area[fed] / fed_area if f.supply_share is None else add * share
+            added = add * mesh.area[fed] / fed_area if f.supply_share is None else add * share
+            vol[fed] += added
+            if carry:
+                tvol[:, fed] += ts[:, fed] * added
             log.supplied += add
         elif add < 0.0:                 # sources exceed sinks: take the excess back in proportion to what each fed
             have = np.maximum(vol[fed], 0.0)    # cell holds, so no cell goes negative
@@ -262,14 +292,20 @@ def advance(mesh, h, forcing, p, duration_myr, max_dt_myr=None, c=None):
             vol[fed] -= have * frac
             if track:
                 cvol[fed] *= 1.0 - frac
+            if carry:
+                tvol[:, fed] *= 1.0 - frac
             log.supplied += add
         h = np.where(open_cell, vol / mesh.area, 0.0)
         if track:
             ok = open_cell & (vol > 1e-12)
             c = np.where(ok, np.clip(cvol / np.where(ok, vol, 1.0), 0.0, 1.0), 0.0)
+        if carry:
+            ok = open_cell & (vol > 1e-12)
+            T = np.where(ok, np.clip(tvol / np.where(ok, vol, 1.0), lo[:, None], hi[:, None]), 0.0)
         t += dt
         log.substeps += 1
     log.c = c if track else None
+    log.tracers = T if carry else None
     return h, log
 
 
