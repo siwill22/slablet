@@ -108,6 +108,12 @@ FIELDS = {
     'vuln_rt': ('Lithosphere', 'Vulnerability: keel drip fronts (RT)', '', 1, None, 0, 1, 0, 1, 'magma'),
     'vuln_rift': ('Lithosphere', 'Vulnerability: rifting', '', 1, None, 0, 1, 0, 1, 'magma'),
     'keel_fraction': ('Lithosphere', 'Keel remaining (IPV drip fronts)', '', 1, None, 0, 1, 0, 1, 'viridis'),
+    'seeding': ('Lithosphere', 'Seamount seeding probability (IPV, per cell per step; blank below 1e-8)', 'log10', 1, None, -8, -3,
+                -6, -3.5, 'magma'),
+    'ipv_lithosphere': ('Lithosphere', 'Lithosphere thickness (IPV)', 'km', 1, None, 0, 254, 0, 200, 'viridis'),
+    'keel_material': ('Upper mantle', 'Keel material in the mantle (IPV)', 'fraction', 1, None, 0, 0.25, 0, 0.05,
+                      'purd'),
+    'fertility': ('Upper mantle', 'Mantle fertility (IPV)', '', 1, None, 0, 1, 0.2, 0.8, 'rdylbu'),
     'h': ('Upper mantle', 'Layer thickness', 'km', 0.5, None, 0, 1000, 0, 500, 'viridis'),
     'layer_speed': ('Upper mantle', 'Layer speed (depth mean)', 'cm/yr', 0.5, None, 0, 20, 0, 8, 'viridis'),
     'pspeed': ('Upper mantle', 'Pressure-driven flow speed (depth mean)', 'cm/yr', 0.5, None, 0, 20, 0, 8,
@@ -179,7 +185,9 @@ DEPENDS = {'age': (), 'age_depth': (), 'plate': (), 'total_depth': ('layer',) + 
            'dvs': ('mantle',), 'dvs_tomo': ('mantle',), 'pile': ('mantle',),
            'dyntopo': FLOW, 'geoid': FLOW, 'cmb_topo': FLOW, 'ur': FLOW, 'uh': FLOW, 'tau': FLOW, 's_rr': FLOW,
            'geoid_z': FLOW, 'deep': FLOW}
-DEPENDS.update({k: ('ipv',) for k in FIELDS if k.startswith('vuln') or k == 'keel_fraction'})
+DEPENDS.update({k: ('ipv',) for k in FIELDS
+                if k.startswith('vuln') or k in ('keel_fraction', 'keel_material', 'fertility', 'seeding',
+                                                  'ipv_lithosphere')})
 DEPENDS.update({k: ('layer',) for k in list(FIELDS) + list(VECTORS) + ['land'] if k not in DEPENDS})
 
 
@@ -208,7 +216,11 @@ FIXED_COLOUR = ('dvs', 'dvs_tomo')
 SAMPLE_AGES = (0, 100, 200, 300)
 IPV_FIELDS = {'vuln': 'vulnerability', 'vuln_ssc': 'vulnerability_ssc', 'vuln_stress': 'vulnerability_stress',
               'vuln_shear': 'vulnerability_shear', 'vuln_edc': 'vulnerability_edc', 'vuln_rt': 'vulnerability_rt',
-              'vuln_rift': 'vulnerability_rift', 'keel_fraction': 'keel_fraction'}
+              'vuln_rift': 'vulnerability_rift', 'keel_fraction': 'keel_fraction', 'keel_material': 'keel_material',
+              'fertility': 'fertility', 'seeding': 'seeding_probability', 'ipv_lithosphere': 'lithospheric_thickness'}
+# Blank where exactly zero, so the land shows: the vulnerability parts (zero on most continents), keel material
+# (zero where no stripped keel has reached), seeding probability (shown as log10).
+IPV_BLANK_ZERO = [k for k in IPV_FIELDS if k.startswith('vuln')] + ['keel_material', 'seeding']
 TYPE_MAP = {pygplates.FeatureType.gpml_subduction_zone: 'subduction',
             pygplates.FeatureType.gpml_mid_ocean_ridge: 'ridge',
             pygplates.FeatureType.gpml_transform: 'transform'}
@@ -622,9 +634,13 @@ def export_age(ctx, age, w):
         with xr.open_dataset(path) as ds:
             assert ds.sizes == {'lat': 181, 'lon': 360} and float(ds.lon[0]) == -180 and float(ds.lat[0]) == -90
             for key, var in IPV_FIELDS.items():
-                if var in ds:                 # exact zeros (most continents) left blank, so the land shows
-                    a = ds[var].values
-                    w.field(key, age, np.where(a == 0, np.nan, a) if key.startswith('vuln') else a, {'ipv': iv})
+                if var in ds:
+                    a = ds[var].values.astype(float)
+                    if key in IPV_BLANK_ZERO:
+                        a = np.where(a == 0, np.nan, a)
+                    if key == 'seeding':            # below 1e-8 (down to 1e-38) is effectively none: blank
+                        a = np.log10(np.where(a >= 1e-8, a, np.nan))
+                    w.field(key, age, a, {'ipv': iv})
     return notes
 
 

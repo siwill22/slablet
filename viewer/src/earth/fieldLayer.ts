@@ -85,6 +85,11 @@ export const COLORMAPS: Record<string, string[]> = {
   age: ['#d7191c', '#fdae61', '#ffffbf', '#abdda4', '#2b83ba', '#5e3c99'],
   // land underneath the field: continent light grey, keel dark grey
   land: ['#c4c4c4', '#7a7a7a'],
+  // matplotlib PuRd (pale lilac to deep pink-red), as IPV's own viewer draws keel material
+  purd: ['#f7f4f9', '#e7e1ef', '#d4b9da', '#c994c7', '#df65b0', '#e7298a', '#ce1256', '#980043', '#67001f'],
+  // matplotlib RdYlBu reversed, as IPV's viewer draws fertility: depleted blue, enriched red
+  rdylbu: ['#313695', '#4575b4', '#74add1', '#abd9e9', '#e0f3f8', '#ffffbf', '#fee090', '#fdae61', '#f46d43',
+    '#d73027', '#a50026'],
 };
 
 function hexRgb(hex: string): [number, number, number] {

@@ -61,7 +61,8 @@ the capped reference is there to compare it with.
 - **Lithosphere:** seafloor age (slablet's seafloor tracker, every Myr; the grids IPV reads); lithosphere thickness
   as the layer sees it (GDH1 under oceans, 150 km under continents, smoothed); IPV's vulnerability and each of its parts (small-scale
   convection, strain rate, plate speed, edge-driven convection, keel drip fronts (Rayleigh-Taylor, "RT"), rifting;
-  exactly zero is left blank, which is most continents); IPV's keel remaining.
+  exactly zero is left blank, which is most continents); IPV's keel remaining, seamount seeding probability (log10,
+  blank below 1e-8) and its own lithosphere thickness.
 - **Upper mantle:** the layer's thickness, depth-mean speed and pressure-driven speed, flow divergence (+ thinning),
   shear rate at its top and the shear trend against plate motion, how fast it rises along the plate's base, and how
   far the chain direction turns from plate motion (`slablet/asthenosphere_volcanism.py`). At depths below the
@@ -72,6 +73,8 @@ the capped reference is there to compare it with.
   tomography would see it, radial flow, horizontal flow speed, shear stress on horizontal planes (log10), radial
   normal stress, and the geoid at depth; without depth, the basal pile's thickness and core-mantle boundary
   topography.
+- **IPV's mantle:** keel material (keel stripped by the drip fronts and carried under the young ocean beside passive
+  margins, in pink as in IPV's own viewer, `mantlememory/viewer.py`) and fertility.
 - **Arrows:** plate velocity, the layer's flow (depth mean, and at the chosen depth below the plate), its
   pressure-driven part, the shear lineation trend (fixed length, towards younging), the chain direction (layer
   minus plate, towards a chain's young end), and the deep flow at the chosen depth.
