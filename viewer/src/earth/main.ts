@@ -1,5 +1,5 @@
 import GUI, { type Controller } from 'lil-gui';
-import { Color, Scene, WebGLRenderer, type Camera, type PerspectiveCamera } from 'three';
+import { Color, Scene, Vector3, WebGLRenderer, type Camera, type PerspectiveCamera } from 'three';
 import type { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 import '../core/lilgui-theme.css';
@@ -8,10 +8,11 @@ import { lonLatToVec3 } from '../core/constants';
 import { Graticule } from '../core/graticule';
 import { OceanSurface } from '../core/oceanSurface';
 import {
-  createProjectionCamera, createProjectionControls, PROJECTION_ORDER, updateProjectionCameraAspect,
-  type ProjectionMode,
+  createProjectionCamera, createProjectionControls, isFlat, lonLatToProjected, PROJECTION_ORDER,
+  updateProjectionCameraAspect, type ProjectionMode,
 } from '../core/projection';
 import { wireProjectionToggle } from '../core/projectionToggle';
+import { orientationQuaternion, toRenderFrameRotation, type Quaternion } from '../core/rotation';
 import { applyChromeLightness, resolveTheme } from '../core/theme';
 import { AgeBar } from './ageBar';
 import { ArrowLayer, type ArrowLattice } from './arrowLayer';
@@ -26,8 +27,12 @@ import { ColorBar, FieldLayer } from './fieldLayer';
  * fields and arrows; overlays (plate boundaries, coastlines, continents and keels, graticule). Projection
  * is the round button at the bottom right; age is the bar along the bottom.
  *
+ * On a flat map (Robinson, Plate Carree), as in petrify's globe host: a sideways drag or a sideways
+ * scroll (trackpad swipe, shift+wheel) moves the central meridian, one to one with the pointer at
+ * the equator; vertical scroll zooms; vertical drag does nothing. The map never slides off-centre.
+ *
  * URL: ?t=<age Ma> ?field=<id|none> ?arrows=<id|none> ?depth=<km> ?proj=robinson|plateCarree
- *      ?view=<lon>,<lat> (globe camera at load)
+ *      ?lon=<central longitude of flat maps> ?view=<lon>,<lat> (globe camera at load)
  */
 
 const DATA = `${import.meta.env.BASE_URL}data/earth`;
@@ -59,6 +64,7 @@ const BOUNDARY_STYLE = {
 const CACHE_ENTRIES = 48;
 
 const params = new URLSearchParams(location.search);
+let centreLon = Number(params.get('lon') ?? 0);
 const theme = resolveTheme('newsprint');
 applyChromeLightness(theme.lightness);
 
@@ -85,7 +91,7 @@ document.body.appendChild(renderer.domElement);
 
 let mode: ProjectionMode = (PROJECTION_ORDER.find((m) => m === params.get('proj')) ?? 'globe') as ProjectionMode;
 let camera: Camera = createProjectionCamera(mode, innerWidth / innerHeight);
-let controls: OrbitControls = createProjectionControls(mode, camera, renderer.domElement);
+let controls: OrbitControls = createControls();
 const viewParam = params.get('view');
 if (viewParam && mode === 'globe') {
   const [lon, lat] = viewParam.split(',').map(Number);
@@ -124,7 +130,7 @@ function applyProjection(next: ProjectionMode): void {
   mode = next;
   controls.dispose();
   camera = createProjectionCamera(mode, innerWidth / innerHeight);
-  controls = createProjectionControls(mode, camera, renderer.domElement);
+  controls = createControls();
   ocean.setProjection(mode);
   land.setProjection(mode);
   field.setProjection(mode);
@@ -132,8 +138,65 @@ function applyProjection(next: ProjectionMode): void {
   coastlines.setCamera(camera, mode);
   boundaries.setCamera(camera, mode);
   arrows.setCamera(camera, mode);
+  applyCentreLon();
 }
+
+// --- central meridian of flat maps ------------------------------------------------------
+
+/** Zoom only on flat maps: their drag belongs to the central meridian, never to sliding the map. */
+function createControls(): OrbitControls {
+  const c = createProjectionControls(mode, camera, renderer.domElement);
+  if (isFlat(mode)) c.enablePan = false;
+  return c;
+}
+
+/** Every layer to the current central longitude: a rotation about the pole on flat maps, none on
+ *  the globe (whose overlays share the same rotation hooks). */
+function applyCentreLon(): void {
+  const q: Quaternion = isFlat(mode) ? orientationQuaternion(centreLon, 0, 0) : [0, 0, 0, 1];
+  field.centreLon = centreLon;
+  land.centreLon = centreLon;
+  graticule.setOrientation(q);
+  coastlines.setReferenceRotation(q);
+  boundaries.setReferenceRotation(q);
+  arrows.setFlatRotation(toRenderFrameRotation(q));
+}
+
+/** Screen pixels per degree of longitude along the equator, through the live camera (tracks zoom). */
+function pxPerDegree(): number {
+  const a = new Vector3(...lonLatToProjected(mode, 0, 0)).project(camera);
+  const b = new Vector3(...lonLatToProjected(mode, 10, 0)).project(camera);
+  return (Math.abs(b.x - a.x) * 0.5 * innerWidth) / 10 || 1;
+}
+
+function panLongitude(dxPixels: number): void {
+  centreLon = ((centreLon + dxPixels / pxPerDegree() + 540) % 360) - 180;
+  applyCentreLon();
+}
+
+let dragX: number | null = null;
+renderer.domElement.addEventListener('pointerdown', (e) => {
+  if (isFlat(mode) && e.button === 0) dragX = e.clientX;
+});
+addEventListener('pointermove', (e) => {
+  if (dragX === null) return;
+  panLongitude(-(e.clientX - dragX));
+  dragX = e.clientX;
+});
+addEventListener('pointerup', () => { dragX = null; });
+addEventListener('pointercancel', () => { dragX = null; });
+// Capture phase on the window, so a sideways scroll never reaches OrbitControls' zoom.
+addEventListener('wheel', (e) => {
+  if (e.target !== renderer.domElement || !isFlat(mode)) return;
+  const dx = e.deltaX !== 0 ? e.deltaX : (e.shiftKey ? e.deltaY : 0);
+  if (Math.abs(dx) > Math.abs(e.shiftKey ? 0 : e.deltaY)) {
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    panLongitude(dx);
+  }
+}, { capture: true, passive: false });
 wireProjectionToggle(document.getElementById('projection-toggle'), () => mode, applyProjection);
+applyCentreLon();
 
 // --- data -----------------------------------------------------------------------------
 

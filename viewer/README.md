@@ -34,8 +34,11 @@ node scripts/check.mjs                                        # every field, arr
   and the deep flow at the chosen depth.
 - **Overlays:** plate boundaries, coastlines, continents and keels (the layer's own masks), graticule.
 
-Projection is the round button at the bottom right; age is the bar along the bottom. URL parameters: `?t=<Ma>`
-`?field=<id|none>` `?arrows=<id|none>` `?depth=<km>` `?proj=robinson|plateCarree` `?view=<lon>,<lat>`.
+Projection is the round button at the bottom right; age is the bar along the bottom. On a flat map (Robinson,
+Plate Carrée) a sideways drag or sideways scroll (trackpad swipe, shift+wheel) moves the central meridian, one to one
+with the pointer at the equator; vertical scroll zooms; vertical drag does nothing, as in petrify's globe host. URL
+parameters: `?t=<Ma>` `?field=<id|none>` `?arrows=<id|none>` `?depth=<km>` `?proj=robinson|plateCarree`
+`?lon=<central longitude>` `?view=<lon>,<lat>`.
 
 ## What to keep in mind
 

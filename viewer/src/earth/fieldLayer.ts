@@ -40,6 +40,7 @@ uniform float uMax;              // value at the top of the colour map
 uniform float uNoData;           // byte not drawn
 uniform float uOpacity;
 uniform float uProjectionMode;   // 0 globe, 1 Plate Carree, 2 Robinson
+uniform float uCentreLon;        // flat maps: the longitude at the map's centre (radians)
 uniform vec3 uLightDir;
 uniform float uShadeStrength;
 varying vec3 vWorldPos;
@@ -52,6 +53,7 @@ void main() {
     ll = worldToGeographicRobinson(vWorldPos);
     if (robinsonOffMap(ll)) discard;
   }
+  if (uProjectionMode > 0.5) ll.x = mod(ll.x + uCentreLon + PI, 2.0 * PI) - PI;
   float i = (ll.x + PI) / (2.0 * PI) * uGridSize.x;
   float j = (ll.y + 0.5 * PI) / PI * (uGridSize.y - 1.0);
   vec2 uv = vec2((floor(i + 0.5) + 0.5) / uGridSize.x, (floor(j + 0.5) + 0.5) / uGridSize.y);
@@ -146,6 +148,7 @@ export class FieldLayer {
         uNoData: { value: 255 },
         uOpacity: { value: 1 },
         uProjectionMode: { value: PROJECTION_UNIFORM[mode] },
+        uCentreLon: { value: 0 },
         uLightDir: { value: LIGHT_DIR.clone() },
         uShadeStrength: { value: isFlat(mode) ? 0 : 1 },
       },
@@ -172,6 +175,8 @@ export class FieldLayer {
   }
 
   set opacity(v: number) { this.material.uniforms.uOpacity.value = v; }
+  /** Flat maps only: the longitude (degrees) drawn at the map's centre. The globe ignores it. */
+  set centreLon(deg: number) { this.material.uniforms.uCentreLon.value = (deg * Math.PI) / 180; }
   set visible(v: boolean) { this.enabled = v; this.mesh.visible = v && this.hasData; }
 
   /** One step's bytes, nlon x nlat, longitude fastest; null hides the layer. */

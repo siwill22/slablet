@@ -3,6 +3,7 @@ import type { Camera, PerspectiveCamera } from 'three';
 import { ThreeProjector } from '../core/boundaries';
 import { FlatProjector } from '../core/flatProjector';
 import type { ProjectionMode } from '../core/projection';
+import type { Quaternion } from '../core/rotation';
 
 /** The exported arrow lattice (export_asthenosphere.py arrow_lattice): rows of points. */
 export interface ArrowLattice {
@@ -29,6 +30,8 @@ export class ArrowLayer {
   private readonly ctx: CanvasRenderingContext2D;
   private projector!: ThreeProjector | FlatProjector;
   private flat: FlatProjector | null = null;
+  /** Flat maps: the RENDER-frame rotation that puts the chosen longitude at the map's centre. */
+  private qFlat: Quaternion = [0, 0, 0, 1];
   private lattice: ArrowLattice | null = null;
   private rowStart: number[] = [];
   private picked: Int32Array = new Int32Array(0);
@@ -61,9 +64,16 @@ export class ArrowLayer {
     } else {
       const flat = new FlatProjector(camera);
       flat.setFlatMode(mode);
+      flat.setReferenceRotation(this.qFlat);
       this.projector = flat;
       this.flat = flat;
     }
+  }
+
+  /** RENDER-frame rotation for flat maps (core/rotation.ts toRenderFrameRotation); the globe ignores it. */
+  setFlatRotation(q: Quaternion): void {
+    this.qFlat = q;
+    this.flat?.setReferenceRotation(q);
   }
 
   resize(): void {
