@@ -86,3 +86,30 @@ def test_run_layer_moves_keels_and_keeps_the_volume(mesh):
     assert t == 0 and len(vols) == 10
     assert np.allclose(vols, vols[0], rtol=1e-9)          # bulldozing and refilling keep the volume
     assert all(uncovered_empty)                            # uncovered cells start empty and only partly refill
+
+
+def test_the_cap_holds_before_each_step_too(mesh, monkeypatch):
+    """A keel bulldozing the layer piles it ahead of itself between steps; with cap_km, the pile is cut before the
+    step's flow sees it, and the volume is kept."""
+    def keel_at_time(t):
+        lo0 = 20.0 + 8.0 * (10.0 - t)            # a fast keel: 8 degrees per Myr, a pile ahead of it
+        return lambda lon, lat: (np.asarray(lon) > lo0) & (np.asarray(lon) < lo0 + 20) & (np.abs(lat) < 20)
+
+    def step_at(t):
+        return _step(time=t, craton_at=keel_at_time(t), omega={1: np.zeros(3)})
+
+    seen = []
+    advance = A.advance
+
+    def watched(mesh_, h, *args, **kwargs):
+        seen.append(float(np.max(h)))
+        return advance(mesh_, h, *args, **kwargs)
+
+    monkeypatch.setattr(A, 'advance', watched)
+    vols = [(h * mesh.area).sum() for t, h, f, info, log in run_layer(step_at, mesh, P, start_ma=10, end_ma=0,
+                                                                        cap_km=400.0)]
+    assert max(seen) < 1.02 * 400.0                   # the cap, plus its excess spread evenly over the fed cells
+    assert np.allclose(vols, vols[0], rtol=1e-9)
+    # without the cap, the same keel piles the layer above it
+    monkeypatch.setattr(A, 'advance', advance)
+    assert max(h.max() for t, h, *_ in run_layer(step_at, mesh, P, start_ma=10, end_ma=0)) > 400.0

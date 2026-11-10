@@ -99,6 +99,24 @@ def forcing_from_step(mesh, step, p):
     return f, info
 
 
+def _apply_cap(mesh, h, T, cap_km, closed, f):
+    """Cut h to cap_km and spread the excess over the fed cells (open, and receiving supply) in proportion to area,
+    keeping the volume; the excess keeps its tracer mixture.  Returns (h, T)."""
+    if cap_km is None or not (h > cap_km).any():
+        return h, T
+    cut = np.maximum(h - cap_km, 0.0) * mesh.area
+    excess = cut.sum()
+    h = np.minimum(h, cap_km)
+    fed = ~closed & (f.supply_mask if f.supply_mask is not None else True)
+    if T is not None:
+        amount = T * h * mesh.area + ((T * cut).sum(axis=1) / excess)[:, None] * np.where(
+            fed, excess * mesh.area / mesh.area[fed].sum(), 0.0)
+    h[fed] += excess / mesh.area[fed].sum()
+    if T is not None:
+        T = np.where(h > 1e-12, amount / np.where(h > 1e-12, h * mesh.area, 1.0), 0.0)
+    return h, T
+
+
 def run_layer(step_at, mesh, p, start_ma, end_ma=0, delta_time=1.0, cap_km=None, h0=None, share_at=None,
               tracers0=None, supply_tracers_at=None):
     """Run the layer from start_ma to end_ma through a plate history; yields (t, h, forcing, info, log) after each
@@ -107,7 +125,9 @@ def run_layer(step_at, mesh, p, start_ma, end_ma=0, delta_time=1.0, cap_km=None,
     share_at(t, forcing) -> per-cell supply share (slablet/asthenosphere_supply.py); None: by area.
     tracers0 (k, n): passive tracer concentrations at the start, carried with the layer (log.tracers each step);
     keels bulldoze them with the layer, and a cap's excess keeps its mixture.  supply_tracers_at(t, forcing) -> (k,)
-    or (k, n): what the supply carries (default 0)."""
+    or (k, n): what the supply carries (default 0).
+    cap_km holds after the keels move as well as after each step, so a pile bulldozed ahead of a keel never enters
+    a step above it (it would force many short sub-steps there: mobility grows as h^3)."""
     h, closed_old = None, None
     T = None if tracers0 is None else np.atleast_2d(np.asarray(tracers0, float))
     n = int(round((start_ma - end_ma) / delta_time))
@@ -128,21 +148,12 @@ def run_layer(step_at, mesh, p, start_ma, end_ma=0, delta_time=1.0, cap_km=None,
             h, _ = A.move_keels(mesh, h, closed_old, closed, mode=p.covered_mode)
             if T is not None:
                 T = np.where(h > 1e-12, amount / np.where(h > 1e-12, h, 1.0), 0.0)
+            h, T = _apply_cap(mesh, h, T, cap_km, closed, f)
         closed_old = closed
         h, log = A.advance(mesh, h, f, p, delta_time, tracers=T)
-        T = log.tracers
-        if cap_km is not None and (h > cap_km).any():
-            cut = np.maximum(h - cap_km, 0.0) * mesh.area
-            excess = cut.sum()
-            h = np.minimum(h, cap_km)
-            fed = ~closed & (f.supply_mask if f.supply_mask is not None else True)
-            if T is not None:
-                amount = T * h * mesh.area + ((T * cut).sum(axis=1) / excess)[:, None] * np.where(
-                    fed, excess * mesh.area / mesh.area[fed].sum(), 0.0)
-            h[fed] += excess / mesh.area[fed].sum()
-            if T is not None:
-                T = np.where(h > 1e-12, amount / np.where(h > 1e-12, h * mesh.area, 1.0), 0.0)
-                log.tracers = T
+        h, T = _apply_cap(mesh, h, log.tracers, cap_km, closed, f)
+        if T is not None:
+            log.tracers = T
         yield t, h, f, info, log
 
 
