@@ -14,8 +14,9 @@ Written per Myr t to <cache>/<model>/anchor<id>_s<sample_deg>_v2/seafloor_v1/t<t
                    side (away from the overriding plate; the trench point itself where that side is unknown); NaN: none
     vel_e, vel_n   plate velocity (km/Myr, east / north, in the anchor plate's frame) at the centres of the
                    VEL_DEG grid (lat ascending from -90 + VEL_DEG / 2, lon from -180 + VEL_DEG / 2); NaN outside plates
-    age_grid       (every GRID_EVERY_MYR) seafloor age on the 1 deg cell-centre grid: the nearest tracked point within
-                   GRID_RADIUS_KM, else NaN (continents, and ocean older than the tracking)
+    age_grid       (every GRID_EVERY_MYR, or --grid-every) seafloor age on the 1 deg cell-centre grid: the nearest
+                   tracked point within GRID_RADIUS_KM, else NaN (continents, and ocean older than the tracking)
+--grids-only <folder> writes just the age grids (every --grid-every Myr) to <folder>/t<t>.npz and leaves the cache alone.
     n_points       tracked points alive at t
 Distances are great-circle distances on a sphere of radius 6371 km.
 """
@@ -132,8 +133,12 @@ def folder_for(cfg, sample_deg=1.0):
     return trenches, os.path.join(trenches.folder, VERSION)
 
 
-def track(cfg, sample_deg=1.0, start=None, end=0):
+def track(cfg, sample_deg=1.0, start=None, end=0, grid_every=GRID_EVERY_MYR, grids_only=None):
+    """Track the seafloor from start to end and write the cache.  grids_only: a folder to write only the age grid,
+    every grid_every Myr, as <folder>/t<t>.npz (age_grid), leaving the cache untouched."""
     trenches, out = folder_for(cfg, sample_deg)
+    if grids_only is not None:
+        out = grids_only
     os.makedirs(out, exist_ok=True)
     start = int(cfg['start_ma'] if start is None else start)
     if trenches._model is None:
@@ -151,11 +156,16 @@ def track(cfg, sample_deg=1.0, start=None, end=0):
         pts = np.concatenate([pts, new])
         ages = np.concatenate([ages, np.zeros(len(new))])
         tree = cKDTree(pts) if len(pts) else None
-        rec = {'trench_age': trench_ages(trenches.samples(float(t)), tree, ages), 'n_points': len(pts)}
-        rec['vel_e'], rec['vel_n'] = velocity_grid(snap)
-        if t % GRID_EVERY_MYR == 0:
-            rec['age_grid'] = age_grid(tree, ages)
-        np.savez_compressed(os.path.join(out, 't{:04d}.npz'.format(t)), **rec)
+        if grids_only is not None:
+            rec = {'trench_age': np.zeros(0)}
+            if t % grid_every == 0:
+                np.savez_compressed(os.path.join(out, 't{:04d}.npz'.format(t)), age_grid=age_grid(tree, ages))
+        else:
+            rec = {'trench_age': trench_ages(trenches.samples(float(t)), tree, ages), 'n_points': len(pts)}
+            rec['vel_e'], rec['vel_n'] = velocity_grid(snap)
+            if t % grid_every == 0:
+                rec['age_grid'] = age_grid(tree, ages)
+            np.savez_compressed(os.path.join(out, 't{:04d}.npz'.format(t)), **rec)
         if t > end and len(pts):
             span = tm.reconstruct_geometry(pygplates.MultiPointOnSphere([tuple(p) for p in pts]), initial_time=float(t),
                                            oldest_time=float(t), youngest_time=float(t - 1), time_increment=1.0,
@@ -193,9 +203,11 @@ def main():
     ap.add_argument('config')
     ap.add_argument('--start', type=float)
     ap.add_argument('--end', type=float, default=0)
+    ap.add_argument('--grid-every', type=int, default=GRID_EVERY_MYR, help='Myr between age grids')
+    ap.add_argument('--grids-only', help='write only the age grids, to this folder (the cache is left alone)')
     args = ap.parse_args()
     cfg = yaml.safe_load(open(args.config))
-    print(track(cfg, start=args.start, end=int(args.end)))
+    print(track(cfg, start=args.start, end=int(args.end), grid_every=args.grid_every, grids_only=args.grids_only))
 
 
 if __name__ == '__main__':
