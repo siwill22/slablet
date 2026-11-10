@@ -567,6 +567,19 @@ Settled during the grilling, in order:
     depth limit, fertility's sources, shear-driven upwelling, chains as tracks, fabric directions, plumes. Figures:
     PlateDriver `show-me/2026-11-09-flow-driven-volcanism/`.
 
+    IPV on Müller 2022, and a viewer of the layers together (2026-11-10). IPV's reconstruction, age grids and
+    polygons are now config options (`reconstruction`, default Merdith 2021), and its strain-rate, plate-speed and
+    rifting factors can be divided by fixed references instead of each step's largest value
+    (`vulnerability_normalisation: fixed`), so vulnerability compares through time. A run from 300 Ma on Müller 2022
+    in its mantle frame (IPV `examples/config_muller2022_300Ma.yaml`, 40 min) reads the published age grids, which
+    match the tracker's to a median 0.5-0.7 Myr where both have ages; the published 212 Ma grid is all zeros and is
+    replaced by 211 Ma. IPV's other weaknesses stay (cases 2, 4, 9, 10): rift vulnerability is zero throughout, and
+    strain rate marks plate boundaries only. slablet `viewer/` shows, from 300 Ma to now every 5 Myr: the reference
+    mantle run saved every 5 Myr (identical at 0 Ma), dynamic topography and the deep flow at every depth, the layer
+    run from 300 Ma with its volcanism fields, seafloor ages, and IPV's vulnerability and its parts. The deep flow is
+    buoyancy-driven with a free-slip surface while the layer assumes a still mantle beneath it; the viewer shows both
+    as they are.
+
     Not in v1, each for its own session: continental deformation from defamation (case 9); defamation's trench side and
     IPV's continent definition (case 10); PlateDriver's `contains_xy` fix; the spherical rasterise function in gprm;
     the global catalogues; moving the rest of IPV beyond fertility into slablet; the volcanism mixture and the

@@ -21,6 +21,7 @@ source: synthetic plate models (PlateDriver) or real GPlates reconstructions (`s
 | `slablet/analysis/` | scoring against tomography and OPT1, parameter sweeps, the stall sweep; residual depth under any cooling law from Seton (2020) ages, SRTM15+ and GlobSed (`residual_depth.py`, needs pygmt) |
 | `slablet/frame/` | fitting and scoring absolute reference frames |
 | `configs/` | run configs and sweeps |
+| `viewer/` | a local globe viewer of the layers together on Müller 2022, 300 Ma to now: deep mantle and its flow, dynamic topography, the asthenosphere layer and its volcanism fields, seafloor age, IPV's vulnerability (`viewer/README.md`) |
 | `scripts/check_against_hc.py` | compares `slablet.dyntopo` with HC |
 | `CONTEXT.md` | the project's terms |
 | `tests/` | `pytest tests` |

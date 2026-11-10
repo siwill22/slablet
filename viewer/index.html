@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Earth layers</title>
+    <style>
+      html, body { margin: 0; height: 100%; overflow: hidden; background: #f4f3ef; }
+      .asth-box {
+        position: fixed; left: 16px; z-index: 10; padding: 8px 12px; border-radius: 6px;
+        background: rgba(12,16,22,0.82); border: 1px solid rgba(255,255,255,0.10);
+        color: rgba(235,240,250,0.92);
+        font: 12px/1.45 ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      }
+      .asth-status { top: 16px; white-space: pre; }
+      .asth-agebar {
+        top: auto; bottom: 16px; right: 72px; display: flex; align-items: center; gap: 12px;
+      }
+      .asth-agevalue { min-width: 52px; font-weight: 600; }
+      .asth-scrub { -webkit-appearance: none; appearance: none; flex: 1; height: 16px;
+        background: transparent; cursor: pointer; }
+      .asth-scrub::-webkit-slider-runnable-track { height: 3px; border-radius: 2px; background: rgba(255,255,255,0.2); }
+      .asth-scrub::-moz-range-track { height: 3px; border-radius: 2px; background: rgba(255,255,255,0.2); }
+      .asth-scrub::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 15px; height: 15px;
+        margin-top: -6px; border: none; border-radius: 50%; background: #6fe3ff;
+        box-shadow: 0 0 0 3px rgba(111,227,255,0.22); }
+      .asth-scrub::-moz-range-thumb { width: 15px; height: 15px; border: none; border-radius: 50%;
+        background: #6fe3ff; box-shadow: 0 0 0 3px rgba(111,227,255,0.22); }
+      /* Projection: Geode's round page-level button (core/projectionToggle.ts), bottom-right as in
+         Geode's density.html; the icon is a graticule of the projection it switches to. */
+      #projection-toggle {
+        position: fixed; right: 12px; bottom: 12px; z-index: 15;
+        width: 40px; height: 40px; padding: 0;
+        display: flex; align-items: center; justify-content: center;
+        font: inherit; color: #d8dee4; background: #1b1f24;
+        border: 1px solid #3a4048; border-radius: 50%; cursor: pointer;
+      }
+      #projection-toggle:hover { background: #262b32; }
+      #projection-toggle svg { display: block; width: 22px; height: 22px; }
+    </style>
+  </head>
+  <body>
+    <button id="projection-toggle" aria-label="Switch projection" title="Switch projection">&#9645;</button>
+    <script type="module" src="/src/earth/main.ts"></script>
+  </body>
+</html>
