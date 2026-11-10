@@ -10,7 +10,12 @@ cd ~/GIT/slablet
 conda run -n pygmt17 python viewer/prep/mantle_5myr.py        # the reference mantle run, saved every 5 Myr (~6 min),
                                                               # then dynamic topography and deep flow back to 300 Ma
 conda run -n pygmt17 python viewer/prep/layer_300.py          # the asthenosphere layer from 300 Ma (~70 min)
-# IPV on Müller 2022 from 300 Ma (~40 min), in ~/GIT/IPV:
+conda run -n pygmt17 python -m slablet.gplates.seafloor_tracker configs/muller2022_refined.yaml --grid-every 1 \
+    --grids-only runs_real/seafloor_ages_muller2022_1myr                  # seafloor ages every Myr (~6 min)
+conda run -n pygmt17 python viewer/prep/ipv_ages.py                       # ... in IPV's layout, continents blank
+conda run -n pygmt17 python -m slablet.gplates.seafloor_tracker configs/muller2022_refined.yaml --start 340 \
+    --rift-points runs_real/cache/ipv/rift_points_muller2022.npz          # where and when it rifts (~1 min)
+# IPV on Müller 2022 from 300 Ma (~15-40 min), in ~/GIT/IPV:
 #   conda run -n pygmt17 python -c "from mantlememory import MantleSimulation, SimulationConfig; \
 #     MantleSimulation(SimulationConfig.from_yaml('mantlememory/examples/config_muller2022_300Ma.yaml')).run()"
 conda run -n pygmt17 python viewer/prep/export.py             # all of it -> viewer/public/data/earth/ (local only)
@@ -22,8 +27,8 @@ node scripts/check.mjs                                        # every field, arr
 
 - **Surface:** dynamic topography from the mantle below 300 km (`slablet.dyntopo`); the asthenosphere layer's
   effect on seafloor depth; seafloor elevation from age (GDH1); and the three added together.
-- **Lithosphere:** seafloor age (the published Müller 2022 grids); lithosphere thickness as the layer sees it
-  (GDH1 under oceans, 150 km under continents, smoothed); IPV's vulnerability and each of its parts (small-scale
+- **Lithosphere:** seafloor age (slablet's seafloor tracker, every Myr; the grids IPV reads); lithosphere thickness
+  as the layer sees it (GDH1 under oceans, 150 km under continents, smoothed); IPV's vulnerability and each of its parts (small-scale
   convection, strain rate, plate speed, edge-driven convection, keel drip fronts (Rayleigh-Taylor, "RT"), rifting;
   exactly zero is left blank, which is most continents); IPV's keel remaining.
 - **Upper mantle:** the layer's thickness, depth-mean speed, how fast it rises along the plate's base, and how far
@@ -45,18 +50,17 @@ parameters: `?t=<Ma>` `?field=<id|none>` `?arrows=<id|none>` `?depth=<km>` `?pro
 - The deep flow is driven by slab buoyancy alone with a free-slip surface, so it does not move with the plates, and
   the layer assumes the mantle beneath it is still. Where the two levels disagree, that is the models, not the
   viewer.
-- IPV's vulnerability runs on Müller 2022 here, but is otherwise IPV's own: strain rate comes from rigid plates, so it
-  marks plate boundaries only; its "shear" part is plate speed; its rifting part does not switch on (continents are a
-  fixed 120 km thick); and continents are where the age grid has no value. Strain rate, plate speed and rifting are
-  divided by fixed references (`vulnerability_normalisation: fixed`), so values compare through time.
-- On Müller 2022, IPV strips almost every keel in its first step. It reads the seafloor age beside a passive margin
-  as the time since break-up (a lower bound, for a rifted margin), and the published Müller 2022 grids put seafloor
-  older than 300 Myr beside 40-50% of the passive margins at 250-100 Ma (1-2% on Merdith 2021), some of it older
-  than the model's 1000 Ma start. So the keel drip fronts have little to strip and look sparse
+- IPV's vulnerability runs on Müller 2022 here, on the seafloor tracker's ages, but is otherwise IPV's own: strain
+  rate comes from rigid plates, so it marks plate boundaries only; its "shear" part is plate speed; its rifting part
+  does not switch on (continents are a fixed 120 km thick); and continents are where the age grid has no value (here
+  the Müller 2022 continent polygons). Strain rate, plate speed and rifting are divided by fixed references
+  (`vulnerability_normalisation: fixed`), so values compare through time.
+- Keel drip fronts start where the reconstruction rifts (`keel_front_trigger: rift_points`), not from the seafloor
+  age beside a margin: Müller 2022 keeps unsubducted old seafloor (2-3% of the ocean older than 300 Myr, in the
+  Arctic, the Tethys and off Antarctica, in its published grids and in slablet's tracker alike) beside many margins,
+  which the age rule reads as ancient break-up, stripping almost every keel at once
   (PlateDriver `show-me/2026-11-10-keel-drips-comparison/`).
 - The layer starts uniform at 300 Ma, so it shows nothing at 300 Ma. Its first few tens of Myr are spin-up.
-- The published 212 Ma age grid is all zeros (in the download and its zip); IPV uses the 211 Ma grid there
-  (`runs_real/cache/ipv/agegrids_muller2022/README.txt`).
 
 ## Layout
 

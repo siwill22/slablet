@@ -580,6 +580,18 @@ Settled during the grilling, in order:
     buoyancy-driven with a free-slip surface while the layer assumes a still mantle beneath it; the viewer shows both
     as they are.
 
+    IPV's keel drip fronts on Müller 2022 (2026-11-10). With IPV's rule (the seafloor age beside a passive margin is
+    its time since break-up, a lower bound for a rifted margin) Müller 2022 strips almost every keel at the start
+    (keel left 0.08 against 0.51 on Merdith 2021), because 40-50% of its passive margins at 250-100 Ma face seafloor
+    older than 300 Myr (1-2% on Merdith). slablet's tracker, with yearly grids (`--grid-every 1 --grids-only`, 6 min),
+    has the same old seafloor (2-3% of the ocean older than 300 Myr, up to 850 Myr today; Arctic, Tethys, off
+    Antarctica): seafloor the reconstruction made and never subducts, so in the topologies, not the grid method (only
+    the published grids' seafloor older than 1000 Ma is a grid artefact). Fronts now start from rifting in the
+    reconstruction instead (`keel_front_trigger: rift_points`; slablet `seafloor_tracker --rift-points` lists the
+    diverging-boundary points every Myr; a keel point within 150 km of one is rifting, its front starting 15 Myr
+    earlier), on the tracker's ages: keel left 0.62 at 250 Ma, fronts active over 2-8% of continents (2.5-6% on
+    Merdith). Figures: PlateDriver `show-me/2026-11-10-keel-drips-comparison/`.
+
     Not in v1, each for its own session: continental deformation from defamation (case 9); defamation's trench side and
     IPV's continent definition (case 10); PlateDriver's `contains_xy` fix; the spherical rasterise function in gprm;
     the global catalogues; moving the rest of IPV beyond fertility into slablet; the volcanism mixture and the
