@@ -25,25 +25,34 @@ node scripts/check.mjs                                        # every field, arr
 
 ## What it shows
 
-- **Surface:** dynamic topography from the mantle below 300 km (`slablet.dyntopo`); the asthenosphere layer's
-  effect on seafloor depth; seafloor elevation from age (GDH1); and the three added together.
+- **Surface:** dynamic topography and the geoid from the mantle below 300 km (`slablet.dyntopo`); the asthenosphere
+  layer's effect on seafloor depth; seafloor elevation from age (GDH1); and the three added together.
 - **Lithosphere:** seafloor age (slablet's seafloor tracker, every Myr; the grids IPV reads); lithosphere thickness
   as the layer sees it (GDH1 under oceans, 150 km under continents, smoothed); IPV's vulnerability and each of its parts (small-scale
   convection, strain rate, plate speed, edge-driven convection, keel drip fronts (Rayleigh-Taylor, "RT"), rifting;
   exactly zero is left blank, which is most continents); IPV's keel remaining.
-- **Upper mantle:** the layer's thickness, depth-mean speed, how fast it rises along the plate's base, and how far
-  the chain direction turns from plate motion (`slablet/asthenosphere_volcanism.py`).
-- **Deep mantle,** at the chosen depth (50-2850 km): the shear-velocity anomaly, radial flow, and the basal pile's
-  thickness.
-- **Arrows:** plate velocity, the layer's flow, the chain direction (layer minus plate, towards a chain's young end),
-  and the deep flow at the chosen depth.
+- **Upper mantle:** the layer's thickness, depth-mean speed and pressure-driven speed, flow divergence (+ thinning),
+  shear rate at its top and the shear trend against plate motion, how fast it rises along the plate's base, and how
+  far the chain direction turns from plate motion (`slablet/asthenosphere_volcanism.py`). At depths below the
+  plate's base (25-400 km): the layer's speed, its shear rate, and the upwelling its shear forces (export.py's
+  docstring has the profile; near the top this is PlateDriver's shear-forced upwelling, and at 50 km, away from
+  keels, the two rank alike, rank correlation 0.97, with this one about 12% smaller from the profile's curvature).
+- **Deep mantle,** at the chosen depth (50-2850 km): the shear-velocity anomaly as modelled and blurred as
+  tomography would see it, radial flow, horizontal flow speed, shear stress on horizontal planes (log10), radial
+  normal stress, and the geoid at depth; without depth, the basal pile's thickness and core-mantle boundary
+  topography.
+- **Arrows:** plate velocity, the layer's flow (depth mean, and at the chosen depth below the plate), its
+  pressure-driven part, the shear lineation trend (fixed length, towards younging), the chain direction (layer
+  minus plate, towards a chain's young end), and the deep flow at the chosen depth.
+- **Depth fields** whose values change by an order of magnitude with depth carry their own encoding and colour range
+  at each depth, set from four sample ages (0, 100, 200, 300 Ma); the shear-velocity anomaly keeps +-2% at every depth.
 - **Overlays:** plate boundaries, coastlines, continents and keels (the layer's own masks), graticule.
 
 Projection is the round button at the bottom right; age is the bar along the bottom. On a flat map (Robinson,
 Plate Carrée) a sideways drag or sideways scroll (trackpad swipe, shift+wheel) moves the central meridian, one to one
 with the pointer at the equator; vertical scroll zooms; vertical drag does nothing, as in petrify's globe host. URL
-parameters: `?t=<Ma>` `?field=<id|none>` `?arrows=<id|none>` `?depth=<km>` `?proj=robinson|plateCarree`
-`?lon=<central longitude>` `?view=<lon>,<lat>`.
+parameters: `?t=<Ma>` `?field=<id|none>` `?arrows=<id|none>` `?depth=<km>` `?below=<km below the plate>`
+`?proj=robinson|plateCarree` `?lon=<central longitude>` `?view=<lon>,<lat>`.
 
 ## What to keep in mind
 

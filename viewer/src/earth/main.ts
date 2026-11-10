@@ -23,30 +23,35 @@ import { ColorBar, FieldLayer } from './fieldLayer';
  * boundary (prep/export.py writes them to public/data/earth/).
  *
  * Panel: one field (grouped Surface, Lithosphere, Upper mantle, Deep mantle) with its colour
- * range and opacity; one set of arrows with spacing and length; the depth used by deep-mantle
- * fields and arrows; overlays (plate boundaries, coastlines, continents and keels, graticule). Projection
- * is the round button at the bottom right; age is the bar along the bottom.
+ * range and opacity; one set of arrows with spacing and length; two depths, each used by the fields
+ * and arrows of its set: the mantle run's depth below the surface, and the depth below the plate's
+ * base within the asthenosphere layer; overlays (plate boundaries, coastlines, continents and keels,
+ * graticule). Projection is the round button at the bottom right; age is the bar along the bottom.
+ * A depth field may carry its encoding and colour range per depth (lists, one per depth).
  *
  * On a flat map (Robinson, Plate Carree), as in petrify's globe host: a sideways drag or a sideways
  * scroll (trackpad swipe, shift+wheel) moves the central meridian, one to one with the pointer at
  * the equator; vertical scroll zooms; vertical drag does nothing. The map never slides off-centre.
  *
- * URL: ?t=<age Ma> ?field=<id|none> ?arrows=<id|none> ?depth=<km> ?proj=robinson|plateCarree
+ * URL: ?t=<age Ma> ?field=<id|none> ?arrows=<id|none> ?depth=<km> ?below=<km below the plate>
+ *      ?proj=robinson|plateCarree
  *      ?lon=<central longitude of flat maps> ?view=<lon>,<lat> (globe camera at load)
  */
 
 const DATA = `${import.meta.env.BASE_URL}data/earth`;
 
 interface Grid { deg: number; nlon: number; nlat: number }
+type PerDepth = number | number[];
 interface FieldInfo {
-  id: string; group: string; label: string; units: string; path: string; grid: string; depth: boolean;
-  offset: number; scale: number; nodata: number; min: number; max: number; colormap: string; ages: number[];
+  id: string; group: string; label: string; units: string; path: string; grid: string; depth: string | null;
+  offset: PerDepth; scale: PerDepth; nodata: number; min: PerDepth; max: PerDepth; colormap: string; ages: number[];
 }
-interface VectorInfo { id: string; group: string; label: string; path: string; depth: boolean; ages: number[] }
+interface VectorInfo { id: string; group: string; label: string; path: string; depth: string | null; ages: number[] }
+interface DepthSet { label: string; km: number[] }
 interface RunInfo {
   label: string;
   ages: number[];
-  depths_km: number[];
+  depth_sets: Record<string, DepthSet>;
   grids: Record<string, Grid>;
   land: { path: string; grid: string; ages: number[] };
   fields: FieldInfo[];
@@ -70,7 +75,6 @@ applyChromeLightness(theme.lightness);
 
 const view = {
   field: params.get('field') ?? 'dyntopo',
-  depth: Number(params.get('depth') ?? 650),
   range: 1.0,
   opacity: 0.9,
   arrows: params.get('arrows') ?? 'plate',
@@ -80,6 +84,11 @@ const view = {
   coastlines: true,
   land: true,
   graticule: true,
+};
+/** The chosen depth in each depth set (km): the mantle's below the surface, the layer's below the plate. */
+const depthView: Record<string, number> = {
+  mantle: Number(params.get('depth') ?? 650),
+  layer: Number(params.get('below') ?? 50),
 };
 
 const scene = new Scene();
@@ -220,25 +229,30 @@ function fetchBytes(path: string): Promise<ArrayBuffer | null> {
 const tag = (age: number) => String(age).padStart(4, '0');
 const currentField = () => run?.fields.find((f) => f.id === view.field) ?? null;
 const currentVector = () => run?.vectors.find((v) => v.id === view.arrows) ?? null;
-const depthIndex = () => {
-  const d = run?.depths_km ?? [];
+/** Index of the chosen depth in a depth set (0 for none). */
+const depthIndex = (set: string | null) => {
+  const d = set ? run?.depth_sets[set]?.km ?? [] : [];
   let best = 0;
-  d.forEach((z, i) => { if (Math.abs(z - view.depth) < Math.abs(d[best] - view.depth)) best = i; });
+  d.forEach((z, i) => { if (Math.abs(z - depthView[set!]) < Math.abs(d[best] - depthView[set!])) best = i; });
   return best;
 };
+const atDepth = (x: PerDepth, k: number) => (Array.isArray(x) ? x[k] : x);
 
 function applyFieldStyle(): void {
   const f = currentField();
   if (f) {
+    const k = depthIndex(f.depth);
+    const min = atDepth(f.min, k), max = atDepth(f.max, k);
     // Diverging maps (centred on zero) widen about zero; the others from their lower end.
-    const centred = f.min === -f.max;
-    const lo = centred ? f.min * view.range : f.min;
-    const hi = centred ? f.max * view.range : f.min + (f.max - f.min) * view.range;
-    field.setStyle({ ...f, min: lo, max: hi });
+    const centred = min === -max;
+    const lo = centred ? min * view.range : min;
+    const hi = centred ? max * view.range : min + (max - min) * view.range;
+    field.setStyle({ offset: atDepth(f.offset, k), scale: atDepth(f.scale, k), nodata: f.nodata, min: lo, max: hi,
+      colormap: f.colormap });
     colorBar.set(`${f.label}${f.units ? ` (${f.units})` : ''}`, lo, hi, f.colormap);
   }
   colorBar.visible = f !== null;
-  depthCtl?.enable(Boolean(f?.depth || currentVector()?.depth));
+  for (const [set, ctl] of depthCtls) ctl.enable(f?.depth === set || currentVector()?.depth === set);
 }
 
 async function applyAge(age: number): Promise<void> {
@@ -256,11 +270,11 @@ async function applyAge(age: number): Promise<void> {
     vOk ? fetchBytes(`${v!.path}/${tag(at)}.bin`) : Promise.resolve(null),
   ]);
   if (mine !== request) return;
-  const k = depthIndex();
+  applyFieldStyle();
   if (f && fb) {
     const g = r.grids[f.grid];
     const n = g.nlon * g.nlat;
-    field.setGrid(new Uint8Array(fb, f.depth ? k * n : 0, n), g.nlon, g.nlat);
+    field.setGrid(new Uint8Array(fb, f.depth ? depthIndex(f.depth) * n : 0, n), g.nlon, g.nlat);
   } else {
     field.setGrid(null, 1, 1);
   }
@@ -268,13 +282,17 @@ async function applyAge(age: number): Promise<void> {
   land.setGrid(lb ? new Uint8Array(lb) : null, lg.nlon, lg.nlat);
   if (v && vb) {
     const n = 2 * r.arrow_lattice.row_count.reduce((a, b) => a + b, 0);
-    arrows.setValues(new Float32Array(vb, v.depth ? 4 * k * n : 0, n));
+    arrows.setValues(new Float32Array(vb, v.depth ? 4 * depthIndex(v.depth) * n : 0, n));
   } else {
     arrows.setValues(null);
   }
-  const z = `${r.depths_km[k]} km`;
+  const where = (set: string | null) => {
+    if (!set) return '';
+    const km = r.depth_sets[set].km[depthIndex(set)];
+    return set === 'layer' ? ` (${km} km)` : ` at ${km} km`;
+  };
   const line = (what: string, info: FieldInfo | VectorInfo | null, ok: boolean) => (info === null ? ''
-    : `\n${what}: ${info.label}${info.depth ? ` at ${z}` : ''}${ok ? '' : '  (none at this age)'}`);
+    : `\n${what}: ${info.label}${where(info.depth)}${ok ? '' : '  (none at this age)'}`);
   status.textContent = `${r.label}\nAge ${at} Ma${line('Field', f, fOk)}${line('Arrows', v, vOk)}`;
 }
 
@@ -284,14 +302,14 @@ const gui = new GUI({ title: 'Earth layers' });
 gui.domElement.style.zIndex = '10';
 const ageBar = new AgeBar((age) => { void applyAge(age); });
 let fieldCtl: Controller = gui.add(view, 'field', {}).name('Field');
-let depthCtl: Controller | null = null;
+const depthCtls = new Map<string, Controller>();
 const fieldFolder = gui.addFolder('Colour');
 fieldFolder.add(view, 'range', 0.25, 4, 0.05).name('Range (x)').onChange(() => applyFieldStyle());
 fieldFolder.add(view, 'opacity', 0, 1, 0.05).name('Opacity').onChange((v: number) => { field.opacity = v; });
 const arrowFolder = gui.addFolder('Arrows');
 let arrowCtl: Controller = arrowFolder.add(view, 'arrows', {}).name('Arrows');
-arrowFolder.add(view, 'spacing', 2, 20, 2).name('Spacing (deg)').onChange((v: number) => { arrows.setSpacing(v); });
-arrowFolder.add(view, 'length', 0.1, 5, 0.1).name('Length (deg per cm/yr)')
+arrowFolder.add(view, 'spacing', 2, 10, 2).name('Spacing (deg)').onChange((v: number) => { arrows.setSpacing(v); });
+arrowFolder.add(view, 'length', 0.05, 2, 0.05).name('Length (deg per cm/yr)')
   .onChange((v: number) => { arrows.length = v; });
 const overlayFolder = gui.addFolder('Overlays');
 overlayFolder.add(view, 'boundaries').name('Plate boundaries').onChange((v: boolean) => { boundaries.visible = v; });
@@ -313,17 +331,18 @@ async function boot(): Promise<void> {
   fieldCtl.destroy();
   fieldCtl = gui.add(view, 'field', options(r.fields)).name('Field')
     .onChange(() => { applyFieldStyle(); void applyAge(ageBar.age); });
-  if (r.depths_km.length) {
-    const d = r.depths_km;
-    view.depth = d.reduce((a, b) => (Math.abs(b - view.depth) < Math.abs(a - view.depth) ? b : a));
-    depthCtl = gui.add(view, 'depth', d[0], d[d.length - 1], d.length > 1 ? d[1] - d[0] : 1)
-      .name('Depth (km)').onChange(() => { void applyAge(ageBar.age); });
+  for (const [set, { label, km: d }] of Object.entries(r.depth_sets)) {
+    if (!d.length) continue;
+    depthView[set] = d.reduce((a, b) => (Math.abs(b - depthView[set]) < Math.abs(a - depthView[set]) ? b : a));
+    const step = d.length > 1 ? Math.min(...d.slice(1).map((z, i) => z - d[i])) : 1;
+    depthCtls.set(set, gui.add(depthView, set, d[0], d[d.length - 1], step).name(label)
+      .onChange(() => { void applyAge(ageBar.age); }));
   }
   arrowCtl.destroy();
   arrowCtl = arrowFolder.add(view, 'arrows', options(r.vectors)).name('Arrows')
     .onChange(() => { applyFieldStyle(); void applyAge(ageBar.age); });
   // lil-gui appends; keep the field and depth at the top, and each folder's dropdown first.
-  if (depthCtl) gui.$children.prepend(depthCtl.domElement);
+  for (const ctl of [...depthCtls.values()].reverse()) gui.$children.prepend(ctl.domElement);
   gui.$children.prepend(fieldCtl.domElement);
   arrowFolder.$children.prepend(arrowCtl.domElement);
   arrows.setLattice(r.arrow_lattice, view.spacing);

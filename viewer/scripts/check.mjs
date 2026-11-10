@@ -27,7 +27,15 @@ for (const v of vectors) {
   await selects.nth(1).selectOption({ label: v });
   for (const i of [0, n]) { await scrub.fill(String(i)); await page.waitForTimeout(80); visits++; }
 }
-for (const d of ['50', '1450', '2850']) { await numberInput('Depth (km)').fill(d); await page.keyboard.press('Enter'); }
+// Each depth control is live only while the field or arrows use its set.
+const depthChecks = [['Below the plate (km)', 'below the plate', ['25', '150', '400']],
+  ['Depth (km)', 'Shear-velocity anomaly (model)', ['50', '1450', '2850']]];
+for (const [label, fieldText, depths] of depthChecks) {
+  await selects.nth(0).selectOption({ label: fields.find((f) => f.includes(fieldText)) });
+  for (const d of depths) {
+    await numberInput(label).fill(d); await page.keyboard.press('Enter'); await page.waitForTimeout(80); visits++;
+  }
+}
 for (let i = 0; i <= n; i += 1) { await scrub.fill(String(i)); await page.waitForTimeout(30); visits++; }
 await browser.close();
 console.log(`${fields.length} fields, ${vectors.length} arrow sets, ${visits} views, ${errors.length} errors`);
