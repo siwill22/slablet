@@ -30,6 +30,8 @@ os.environ.setdefault('SLABLET_WORK', SLABLET)
 
 from slablet.gplates.plate_history import RealPlateHistory   # noqa: E402
 
+COORD_ATTRS = {'lat': {'units': 'degrees_north', 'standard_name': 'latitude', 'axis': 'Y'},
+               'lon': {'units': 'degrees_east', 'standard_name': 'longitude', 'axis': 'X'}}
 TRACKED = os.path.join(SLABLET, 'runs_real', 'seafloor_ages_muller2022_1myr')
 OUT = os.path.join(SLABLET, 'runs_real', 'cache', 'ipv', 'agegrids_muller2022_tracker')
 
@@ -72,6 +74,8 @@ if __name__ == '__main__':
             age[gap] = age[known][i]
         da = xr.DataArray(age.astype(np.float32), dims=('lat', 'lon'), coords={'lat': lats, 'lon': lons},
                           name='seafloor_age', attrs={'units': 'Myr', 'source': 'slablet seafloor tracker, Müller 2022'})
+        da.lat.attrs.update(COORD_ATTRS['lat'])        # IPV's craton rasterising (rioxarray) finds the axes by these
+        da.lon.attrs.update(COORD_ATTRS['lon'])
         da.to_netcdf(os.path.join(OUT, 'seafloor_age_{:d}Ma.nc'.format(t)))
         if t % 50 == 0:
             print('{:3d} Ma: ocean gaps filled {:.1f}% of ocean, oldest {:.0f} Myr'.format(

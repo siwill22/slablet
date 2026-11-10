@@ -6,9 +6,11 @@ Reads (run these first; a missing input leaves its layers out at those ages):
   runs_real/muller2022_refined_5myr/   viewer/prep/mantle_5myr.py: mantle_temp_<age>Ma.nc (shear-velocity anomaly,
                                        basal pile) and dyntopo_<age>Ma.nc (dynamic topography, deep flow)
   runs_real/layer_300Ma.npz            viewer/prep/layer_300.py: the asthenosphere layer and flow-driven volcanism
-  runs_real/ipv_muller2022_300Ma/viewer_data/fields_<age>Ma.nc
-                                       IPV (mantlememory) on Müller 2022: vulnerability and its parts
-  runs_real/cache/ipv/agegrids_muller2022/   links to the published Müller 2022 seafloor ages, every Myr
+  runs_real/ipv_muller2022_300Ma_rift/viewer_data/fields_<age>Ma.nc
+                                       IPV (mantlememory) on Müller 2022, keel drip fronts started by rifting:
+                                       vulnerability and its parts
+  runs_real/cache/ipv/agegrids_muller2022_tracker/   seafloor ages from slablet's tracker, every Myr, 1 deg nodes,
+                                       continents blank (viewer/prep/ipv_ages.py); IPV reads the same grids
 and writes viewer/public/data/earth/ (gitignored: local only):
 
   run.json                    ages, depths, grids, fields, vectors, arrow lattice (read by src/earth/main.ts)
@@ -23,7 +25,8 @@ and writes viewer/public/data/earth/ (gitignored: local only):
 
 Grids use the Geode Archive layout: longitude fastest, -180 + i x 360 / nlon (no repeated seam), then latitude
 ascending, -90 + j x 180 / (nlat - 1) (both poles).  Two grids: 0.5 deg (layer fields, from the 40,000-cell mesh by
-the cell each node lies in; seafloor ages) and 1 deg (mantle, dynamic topography, IPV).  The mantle's 1 deg
+the cell each node lies in) and 1 deg (seafloor ages, mantle, dynamic topography, IPV); the summed seafloor elevation
+takes the ages to 0.5 deg by bilinear interpolation between the 1 deg nodes.  The mantle's 1 deg
 cell-centred grids go to the nodes by bilinear interpolation, wrapping at the seam, with each pole the mean of the
 row next to it.  Arrows sit on rows every 2 deg, about 2 deg apart along each row (equal area); each takes the
 nearest mesh cell or mantle cell and is expressed in the arrow point's own east and north.  All in Müller 2022's
@@ -53,9 +56,8 @@ from slablet.gplates.models import load as load_reconstruction   # noqa: E402
 RUNS = os.path.join(SLABLET, 'runs_real')
 MANTLE = os.path.join(RUNS, 'muller2022_refined_5myr')
 LAYER = os.path.join(RUNS, 'layer_300Ma.npz')
-IPV = os.path.join(RUNS, 'ipv_muller2022_300Ma', 'viewer_data')
-AGEGRIDS = os.path.join(RUNS, 'cache', 'ipv', 'agegrids_muller2022',
-                        'Muller_etal_2022_SE_AgeGrid-{:d}.nc')   # links to the published grids (README.txt there)
+IPV = os.path.join(RUNS, 'ipv_muller2022_300Ma_rift', 'viewer_data')
+AGEGRIDS = os.path.join(RUNS, 'cache', 'ipv', 'agegrids_muller2022_tracker', 'seafloor_age_{:d}Ma.nc')
 CFG = os.path.join(SLABLET, 'configs', 'muller2022_refined.yaml')
 OUT = os.path.join(SLABLET, 'viewer', 'public', 'data', 'earth')
 AGES = list(range(300, -1, -5))
@@ -68,11 +70,11 @@ FIELDS = {
                 'polar'),
     'layer_depth': ('Surface', 'Seafloor depth change from the layer (+ shallower)', 'm', 0.5, False, -1500, 1500,
                     -600, 600, 'polar'),
-    'age_depth': ('Surface', 'Seafloor elevation from age (GDH1)', 'm', 0.5, False, -7000, -2000, -6500, -2500,
+    'age_depth': ('Surface', 'Seafloor elevation from age (GDH1)', 'm', 1, False, -7000, -2000, -6500, -2500,
                   'ocean'),
     'total_depth': ('Surface', 'Seafloor elevation: age + layer + dynamic', 'm', 0.5, False, -9000, -1000,
                     -6500, -2500, 'ocean'),
-    'age': ('Lithosphere', 'Seafloor age (Müller 2022 grids)', 'Myr', 0.5, False, 0, 254, 0, 200, 'age'),
+    'age': ('Lithosphere', "Seafloor age (slablet's tracker)", 'Myr', 1, False, 0, 254, 0, 200, 'age'),
     'lithosphere': ('Lithosphere', 'Lithosphere thickness (GDH1; continents 150 km)', 'km', 0.5, False, 0, 254,
                     0, 160, 'viridis'),
     'vuln': ('Lithosphere', 'Vulnerability (IPV): total', '', 1, False, 0, 1, 0, 0.6, 'magma'),
@@ -183,6 +185,18 @@ def write_frame(kind, age, gj):
         json.dump(gj, fh, separators=(',', ':'))
 
 
+def nodes1_to_05(a):
+    """1 deg nodes (181, 360) to 0.5 deg nodes (361, 720): bilinear between nodes, wrapping in longitude; NaN where
+    any node used is NaN."""
+    right = np.roll(a, -1, axis=1)
+    out = np.full((361, 720), np.nan)
+    out[::2, ::2] = a
+    out[::2, 1::2] = 0.5 * (a + right)
+    out[1::2, ::2] = 0.5 * (a[:-1] + a[1:])
+    out[1::2, 1::2] = 0.25 * (a[:-1] + a[1:] + right[:-1] + right[1:])
+    return out
+
+
 def boundaries_at(topo, rm, time, max_deg=1.0):
     snap = pygplates.TopologicalSnapshot(topo, rm, float(time), 0)
     out = []
@@ -271,15 +285,16 @@ def main():
 
     for age in ages:
         notes = []
-        # --- seafloor ages (0.5 deg) ---
+        # --- seafloor ages (1 deg; 0.5 deg for the summed elevation) ---
         age05 = None
         if os.path.exists(AGEGRIDS.format(age)):
             g = xr.open_dataarray(AGEGRIDS.format(age))
-            assert abs(float(g.lon[0]) + 180) < 1e-6 and abs(float(g.lat[0]) + 90) < 1e-6 and g.shape == (721, 1441)
-            age05 = g.values[::2, :-1:2].astype(float)
-            w.field('age', age, age05)
-            w.field('age_depth', age, -cooling.depth_m(law, np.where(np.isfinite(age05), age05, 0.0))
-                    + np.where(np.isfinite(age05), 0.0, np.nan))
+            assert float(g.lon[0]) == -180 and float(g.lat[0]) == -90 and g.shape == (181, 360)
+            age1 = g.values.astype(float)
+            w.field('age', age, age1)
+            w.field('age_depth', age, -cooling.depth_m(law, np.where(np.isfinite(age1), age1, 0.0))
+                    + np.where(np.isfinite(age1), 0.0, np.nan))
+            age05 = nodes1_to_05(age1)
         # --- the layer (mesh -> 0.5 deg) ---
         layer_depth = None
         i = layer_ages.index(age) if age in layer_ages else None

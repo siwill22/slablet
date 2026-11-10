@@ -17,6 +17,7 @@ Written per Myr t to <cache>/<model>/anchor<id>_s<sample_deg>_v2/seafloor_v1/t<t
     age_grid       (every GRID_EVERY_MYR, or --grid-every) seafloor age on the 1 deg cell-centre grid: the nearest
                    tracked point within GRID_RADIUS_KM, else NaN (continents, and ocean older than the tracking)
 --grids-only <folder> writes just the age grids (every --grid-every Myr) to <folder>/t<t>.npz and leaves the cache alone.
+--rift-points <file.npz> writes just the diverging-boundary points and their opening rates every Myr (no tracking).
     n_points       tracked points alive at t
 Distances are great-circle distances on a sphere of radius 6371 km.
 """
@@ -80,6 +81,47 @@ def seeds(snap):
             q = p + sg * np.radians(SEED_OFFSET_DEG) * n
             out.append(q / np.linalg.norm(q))
     return np.array(out).reshape(-1, 3)
+
+
+def diverging_points(snap):
+    """Points on a snapshot's diverging boundaries (where seeds() puts new seafloor either side), and the full opening
+    rate there (km/Myr): every SEED_DEG along every boundary opening faster than DIVERGE_KM_PER_MYR, not subduction
+    zones."""
+    stats = snap.calculate_plate_boundary_statistics(np.radians(SEED_DEG))
+    pts, rate = [], []
+    for s in stats:
+        v = s.convergence_velocity_orthogonal
+        if not np.isfinite(v) or v > -DIVERGE_KM_PER_MYR:
+            continue
+        if s.boundary_feature.get_feature_type() == pygplates.FeatureType.gpml_subduction_zone:
+            continue
+        pts.append(s.boundary_point.to_xyz())
+        rate.append(-v)
+    return np.array(pts, float).reshape(-1, 3), np.array(rate, float)
+
+
+def rift_points(cfg, path, sample_deg=1.0, start=None, end=0):
+    """Every Myr from start to end, the diverging-boundary points (diverging_points) to an npz: time (Ma), lon, lat,
+    opening_km_per_myr.  No tracking: where and when the reconstruction opens, for models that start something at
+    rifting (IPV's keel drip fronts)."""
+    trenches, _ = folder_for(cfg, sample_deg)
+    start = int(cfg['start_ma'] if start is None else start)
+    if trenches._model is None:
+        from slablet.gplates.trench_samples import load_model
+        trenches._model = load_model(*trenches.files)
+    rm, feats = trenches._model
+    tm = pygplates.TopologicalModel(feats, rm, anchor_plate_id=int(cfg.get('anchor_plate_id', 0)))
+    out = {'time': [], 'lon': [], 'lat': [], 'opening_km_per_myr': []}
+    for t in range(start, end - 1, -1):
+        xyz, rate = diverging_points(tm.topological_snapshot(float(t)))
+        out['time'].append(np.full(len(rate), float(t)))
+        out['lon'].append(np.degrees(np.arctan2(xyz[:, 1], xyz[:, 0])))
+        out['lat'].append(np.degrees(np.arcsin(np.clip(xyz[:, 2], -1.0, 1.0))))
+        out['opening_km_per_myr'].append(rate)
+    out = {k: np.concatenate(v) for k, v in out.items()}
+    os.makedirs(os.path.dirname(os.path.abspath(path)), exist_ok=True)
+    np.savez_compressed(path, **out)
+    return path
 
 
 def velocity_grid(snap):
@@ -205,8 +247,12 @@ def main():
     ap.add_argument('--end', type=float, default=0)
     ap.add_argument('--grid-every', type=int, default=GRID_EVERY_MYR, help='Myr between age grids')
     ap.add_argument('--grids-only', help='write only the age grids, to this folder (the cache is left alone)')
+    ap.add_argument('--rift-points', help='write only the diverging-boundary points every Myr, to this npz (no tracking)')
     args = ap.parse_args()
     cfg = yaml.safe_load(open(args.config))
+    if args.rift_points:
+        print(rift_points(cfg, args.rift_points, start=args.start, end=int(args.end)))
+        return
     print(track(cfg, start=args.start, end=int(args.end), grid_every=args.grid_every, grids_only=args.grids_only))
 
 
