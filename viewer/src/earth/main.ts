@@ -28,13 +28,16 @@ import { ColorBar, FieldLayer } from './fieldLayer';
  * base within the asthenosphere layer; overlays (plate boundaries, coastlines, continents and keels,
  * graticule). Projection is the round button at the bottom right; age is the bar along the bottom.
  * A depth field may carry its encoding and colour range per depth (lists, one per depth).
+ * Model runs: one variant per model (mantle structure, deep flow viscosity, asthenosphere layer,
+ * IPV), each changing one choice from the reference; a field or arrow set is read from the
+ * folder of the variants of the models it comes from (export.py DEPENDS).
  *
  * On a flat map (Robinson, Plate Carree), as in petrify's globe host: a sideways drag or a sideways
  * scroll (trackpad swipe, shift+wheel) moves the central meridian, one to one with the pointer at
  * the equator; vertical scroll zooms; vertical drag does nothing. The map never slides off-centre.
  *
  * URL: ?t=<age Ma> ?field=<id|none> ?arrows=<id|none> ?depth=<km> ?below=<km below the plate>
- *      ?proj=robinson|plateCarree
+ *      ?proj=robinson|plateCarree ?<model id>=<variant id> (e.g. ?viscosity=sc2006)
  *      ?lon=<central longitude of flat maps> ?view=<lon>,<lat> (globe camera at load)
  */
 
@@ -44,16 +47,24 @@ interface Grid { deg: number; nlon: number; nlat: number }
 type PerDepth = number | number[];
 interface FieldInfo {
   id: string; group: string; label: string; units: string; path: string; grid: string; depth: string | null;
-  offset: PerDepth; scale: PerDepth; nodata: number; min: PerDepth; max: PerDepth; colormap: string; ages: number[];
+  offset: PerDepth; scale: PerDepth; nodata: number; min: PerDepth; max: PerDepth; colormap: string;
+  models: string[]; ages: Record<string, number[]>;
 }
-interface VectorInfo { id: string; group: string; label: string; path: string; depth: string | null; ages: number[] }
+interface VectorInfo {
+  id: string; group: string; label: string; path: string; depth: string | null;
+  models: string[]; ages: Record<string, number[]>;
+}
 interface DepthSet { label: string; km: number[] }
+interface Model { id: string; label: string; variants: { id: string; label: string }[] }
+/** Anything stored per combination of model variants. */
+interface PerRun { path: string; models: string[]; ages: Record<string, number[]> }
 interface RunInfo {
   label: string;
   ages: number[];
   depth_sets: Record<string, DepthSet>;
+  models: Model[];
   grids: Record<string, Grid>;
-  land: { path: string; grid: string; ages: number[] };
+  land: PerRun & { grid: string };
   fields: FieldInfo[];
   vectors: VectorInfo[];
   arrow_lattice: ArrowLattice;
@@ -90,6 +101,8 @@ const depthView: Record<string, number> = {
   mantle: Number(params.get('depth') ?? 650),
   layer: Number(params.get('below') ?? 50),
 };
+/** The chosen variant of each model (the first, the reference, unless the URL names another). */
+const runView: Record<string, string> = {};
 
 const scene = new Scene();
 const renderer = new WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
@@ -237,6 +250,13 @@ const depthIndex = (set: string | null) => {
   return best;
 };
 const atDepth = (x: PerDepth, k: number) => (Array.isArray(x) ? x[k] : x);
+/** The chosen runs' folder for an item, its ages there, and the file at one age. */
+const runFolder = (x: PerRun) => x.models.map((m) => runView[m]).join('-');
+const runAges = (x: PerRun) => x.ages[runFolder(x)] ?? [];
+const runFile = (x: PerRun, age: number) => {
+  const c = runFolder(x);
+  return `${x.path}${c ? `/${c}` : ''}/${tag(age)}.bin`;
+};
 
 function applyFieldStyle(): void {
   const f = currentField();
@@ -263,11 +283,11 @@ async function applyAge(age: number): Promise<void> {
   void boundaries.setAge(at);
   void coastlines.setAge(at);
   const f = currentField(), v = currentVector();
-  const fOk = f !== null && f.ages.includes(at), vOk = v !== null && v.ages.includes(at);
+  const fOk = f !== null && runAges(f).includes(at), vOk = v !== null && runAges(v).includes(at);
   const [fb, lb, vb] = await Promise.all([
-    fOk ? fetchBytes(`${f!.path}/${tag(at)}.bin`) : Promise.resolve(null),
-    r.land.ages.includes(at) ? fetchBytes(`${r.land.path}/${tag(at)}.bin`) : Promise.resolve(null),
-    vOk ? fetchBytes(`${v!.path}/${tag(at)}.bin`) : Promise.resolve(null),
+    fOk ? fetchBytes(runFile(f!, at)) : Promise.resolve(null),
+    runAges(r.land).includes(at) ? fetchBytes(runFile(r.land, at)) : Promise.resolve(null),
+    vOk ? fetchBytes(runFile(v!, at)) : Promise.resolve(null),
   ]);
   if (mine !== request) return;
   applyFieldStyle();
@@ -293,7 +313,11 @@ async function applyAge(age: number): Promise<void> {
   };
   const line = (what: string, info: FieldInfo | VectorInfo | null, ok: boolean) => (info === null ? ''
     : `\n${what}: ${info.label}${where(info.depth)}${ok ? '' : '  (none at this age)'}`);
-  status.textContent = `${r.label}\nAge ${at} Ma${line('Field', f, fOk)}${line('Arrows', v, vOk)}`;
+  // The runs behind what is shown, one line per model used.
+  const used = new Set([...(f?.models ?? []), ...(v?.models ?? [])]);
+  const runs = r.models.filter((m) => used.has(m.id)).map((m) =>
+    `\n${m.label}: ${m.variants.find((x) => x.id === runView[m.id])?.label ?? runView[m.id]}`).join('');
+  status.textContent = `${r.label}\nAge ${at} Ma${line('Field', f, fOk)}${line('Arrows', v, vOk)}${runs}`;
 }
 
 // --- panel ----------------------------------------------------------------------------
@@ -311,6 +335,7 @@ let arrowCtl: Controller = arrowFolder.add(view, 'arrows', {}).name('Arrows');
 arrowFolder.add(view, 'spacing', 2, 10, 2).name('Spacing (deg)').onChange((v: number) => { arrows.setSpacing(v); });
 arrowFolder.add(view, 'length', 0.05, 2, 0.05).name('Length (deg per cm/yr)')
   .onChange((v: number) => { arrows.length = v; });
+const runFolderGui = gui.addFolder('Model runs');
 const overlayFolder = gui.addFolder('Overlays');
 overlayFolder.add(view, 'boundaries').name('Plate boundaries').onChange((v: boolean) => { boundaries.visible = v; });
 overlayFolder.add(view, 'coastlines').name('Coastlines').onChange((v: boolean) => { coastlines.visible = v; });
@@ -337,6 +362,12 @@ async function boot(): Promise<void> {
     const step = d.length > 1 ? Math.min(...d.slice(1).map((z, i) => z - d[i])) : 1;
     depthCtls.set(set, gui.add(depthView, set, d[0], d[d.length - 1], step).name(label)
       .onChange(() => { void applyAge(ageBar.age); }));
+  }
+  for (const m of r.models) {
+    const asked = params.get(m.id);
+    runView[m.id] = m.variants.some((x) => x.id === asked) ? asked! : m.variants[0].id;
+    runFolderGui.add(runView, m.id, Object.fromEntries(m.variants.map((x) => [x.label, x.id]))).name(m.label)
+      .onChange(() => { void applyAge(ageBar.age); });
   }
   arrowCtl.destroy();
   arrowCtl = arrowFolder.add(view, 'arrows', options(r.vectors)).name('Arrows')

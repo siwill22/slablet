@@ -18,10 +18,41 @@ conda run -n pygmt17 python -m slablet.gplates.seafloor_tracker configs/muller20
 # IPV on Müller 2022 from 300 Ma (~15-40 min), in ~/GIT/IPV:
 #   conda run -n pygmt17 python -c "from mantlememory import MantleSimulation, SimulationConfig; \
 #     MantleSimulation(SimulationConfig.from_yaml('mantlememory/examples/config_muller2022_300Ma.yaml')).run()"
-conda run -n pygmt17 python viewer/prep/export.py             # all of it -> viewer/public/data/earth/ (local only)
+# the other model runs (below), one thread each, about 4 at a time:
+conda run -n pygmt17 python viewer/prep/layer_300.py 300 --variant weak   # also strong, cap, continent, deep
+                                                                          # (~30-45 min each)
+conda run -n pygmt17 python viewer/prep/mantle_5myr.py --variant lm10     # also lm20 (~10 min each)
+conda run -n pygmt17 python viewer/prep/mantle_5myr.py --variant ref --viscosity sc2006   # each mantle run x
+                                                                          # sc2006, four_layer (~3 min each)
+cd ~/GIT/IPV && conda run -n pygmt17 python ~/GIT/slablet/viewer/prep/ipv_variant.py front14   # also front33, age
+conda run -n pygmt17 python viewer/prep/export.py --workers 4 # all of it -> viewer/public/data/earth/ (~5 min,
+                                                              # 12 GB, local only; the runs above take ~35 GB)
 cd viewer && npm install && npm run dev                       # http://localhost:5180
-node scripts/check.mjs                                        # every field, arrow set, depth and age; fails on page errors
+node scripts/check.mjs                                        # every field, arrow set, depth, age and model run;
+                                                              # fails on page errors
 ```
+
+## Model runs
+
+Each model has a reference run and a few others, each changing one choice that the literature or our own tests leave
+open; the panel's **Model runs** folder picks one run per model, and a field shows the run of each model it comes
+from (the status box names them). All runs of a field share one colour scale, so switching runs compares like with
+like.
+
+| Model | Reference | Other runs |
+| --- | --- | --- |
+| Mantle structure (`mantle_5myr.py`) | slabs sink through the lower mantle at 15 km/Myr x (slab feed)^0.5 | 10 and 20 km/Myr, bracketing the 1-2 cm/yr of slab-remnant estimates (van der Meer et al. 2010; Butterworth et al. 2014) |
+| Deep flow viscosity (`mantle_5myr.py --viscosity`) | two-layer, 1e21 Pa s above 660 km, 3e22 below | Steinberger & Calderwood (2006); a stiff 100 km lid (1e22) over the two-layer profile |
+| Asthenosphere layer (`layer_300.py`) | Buck et al. (2009): 300 km, 1.3e19 Pa s, density contrast 10 kg/m3, craton keels, uniform supply beneath ocean | viscosity 2.6e19 and 6.5e18 Pa s (half and twice the mobility, the range over which the AAD low held); the layer capped at 600 km; every continent a keel (capped too); supply where the deep mantle rises (u_r at 400 km) |
+| IPV vulnerability (`ipv_variant.py`) | drip fronts 20 km/Myr, started by the reconstruction's rifting | fronts at 14 and 33 km/Myr (Gernon et al. 2025's range); fronts started by the seafloor age beside margins (IPV's original rule) |
+
+The deep flow, geoid, stresses and dynamic topography come from a mantle run and a viscosity profile together (every
+pairing is exported); the summed seafloor elevation also takes the layer run.
+
+Advancing keels bulldoze the layer into enclosed pockets without limit. In the reference this reaches 4750 km in a few
+cells (99.9% of the layer stays below 560 km); with every continent a keel the pockets reach 2400 km by 284 Ma and the
+run all but stalls, so that run is capped at 600 km (about the base of the upper mantle below a 100 km plate), and
+the capped reference is there to compare it with.
 
 ## What it shows
 
@@ -45,14 +76,16 @@ node scripts/check.mjs                                        # every field, arr
   pressure-driven part, the shear lineation trend (fixed length, towards younging), the chain direction (layer
   minus plate, towards a chain's young end), and the deep flow at the chosen depth.
 - **Depth fields** whose values change by an order of magnitude with depth carry their own encoding and colour range
-  at each depth, set from four sample ages (0, 100, 200, 300 Ma); the shear-velocity anomaly keeps +-2% at every depth.
+  at each depth, set from four sample ages (0, 100, 200, 300 Ma) of every run; the shear-velocity anomaly keeps +-2%
+  at every depth. The exporter reports any field with more than 0.5% of its values outside its encoding.
 - **Overlays:** plate boundaries, coastlines, continents and keels (the layer's own masks), graticule.
 
 Projection is the round button at the bottom right; age is the bar along the bottom. On a flat map (Robinson,
 Plate Carrée) a sideways drag or sideways scroll (trackpad swipe, shift+wheel) moves the central meridian, one to one
 with the pointer at the equator; vertical scroll zooms; vertical drag does nothing, as in petrify's globe host. URL
 parameters: `?t=<Ma>` `?field=<id|none>` `?arrows=<id|none>` `?depth=<km>` `?below=<km below the plate>`
-`?proj=robinson|plateCarree` `?lon=<central longitude>` `?view=<lon>,<lat>`.
+`?proj=robinson|plateCarree` `?lon=<central longitude>` `?view=<lon>,<lat>`, and a run per model:
+`?mantle=lm10` `?viscosity=sc2006` `?layer=weak` `?ipv=front14`.
 
 ## What to keep in mind
 

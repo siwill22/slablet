@@ -1,24 +1,30 @@
 """Export slablet's Earth layers on Müller et al. (2022) for the Earth viewer (viewer/index.html).
 
-    conda run -n pygmt17 python viewer/prep/export.py [--ages 0 5 ...]          # from ~/GIT/slablet
+    conda run -n pygmt17 python viewer/prep/export.py [--ages 0 5 ...] [--workers 4]     # from ~/GIT/slablet
 
-Reads (run these first; a missing input leaves its layers out at those ages):
-  runs_real/muller2022_refined_5myr/   viewer/prep/mantle_5myr.py: mantle_temp_<age>Ma.nc (shear-velocity anomaly,
-                                       basal pile) and dyntopo_<age>Ma.nc (dynamic topography, deep flow)
-  runs_real/layer_300Ma.npz            viewer/prep/layer_300.py: the asthenosphere layer and flow-driven volcanism
-  runs_real/ipv_muller2022_300Ma_rift/viewer_data/fields_<age>Ma.nc
-                                       IPV (mantlememory) on Müller 2022, keel drip fronts started by rifting:
-                                       vulnerability and its parts
-  runs_real/cache/ipv/agegrids_muller2022_tracker/   seafloor ages from slablet's tracker, every Myr, 1 deg nodes,
-                                       continents blank (viewer/prep/ipv_ages.py); IPV reads the same grids
+Reads, for each model run (MODELS; run these first; a missing input leaves its layers out at those ages):
+  runs_real/muller2022_refined_5myr[_<variant>][_<viscosity>]/
+                     viewer/prep/mantle_5myr.py: mantle_temp_<age>Ma.nc (shear-velocity anomaly, basal pile) and
+                     dyntopo_<age>Ma.nc (dynamic topography, geoid, deep flow and stresses)
+  runs_real/layer_300Ma[_<variant>].npz
+                     viewer/prep/layer_300.py: the asthenosphere layer and flow-driven volcanism
+  runs_real/ipv_muller2022_300Ma_<rift | variant>/viewer_data/fields_<age>Ma.nc
+                     IPV (mantlememory) on Müller 2022 (viewer/prep/ipv_variant.py): vulnerability and its parts
+  runs_real/cache/ipv/agegrids_muller2022_tracker/
+                     seafloor ages from slablet's tracker, every Myr, 1 deg nodes, continents blank
+                     (viewer/prep/ipv_ages.py); IPV reads the same grids
 and writes viewer/public/data/earth/ (gitignored: local only):
 
-  run.json                    ages, depth sets, grids, fields, vectors, arrow lattice (read by src/earth/main.ts)
-  fields/<id>/<AAAA>.bin      uint8 per grid node, value = offset + byte x scale, 255 no data (IPV's vulnerability
+  run.json                    ages, depth sets, model runs, grids, fields, vectors, arrow lattice (src/earth/main.ts)
+  fields/<id>/<runs>/<AAAA>.bin
+                              uint8 per grid node, value = offset + byte x scale, 255 no data (IPV's vulnerability
                               fields: also where exactly 0, mostly continents); a field with depth
                               holds every depth of its set, shallowest first (depth-major).  AAAA = age in Ma.
-  land/<AAAA>.bin             uint8 on the 0.5 deg grid: 0 ocean, 1 continent, 2 keel (the layer's own masks)
-  vectors/<id>/<AAAA>.bin     float32, east and north (km/Myr) interleaved at every arrow-lattice point; with depth,
+                              <runs> names the variant of each model the field comes from (DEPENDS), e.g.
+                              lm10-sc2006; fields from no model run (seafloor ages) have no <runs> folder
+  land/<runs>/<AAAA>.bin      uint8 on the 0.5 deg grid: 0 ocean, 1 continent, 2 keel (the layer's own masks)
+  vectors/<id>/<runs>/<AAAA>.bin
+                              float32, east and north (km/Myr) interleaved at every arrow-lattice point; with depth,
                               every depth, shallowest first
   boundaries/                 petrify BoundarySeries: ridges, trenches (with polarity), transforms, other
   coastlines/                 the same format: Müller 2022's coastlines (Merdith et al.) at each age, as 'other' lines
@@ -52,7 +58,6 @@ import numpy as np
 import pygplates
 import xarray as xr
 import yaml
-from scipy.interpolate import RegularGridInterpolator
 from scipy.spatial import cKDTree
 
 SLABLET = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -68,9 +73,6 @@ from slablet.gplates.models import load as load_reconstruction   # noqa: E402
 from slablet.sphere import lonlat_to_xyz                     # noqa: E402
 
 RUNS = os.path.join(SLABLET, 'runs_real')
-MANTLE = os.path.join(RUNS, 'muller2022_refined_5myr')
-LAYER = os.path.join(RUNS, 'layer_300Ma.npz')
-IPV = os.path.join(RUNS, 'ipv_muller2022_300Ma_rift', 'viewer_data')
 AGEGRIDS = os.path.join(RUNS, 'cache', 'ipv', 'agegrids_muller2022_tracker', 'seafloor_age_{:d}Ma.nc')
 CFG = os.path.join(SLABLET, 'configs', 'muller2022_refined.yaml')
 OUT = os.path.join(SLABLET, 'viewer', 'public', 'data', 'earth')
@@ -85,16 +87,16 @@ TREND_SPEED = 30.0             # km/Myr: the fixed arrow length of the shear lin
 #      colour map).  Encodings span the whole run (0.5-99.5th percentiles at 0, 100, 200 and 300 Ma), so nothing
 #      clips; the colour range is where the detail is, and the panel's Range widens it.
 FIELDS = {
-    'dyntopo': ('Surface', 'Dynamic topography (mantle below 300 km)', 'm', 1, None, -8000, 8000, -1500, 1500,
+    'dyntopo': ('Surface', 'Dynamic topography (mantle below 300 km)', 'm', 1, None, -11000, 11000, -1500, 1500,
                 'polar'),
     'geoid': ('Surface', 'Geoid (mantle below 300 km)', 'm', 1, None, -1000, 1000, -500, 500, 'polar'),
-    'layer_depth': ('Surface', 'Seafloor depth change from the layer (+ shallower)', 'm', 0.5, None, -1500, 1500,
+    'layer_depth': ('Surface', 'Seafloor depth change from the layer (+ shallower)', 'm', 0.5, None, -2500, 2500,
                     -600, 600, 'polar'),
     'age_depth': ('Surface', 'Seafloor elevation from age (GDH1)', 'm', 1, None, -7000, -2000, -6500, -2500,
                   'ocean'),
-    'total_depth': ('Surface', 'Seafloor elevation: age + layer + dynamic', 'm', 0.5, None, -9000, -1000,
+    'total_depth': ('Surface', 'Seafloor elevation: age + layer + dynamic', 'm', 0.5, None, -15000, 5000,
                     -6500, -2500, 'ocean'),
-    'age': ('Lithosphere', "Seafloor age (slablet's tracker)", 'Myr', 1, None, 0, 254, 0, 200, 'age'),
+    'age': ('Lithosphere', "Seafloor age (slablet's tracker)", 'Myr', 1, None, 0, 508, 0, 200, 'age'),
     'lithosphere': ('Lithosphere', 'Lithosphere thickness (GDH1; continents 150 km)', 'km', 0.5, None, 0, 254,
                     0, 160, 'viridis'),
     'vuln': ('Lithosphere', 'Vulnerability (IPV): total', '', 1, None, 0, 1, 0, 0.6, 'magma'),
@@ -106,7 +108,7 @@ FIELDS = {
     'vuln_rt': ('Lithosphere', 'Vulnerability: keel drip fronts (RT)', '', 1, None, 0, 1, 0, 1, 'magma'),
     'vuln_rift': ('Lithosphere', 'Vulnerability: rifting', '', 1, None, 0, 1, 0, 1, 'magma'),
     'keel_fraction': ('Lithosphere', 'Keel remaining (IPV drip fronts)', '', 1, None, 0, 1, 0, 1, 'viridis'),
-    'h': ('Upper mantle', 'Layer thickness', 'km', 0.5, None, 0, 600, 0, 500, 'viridis'),
+    'h': ('Upper mantle', 'Layer thickness', 'km', 0.5, None, 0, 1000, 0, 500, 'viridis'),
     'layer_speed': ('Upper mantle', 'Layer speed (depth mean)', 'cm/yr', 0.5, None, 0, 20, 0, 8, 'viridis'),
     'pspeed': ('Upper mantle', 'Pressure-driven flow speed (depth mean)', 'cm/yr', 0.5, None, 0, 20, 0, 8,
                'viridis'),
@@ -114,7 +116,7 @@ FIELDS = {
                   'polar'),
     'shear': ('Upper mantle', 'Shear rate at the top of the layer', 'per Myr', 0.5, None, 0, 5, 0, 2, 'viridis'),
     'shear_angle': ('Upper mantle', 'Shear trend vs plate motion', 'deg', 0.5, None, 0, 90, 0, 90, 'magma'),
-    'rise': ('Upper mantle', 'Layer rise rate along the plate base', 'mm/yr', 0.5, None, -5, 5, -1.5, 1.5,
+    'rise': ('Upper mantle', 'Layer rise rate along the plate base', 'mm/yr', 0.5, None, -20, 20, -1.5, 1.5,
              'polar'),
     'turn': ('Upper mantle', 'Chain direction vs plate motion', 'deg', 0.5, None, 0, 180, 0, 90, 'magma'),
     'upwell': ('Upper mantle', 'Shear-forced upwelling, below the plate', 'mm/yr', 0.5, 'layer', -10, 10, -1.5, 1.5,
@@ -134,7 +136,7 @@ FIELDS = {
     'geoid_z': ('Deep mantle', 'Geoid at depth (-potential / g)', 'm', 1, 'mantle', -3000, 3000, -1000, 1000,
                 'polar'),
     'pile': ('Deep mantle', 'Basal pile thickness', 'km', 1, None, 0, 1000, 0, 600, 'viridis'),
-    'cmb_topo': ('Deep mantle', 'Core-mantle boundary topography', 'km', 1, None, -32, 32, -15, 15, 'polar'),
+    'cmb_topo': ('Deep mantle', 'Core-mantle boundary topography', 'km', 1, None, -40, 40, -15, 15, 'polar'),
 }
 # id: (group, label, depth set)
 VECTORS = {
@@ -147,6 +149,57 @@ VECTORS = {
     'deep': ('Deep mantle', 'Deep flow', 'mantle'),
 }
 DEPTH_SETS = {'mantle': 'Depth (km)', 'layer': 'Below the plate (km)'}
+# The model runs: id: (label, {variant: label}), the first variant the reference.  Each changes one choice from the
+# reference (layer_300.py, mantle_5myr.py, ipv_variant.py); the viewer picks one variant per model.
+MODELS = {
+    'mantle': ('Mantle structure', {
+        'ref': 'Lower-mantle slab sinking 15 km/Myr (reference)',
+        'lm10': 'Lower-mantle slab sinking 10 km/Myr',
+        'lm20': 'Lower-mantle slab sinking 20 km/Myr'}),
+    'viscosity': ('Deep flow viscosity', {
+        'two_layer': 'Two-layer: 1e21, 3e22 below 660 km (reference)',
+        'sc2006': 'Steinberger & Calderwood (2006)',
+        'four_layer': 'Stiff 100 km lid (1e22) over two-layer'}),
+    'layer': ('Asthenosphere layer', {
+        'ref': 'Buck: 300 km, 1.3e19 Pa s, craton keels, uniform supply (reference)',
+        'weak': 'Viscosity 2.6e19 Pa s (half the mobility)',
+        'strong': 'Viscosity 6.5e18 Pa s (twice the mobility)',
+        'cap': 'Layer capped at 600 km',
+        'continent': 'Continents as keels (capped at 600 km)',
+        'deep': 'Supply where the deep mantle rises'}),
+    'ipv': ('IPV vulnerability', {
+        'ref': 'Drip fronts 20 km/Myr, started by rifting (reference)',
+        'front14': 'Drip fronts 14 km/Myr',
+        'front33': 'Drip fronts 33 km/Myr',
+        'age': 'Drip fronts started by seafloor age (IPV original)'}),
+}
+FLOW = ('mantle', 'viscosity')
+# The models each field, arrow set and the land mask come from (none: shared by every run).
+DEPENDS = {'age': (), 'age_depth': (), 'plate': (), 'total_depth': ('layer',) + FLOW,
+           'dvs': ('mantle',), 'dvs_tomo': ('mantle',), 'pile': ('mantle',),
+           'dyntopo': FLOW, 'geoid': FLOW, 'cmb_topo': FLOW, 'ur': FLOW, 'uh': FLOW, 'tau': FLOW, 's_rr': FLOW,
+           'geoid_z': FLOW, 'deep': FLOW}
+DEPENDS.update({k: ('ipv',) for k in FIELDS if k.startswith('vuln') or k == 'keel_fraction'})
+DEPENDS.update({k: ('layer',) for k in list(FIELDS) + list(VECTORS) + ['land'] if k not in DEPENDS})
+
+
+def mantle_dir(variant, viscosity='two_layer'):
+    from mantle_5myr import flow_dir
+    return os.path.join(SLABLET, flow_dir(variant, viscosity))
+
+
+def layer_path(variant):
+    from layer_300 import layer_file
+    return layer_file(300, variant)
+
+
+def ipv_dir(variant):
+    return os.path.join(RUNS, 'ipv_muller2022_300Ma_' + ('rift' if variant == 'ref' else variant), 'viewer_data')
+
+
+def combo(models, chosen):
+    """The folder of one combination of variants, e.g. 'lm10-sc2006' ('' when the item depends on no model)."""
+    return '-'.join(chosen[m] for m in models)
 # Depth fields whose values change by an order of magnitude with depth: each depth gets its own encoding and colour
 # range, from these ages (Writer.levels); FIXED_COLOUR keep their one colour range (the seismic convention, +-2%).
 # The log stress keeps one range for all depths.
@@ -191,9 +244,14 @@ def encode(values, lo, hi):
     return b
 
 
+def _axis_weights(src, dst):
+    i = np.clip(np.searchsorted(src, dst, side='right') - 1, 0, len(src) - 2)
+    return i, (dst - src[i]) / (src[i + 1] - src[i])
+
+
 def cells_to_nodes(a, deg):
-    """1 deg cell-centred grid(s) (..., 180, 360) to the node grid of spacing deg: bilinear, wrapping in longitude,
-    each pole the mean of the row next to it."""
+    """1 deg cell-centred grid(s) (..., 180, 360) to the node grid of spacing deg: bilinear (separable, latitude then
+    longitude), wrapping in longitude, each pole the mean of the row next to it."""
     a = np.asarray(a, float)
     clon = -179.5 + np.arange(360)
     clat = -89.5 + np.arange(180)
@@ -206,11 +264,10 @@ def cells_to_nodes(a, deg):
     plat = np.r_[-90.0, clat, 90.0]
     plon = np.r_[clon[0] - 1, clon, clon[-1] + 1]
     glon, glat = grid_nodes(deg)
-    LAT, LON = np.meshgrid(glat, glon, indexing='ij')
-    pts = np.c_[LAT.ravel(), LON.ravel()]
-    flat = padded.reshape(-1, padded.shape[-2], padded.shape[-1])
-    out = [RegularGridInterpolator((plat, plon), f)(pts).reshape(len(glat), len(glon)) for f in flat]
-    return np.array(out).reshape(a.shape[:-2] + (len(glat), len(glon)))
+    i, t = _axis_weights(plat, glat)
+    j, u = _axis_weights(plon, glon)
+    rows = padded[..., i, :] * (1 - t)[:, None] + padded[..., i + 1, :] * t[:, None]
+    return rows[..., j] * (1 - u) + rows[..., j + 1] * u
 
 
 def coastlines_at(coast, rm, time, max_deg=1.0):
@@ -339,30 +396,42 @@ def boundaries_at(topo, rm, time, max_deg=1.0):
 
 
 class Writer:
-    """Writes each field, arrow set and land mask.  With sample=True it writes nothing and keeps the depth fields'
-    values instead, from which levels() sets each depth's encoding and colour range (PER_DEPTH)."""
+    """Writes each field, arrow set and land mask, per combination of model variants.  With sample=True it writes
+    nothing and keeps a subsample of the depth fields' values instead (every combination pooled, so all variants share
+    one scale), from which levels() sets each depth's encoding and colour range (PER_DEPTH).  It also counts values
+    outside their encoding, which clip."""
 
     def __init__(self, sample=False, levels=None):
         self.sample = sample
         self.seen = {k: [] for k in FIELDS}
         self.per_depth = levels or {}
-        self.ages = {k: [] for k in list(FIELDS) + ['land']}
-        self.vector_ages = {k: [] for k in VECTORS}
+        self.ages = {k: {} for k in list(FIELDS) + ['land']}
+        self.vector_ages = {k: {} for k in VECTORS}
+        self.clipped = {}
 
-    def field(self, key, age, values):
+    def field(self, key, age, values, chosen=None):
+        values = np.asarray(values, float)
         if self.sample:
             if key in PER_DEPTH:
-                self.seen[key].append(np.asarray(values, float))
+                self.seen[key].append(values.reshape(values.shape[0], -1)[:, ::7])
             return
+        c = combo(DEPENDS[key], chosen or {})
         _, _, _, _, _, lo, hi, *_ = FIELDS[key]
-        path = os.path.join(OUT, 'fields', key, '{:04d}.bin'.format(age))
+        path = os.path.join(OUT, 'fields', key, c, '{:04d}.bin'.format(age))
         os.makedirs(os.path.dirname(path), exist_ok=True)
         if key in self.per_depth:
             lv = self.per_depth[key]
+            lo, hi = np.array(lv['lo'])[:, None, None], np.array(lv['hi'])[:, None, None]
             np.array([encode(v, a, b) for v, a, b in zip(values, lv['lo'], lv['hi'])]).tofile(path)
         else:
             encode(values, lo, hi).tofile(path)
-        self.ages[key].append(age)
+        ok = np.isfinite(values)
+        if ok.any():
+            out = ok & ((values < lo) | (values > hi))
+            share = out.sum() / ok.sum()
+            if share > self.clipped.get((key, c), 0.0):
+                self.clipped[(key, c)] = float(share)
+        self.ages[key].setdefault(c, []).append(age)
 
     def levels(self):
         """Per depth: encoding [lo, hi] wide enough for the sampled 0.5-99.5th percentiles x 1.25, and the colour
@@ -391,29 +460,181 @@ class Writer:
             out[key] = lv
         return out
 
-    def land(self, age, classes):
+    def land(self, age, classes, chosen):
         if self.sample:
             return
-        path = os.path.join(OUT, 'land', '{:04d}.bin'.format(age))
+        c = combo(DEPENDS['land'], chosen)
+        path = os.path.join(OUT, 'land', c, '{:04d}.bin'.format(age))
         os.makedirs(os.path.dirname(path), exist_ok=True)
         np.asarray(classes, np.uint8).tofile(path)
-        self.ages['land'].append(age)
+        self.ages['land'].setdefault(c, []).append(age)
 
-    def vector(self, key, age, east, north):
+    def vector(self, key, age, east, north, chosen=None):
         if self.sample:
             return
-        path = os.path.join(OUT, 'vectors', key, '{:04d}.bin'.format(age))
+        c = combo(DEPENDS[key], chosen or {})
+        path = os.path.join(OUT, 'vectors', key, c, '{:04d}.bin'.format(age))
         os.makedirs(os.path.dirname(path), exist_ok=True)
         np.stack([np.nan_to_num(east), np.nan_to_num(north)], axis=-1).astype(np.float32).tofile(path)
-        self.vector_ages[key].append(age)
+        self.vector_ages[key].setdefault(c, []).append(age)
+
+
+class Context:
+    """What every age needs: the mesh and grids, the reconstruction, and each layer variant's saved run."""
+
+    def __init__(self):
+        self.mesh = SM.voronoi_mesh(40000)
+        g05_lon, self.g05_lat = grid_nodes(0.5)
+        self.g05_lon = g05_lon
+        LON05, LAT05 = np.meshgrid(g05_lon, self.g05_lat)
+        self.node_cell = SM.nearest_cell(self.mesh, LON05.ravel(), LAT05.ravel())
+        alon, alat, self.rows, self.counts = arrow_lattice(ARROW_DEG)
+        self.arrow_cell = SM.nearest_cell(self.mesh, alon, alat)
+        self.aE, self.aN = east_north(alon, alat)
+        self.a_i = np.clip(np.floor(alat + 90).astype(int), 0, 179)       # the mantle's 1 deg cell under each arrow
+        self.a_j = np.floor(alon + 180).astype(int) % 360
+        self.cfg = yaml.safe_load(open(CFG))
+        recon = load_reconstruction(self.cfg)
+        self.rm = pygplates.RotationModel(recon.rotation_files)
+        self.topo = [pygplates.FeatureCollection(f) for f in recon.topology_files]
+        model_dir = os.path.dirname(os.path.dirname(recon.continent_files[0]))   # gprm's Muller2022 folder
+        self.coast = [pygplates.FeatureCollection(f)
+                      for f in glob.glob(os.path.join(model_dir, 'Coastlines', '*.gpmlz'))]
+        assert self.coast, 'no coastlines in ' + model_dir
+        self.law = cooling.get('gdh1')
+        from layer_300 import params
+        from slablet.gplates.plate_history import RealPlateHistory
+        self.hist = RealPlateHistory(self.cfg)
+        self.params = {v: params(v) for v in MODELS['layer'][1]}
+        self.layers = {v: dict(np.load(layer_path(v))) for v in MODELS['layer'][1] if os.path.exists(layer_path(v))}
+
+    def to05(self, values):
+        return np.asarray(values)[self.node_cell].reshape(len(self.g05_lat), len(self.g05_lon))
+
+    def en(self, vec):
+        v = np.asarray(vec, float)[self.arrow_cell]
+        return np.einsum('ij,ij->i', v, self.aE), np.einsum('ij,ij->i', v, self.aN)
+
+
+def export_age(ctx, age, w):
+    """Every field and arrow set at one age, for every model variant, through the writer w; returns what was missing."""
+    notes = []
+    law = ctx.law
+    # --- seafloor ages (1 deg; 0.5 deg for the summed elevation) ---
+    age05 = None
+    if os.path.exists(AGEGRIDS.format(age)):
+        g = xr.open_dataarray(AGEGRIDS.format(age))
+        assert float(g.lon[0]) == -180 and float(g.lat[0]) == -90 and g.shape == (181, 360)
+        age1 = g.values.astype(float)
+        w.field('age', age, age1)
+        w.field('age_depth', age, -cooling.depth_m(law, np.where(np.isfinite(age1), age1, 0.0))
+                + np.where(np.isfinite(age1), 0.0, np.nan))
+        age05 = nodes1_to_05(age1)
+    # --- the layer, each variant (mesh -> 0.5 deg) ---
+    step = ctx.hist.step(float(age))
+    layer_depth = {}
+    for lv in MODELS['layer'][1]:
+        chosen = {'layer': lv}
+        p = ctx.params[lv]
+        f, info = forcing_from_step(ctx.mesh, step, p)
+        layer = ctx.layers.get(lv)
+        i = [int(a) for a in layer['ages']].index(age) if layer is not None and age in layer['ages'] else None
+        if i is not None and layer['saved'][i]:
+            h = layer['h'][i].astype(float)
+            thin = (h < MIN_LAYER_KM) | layer['closed'][i]
+            up, ul, ur = layer['u_plate'][i], layer['u_layer'][i], layer['u_rel'][i]
+            layer_depth[lv] = ctx.to05(np.where(layer['closed'][i], np.nan, -1000.0 * layer['depth'][i]))
+            w.field('layer_depth', age, layer_depth[lv], chosen)
+            w.field('h', age, ctx.to05(np.where(layer['closed'][i], np.nan, h)), chosen)
+            w.field('layer_speed', age, ctx.to05(np.where(thin, np.nan, np.linalg.norm(ul, axis=1) / 10.0)), chosen)
+            w.field('rise', age, ctx.to05(np.where(thin, np.nan, layer['w'][i])), chosen)
+            cosang = np.einsum('ij,ij->i', ur, -up) / np.maximum(
+                np.linalg.norm(ur, axis=1) * np.linalg.norm(up, axis=1), 1e-12)
+            turn = np.degrees(np.arccos(np.clip(cosang, -1, 1)))
+            w.field('turn', age, ctx.to05(np.where(thin | (np.linalg.norm(up, axis=1) < 1.0), np.nan, turn)), chosen)
+            w.field('lithosphere', age, ctx.to05(layer['lithosphere'][i]), chosen)
+            if lv == 'ref':
+                w.vector('plate', age, *ctx.en(up))
+            w.vector('layer', age, *ctx.en(np.where(thin[:, None], 0.0, ul)), chosen)
+            w.vector('chain', age, *ctx.en(np.where(thin[:, None], 0.0, ur)), chosen)
+            assert (np.asarray(f.closed, bool) == layer['closed'][i]).all(), 'keels differ from the layer run ' + lv
+            flat, at, vec = layer_profile(ctx.mesh, h, f, info, up, p)
+            for key, values in flat.items():
+                w.field(key, age, ctx.to05(values), chosen)
+            for key, levels in at.items():
+                w.field(key, age, np.array([ctx.to05(v) for v in levels]), chosen)
+            w.vector('pressure', age, *ctx.en(vec['pressure']), chosen)
+            w.vector('trend', age, *ctx.en(vec['trend']), chosen)
+            ez = [ctx.en(v) for v in vec['layer_z']]
+            w.vector('layer_z', age, np.array([e for e, _ in ez]), np.array([n for _, n in ez]), chosen)
+            closed, continent = layer['closed'][i], layer['continent'][i]
+        else:
+            closed, continent = np.asarray(f.closed, bool), ~np.asarray(f.supply_mask, bool)
+            notes.append('no layer ' + lv)
+        w.land(age, ctx.to05(np.where(closed, 2, np.where(continent, 1, 0))), chosen)
+    # --- the mantle, each variant, and its flow under each viscosity profile (1 deg) ---
+    dyn05 = {}
+    for mv in MODELS['mantle'][1]:
+        mt = os.path.join(mantle_dir(mv), 'mantle_temp_{:04d}Ma.nc'.format(age))
+        if not os.path.exists(mt):
+            notes.append('no mantle ' + mv)
+            continue
+        with xr.open_dataset(mt) as ds:
+            assert [float(d) for d in ds['depth'].values] == ctx.depths
+            w.field('dvs', age, cells_to_nodes(ds['dVs_native'].values, 1.0), {'mantle': mv})
+            w.field('dvs_tomo', age, cells_to_nodes(ds['dVs'].values, 1.0), {'mantle': mv})
+            w.field('pile', age, cells_to_nodes(ds['pile_thickness_km'].values, 1.0), {'mantle': mv})
+        for vv in MODELS['viscosity'][1]:
+            chosen = {'mantle': mv, 'viscosity': vv}
+            dt = os.path.join(mantle_dir(mv, vv), 'dyntopo_{:04d}Ma.nc'.format(age))
+            if not os.path.exists(dt):
+                notes.append('no flow {}-{}'.format(mv, vv))
+                continue
+            with xr.open_dataset(dt) as ds:
+                dyn = ds['dyn_topo'].values
+                w.field('dyntopo', age, cells_to_nodes(dyn, 1.0), chosen)
+                w.field('geoid', age, cells_to_nodes(ds['geoid'].values, 1.0), chosen)
+                w.field('cmb_topo', age, cells_to_nodes(ds['cmb_topo'].values / 1000.0, 1.0), chosen)
+                w.field('ur', age, cells_to_nodes(ds['u_r'].values, 1.0), chosen)
+                ut, up_ = ds['u_theta'].values, ds['u_phi'].values
+                w.field('uh', age, cells_to_nodes(np.hypot(ut, up_), 1.0), chosen)
+                tau = cells_to_nodes(np.hypot(ds['s_rt'].values, ds['s_rp'].values), 1.0)
+                w.field('tau', age, np.log10(np.maximum(tau, 1e-3)), chosen)
+                w.field('s_rr', age, cells_to_nodes(ds['s_rr'].values, 1.0), chosen)
+                w.field('geoid_z', age, cells_to_nodes(ds['geoid_at_depth'].values, 1.0), chosen)
+                north = -10.0 * ut[:, ctx.a_i, ctx.a_j]          # cm/yr, + south -> km/Myr, + north
+                east = 10.0 * up_[:, ctx.a_i, ctx.a_j]
+                w.vector('deep', age, east, north, chosen)
+                dyn05[(mv, vv)] = cells_to_nodes(dyn, 0.5)
+    # --- seafloor elevation: age + layer + dynamic, each combination ---
+    if age05 is not None:
+        base = -cooling.depth_m(law, np.where(np.isfinite(age05), age05, 0.0))
+        for lv, ld in layer_depth.items():
+            for (mv, vv), d05 in dyn05.items():
+                total = np.where(np.isfinite(age05), base + ld + d05, np.nan)
+                w.field('total_depth', age, total, {'layer': lv, 'mantle': mv, 'viscosity': vv})
+    # --- IPV, each variant (1 deg nodes already) ---
+    for iv in MODELS['ipv'][1]:
+        path = os.path.join(ipv_dir(iv), 'fields_{:g}Ma.nc'.format(age))
+        if not os.path.exists(path):
+            notes.append('no IPV ' + iv)
+            continue
+        with xr.open_dataset(path) as ds:
+            assert ds.sizes == {'lat': 181, 'lon': 360} and float(ds.lon[0]) == -180 and float(ds.lat[0]) == -90
+            for key, var in IPV_FIELDS.items():
+                if var in ds:                 # exact zeros (most continents) left blank, so the land shows
+                    a = ds[var].values
+                    w.field(key, age, np.where(a == 0, np.nan, a) if key.startswith('vuln') else a, {'ipv': iv})
+    return notes
 
 
 def field_info(key, w):
     """run.json's entry for one field; offset, scale, min and max are lists (one per depth) for PER_DEPTH fields."""
     grp, label, units, gdeg, depth_set, lo, hi, cmin, cmax, cmap = FIELDS[key]
     info = {'id': key, 'group': grp, 'label': label, 'units': units, 'path': 'fields/' + key, 'grid': str(gdeg),
-            'depth': depth_set, 'offset': lo, 'scale': (hi - lo) / 254.0, 'nodata': 255, 'min': cmin, 'max': cmax,
-            'colormap': cmap, 'ages': sorted(w.ages[key], reverse=True)}
+            'depth': depth_set, 'models': list(DEPENDS[key]), 'offset': lo, 'scale': (hi - lo) / 254.0,
+            'nodata': 255, 'min': cmin, 'max': cmax, 'colormap': cmap,
+            'ages': {c: sorted(a, reverse=True) for c, a in w.ages[key].items()}}
     if key in w.per_depth:
         lv = w.per_depth[key]
         info.update(offset=lv['lo'], scale=[(b - a) / 254.0 for a, b in zip(lv['lo'], lv['hi'])], min=lv['min'],
@@ -421,151 +642,66 @@ def field_info(key, w):
     return info
 
 
+_CTX = None
+
+
+def _work(job):
+    """One worker's share of the ages (a process of its own: the context is built once per worker)."""
+    global _CTX
+    ages, levels, depths = job
+    if _CTX is None:
+        _CTX = Context()
+        _CTX.depths = depths
+    w = Writer(levels=levels)
+    frames = []
+    for age in ages:
+        notes = export_age(_CTX, age, w)
+        write_frame('boundaries', age, boundaries_at(_CTX.topo, _CTX.rm, age))
+        write_frame('coastlines', age, coastlines_at(_CTX.coast, _CTX.rm, age))
+        frames.append({'time': float(age), 'file': '{:04d}.geojson'.format(age)})
+        print('{:3d} Ma{}'.format(age, ': ' + ', '.join(notes) if notes else ''), flush=True)
+    return w.ages, w.vector_ages, w.clipped, frames
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--ages', type=int, nargs='*', default=AGES)
+    ap.add_argument('--workers', type=int, default=4)
     args = ap.parse_args()
     ages = sorted(set(args.ages), reverse=True)
-
-    mesh = SM.voronoi_mesh(40000)
-    g05_lon, g05_lat = grid_nodes(0.5)
-    LON05, LAT05 = np.meshgrid(g05_lon, g05_lat)
-    node_cell = SM.nearest_cell(mesh, LON05.ravel(), LAT05.ravel())
-    alon, alat, rows, counts = arrow_lattice(ARROW_DEG)
-    arrow_cell = SM.nearest_cell(mesh, alon, alat)
-    aE, aN = east_north(alon, alat)
-    a_i = np.clip(np.floor(alat + 90).astype(int), 0, 179)            # the mantle's 1 deg cell under each arrow
-    a_j = np.floor(alon + 180).astype(int) % 360
-
-    def to05(values):
-        return np.asarray(values)[node_cell].reshape(len(g05_lat), len(g05_lon))
-
-    def en(vec):
-        v = np.asarray(vec, float)[arrow_cell]
-        return np.einsum('ij,ij->i', v, aE), np.einsum('ij,ij->i', v, aN)
-
-    layer = dict(np.load(LAYER)) if os.path.exists(LAYER) else None
-    layer_ages = [int(a) for a in layer['ages']] if layer is not None else []
-    cfg = yaml.safe_load(open(CFG))
-    recon = load_reconstruction(cfg)
-    rm = pygplates.RotationModel(recon.rotation_files)
-    topo = [pygplates.FeatureCollection(f) for f in recon.topology_files]
-    model_dir = os.path.dirname(os.path.dirname(recon.continent_files[0]))   # gprm's Muller2022 folder
-    coast = [pygplates.FeatureCollection(f) for f in glob.glob(os.path.join(model_dir, 'Coastlines', '*.gpmlz'))]
-    assert coast, 'no coastlines in ' + model_dir
-    law = cooling.get('gdh1')
-    p = A.AsthenosphereParams(**LAYER_PARAMS)
-    from slablet.gplates.plate_history import RealPlateHistory
-    hist = RealPlateHistory(cfg)
-    with xr.open_dataset(os.path.join(MANTLE, 'mantle_temp_0000Ma.nc')) as ds:
+    with xr.open_dataset(os.path.join(mantle_dir('ref'), 'mantle_temp_0000Ma.nc')) as ds:
         depths = [float(d) for d in ds['depth'].values]
-    frames = []
 
-    def export_age(age, w):
-        """Every field and arrow set at one age through the writer w; returns what was missing."""
-        notes = []
-        # --- seafloor ages (1 deg; 0.5 deg for the summed elevation) ---
-        age05 = None
-        if os.path.exists(AGEGRIDS.format(age)):
-            g = xr.open_dataarray(AGEGRIDS.format(age))
-            assert float(g.lon[0]) == -180 and float(g.lat[0]) == -90 and g.shape == (181, 360)
-            age1 = g.values.astype(float)
-            w.field('age', age, age1)
-            w.field('age_depth', age, -cooling.depth_m(law, np.where(np.isfinite(age1), age1, 0.0))
-                    + np.where(np.isfinite(age1), 0.0, np.nan))
-            age05 = nodes1_to_05(age1)
-        # --- the layer (mesh -> 0.5 deg) ---
-        layer_depth = None
-        i = layer_ages.index(age) if age in layer_ages else None
-        f, info = forcing_from_step(mesh, hist.step(float(age)), p)
-        if i is not None and layer['saved'][i]:
-            h = layer['h'][i].astype(float)
-            thin = (h < MIN_LAYER_KM) | layer['closed'][i]
-            up, ul, ur = layer['u_plate'][i], layer['u_layer'][i], layer['u_rel'][i]
-            layer_depth = to05(np.where(layer['closed'][i], np.nan, -1000.0 * layer['depth'][i]))
-            w.field('layer_depth', age, layer_depth)
-            w.field('h', age, to05(np.where(layer['closed'][i], np.nan, h)))
-            w.field('layer_speed', age, to05(np.where(thin, np.nan, np.linalg.norm(ul, axis=1) / 10.0)))
-            w.field('rise', age, to05(np.where(thin, np.nan, layer['w'][i])))
-            cosang = np.einsum('ij,ij->i', ur, -up) / np.maximum(
-                np.linalg.norm(ur, axis=1) * np.linalg.norm(up, axis=1), 1e-12)
-            turn = np.degrees(np.arccos(np.clip(cosang, -1, 1)))
-            w.field('turn', age, to05(np.where(thin | (np.linalg.norm(up, axis=1) < 1.0), np.nan, turn)))
-            w.field('lithosphere', age, to05(layer['lithosphere'][i]))
-            w.vector('plate', age, *en(up))
-            w.vector('layer', age, *en(np.where(thin[:, None], 0.0, ul)))
-            w.vector('chain', age, *en(np.where(thin[:, None], 0.0, ur)))
-            assert (np.asarray(f.closed, bool) == layer['closed'][i]).all(), 'keels differ from the layer run'
-            flat, at, vec = layer_profile(mesh, h, f, info, up, p)
-            for key, values in flat.items():
-                w.field(key, age, to05(values))
-            for key, levels in at.items():
-                w.field(key, age, np.array([to05(v) for v in levels]))
-            w.vector('pressure', age, *en(vec['pressure']))
-            w.vector('trend', age, *en(vec['trend']))
-            ez = [en(v) for v in vec['layer_z']]
-            w.vector('layer_z', age, np.array([e for e, _ in ez]), np.array([n for _, n in ez]))
-            closed, continent = layer['closed'][i], layer['continent'][i]
-        else:
-            closed, continent = np.asarray(f.closed, bool), ~np.asarray(f.supply_mask, bool)
-            notes.append('no layer')
-        w.land(age, to05(np.where(closed, 2, np.where(continent, 1, 0))))
-        # --- deep mantle and dynamic topography (1 deg) ---
-        mt = os.path.join(MANTLE, 'mantle_temp_{:04d}Ma.nc'.format(age))
-        dt = os.path.join(MANTLE, 'dyntopo_{:04d}Ma.nc'.format(age))
-        if os.path.exists(mt):
-            with xr.open_dataset(mt) as ds:
-                assert [float(d) for d in ds['depth'].values] == depths
-                w.field('dvs', age, cells_to_nodes(ds['dVs_native'].values, 1.0))
-                w.field('dvs_tomo', age, cells_to_nodes(ds['dVs'].values, 1.0))
-                w.field('pile', age, cells_to_nodes(ds['pile_thickness_km'].values, 1.0))
-        else:
-            notes.append('no mantle')
-        if os.path.exists(dt):
-            with xr.open_dataset(dt) as ds:
-                dyn = ds['dyn_topo'].values
-                w.field('dyntopo', age, cells_to_nodes(dyn, 1.0))
-                w.field('geoid', age, cells_to_nodes(ds['geoid'].values, 1.0))
-                w.field('cmb_topo', age, cells_to_nodes(ds['cmb_topo'].values / 1000.0, 1.0))
-                w.field('ur', age, cells_to_nodes(ds['u_r'].values, 1.0))
-                w.field('uh', age, cells_to_nodes(np.hypot(ds['u_theta'].values, ds['u_phi'].values), 1.0))
-                tau = cells_to_nodes(np.hypot(ds['s_rt'].values, ds['s_rp'].values), 1.0)
-                w.field('tau', age, np.log10(np.maximum(tau, 1e-3)))
-                w.field('s_rr', age, cells_to_nodes(ds['s_rr'].values, 1.0))
-                w.field('geoid_z', age, cells_to_nodes(ds['geoid_at_depth'].values, 1.0))
-                north = -10.0 * ds['u_theta'].values[:, a_i, a_j]          # cm/yr, + south -> km/Myr, + north
-                east = 10.0 * ds['u_phi'].values[:, a_i, a_j]
-                w.vector('deep', age, east, north)
-            if age05 is not None and layer_depth is not None:
-                total = (-cooling.depth_m(law, np.where(np.isfinite(age05), age05, 0.0)) + layer_depth
-                         + cells_to_nodes(dyn, 0.5))
-                w.field('total_depth', age, np.where(np.isfinite(age05), total, np.nan))
-        else:
-            notes.append('no dynamic topography')
-        # --- IPV (1 deg nodes already) ---
-        ipv = os.path.join(IPV, 'fields_{:g}Ma.nc'.format(age))
-        if os.path.exists(ipv):
-            with xr.open_dataset(ipv) as ds:
-                assert ds.sizes == {'lat': 181, 'lon': 360} and float(ds.lon[0]) == -180 and float(ds.lat[0]) == -90
-                for key, var in IPV_FIELDS.items():
-                    if var in ds:                 # exact zeros (most continents) left blank, so the land shows
-                        a = ds[var].values
-                        w.field(key, age, np.where(a == 0, np.nan, a) if key.startswith('vuln') else a)
-        else:
-            notes.append('no IPV')
-        return notes
-
+    ctx = Context()
+    ctx.depths = depths
     sample = Writer(sample=True)
-    for age in [a for a in SAMPLE_AGES if a in ages]:
-        export_age(age, sample)
-    w = Writer(levels=sample.levels())
-    for age in ages:
-        notes = export_age(age, w)
-        # --- plate boundaries ---
-        write_frame('boundaries', age, boundaries_at(topo, rm, age))
-        write_frame('coastlines', age, coastlines_at(coast, rm, age))
-        frames.append({'time': float(age), 'file': '{:04d}.geojson'.format(age)})
-        print('{:3d} Ma{}'.format(age, ': ' + ', '.join(notes) if notes else ''), flush=True)
+    for age in SAMPLE_AGES:
+        export_age(ctx, age, sample)
+    levels = sample.levels()
+    del ctx, sample
+    n = max(1, min(args.workers, len(ages)))
+    jobs = [(ages[k::n], levels, depths) for k in range(n)]
+    if n == 1:
+        results = [_work(jobs[0])]
+    else:
+        import multiprocessing as mp
+        with mp.get_context('spawn').Pool(n) as pool:
+            results = pool.map(_work, jobs)
+    w = Writer(levels=levels)
+    frames = []
+    for ages_f, ages_v, clipped, fr in results:
+        for k, d in ages_f.items():
+            for c, a in d.items():
+                w.ages[k].setdefault(c, []).extend(a)
+        for k, d in ages_v.items():
+            for c, a in d.items():
+                w.vector_ages[k].setdefault(c, []).extend(a)
+        for kc, share in clipped.items():
+            w.clipped[kc] = max(share, w.clipped.get(kc, 0.0))
+        frames.extend(fr)
+    for (key, c), share in sorted(w.clipped.items()):
+        if share > 0.005:
+            print('clipped: {} {} {:.1f}% of values at worst'.format(key, c or '-', 100 * share))
 
     for kind in ('boundaries', 'coastlines'):
         with open(os.path.join(OUT, kind, 'manifest.json'), 'w') as fh:
@@ -574,20 +710,25 @@ def main():
     for deg in (0.5, 1):
         lo, la = grid_nodes(deg)
         grids[str(deg)] = {'deg': deg, 'nlon': len(lo), 'nlat': len(la)}
+    _, _, rows, counts = arrow_lattice(ARROW_DEG)
     run = {
         'label': 'Müller et al. (2022), optimised mantle frame',
         'ages': ages,
-        'depth_sets': {'mantle': {'label': DEPTH_SETS['mantle'], 'km': depths or []},
+        'depth_sets': {'mantle': {'label': DEPTH_SETS['mantle'], 'km': depths},
                        'layer': {'label': DEPTH_SETS['layer'], 'km': LAYER_Z}},
+        'models': [{'id': m, 'label': label, 'variants': [{'id': v, 'label': vl} for v, vl in variants.items()]}
+                   for m, (label, variants) in MODELS.items()],
         'grids': grids,
-        'land': {'path': 'land', 'grid': '0.5', 'ages': w.ages['land'], 'classes': ['ocean', 'continent', 'keel']},
+        'land': {'path': 'land', 'grid': '0.5', 'models': list(DEPENDS['land']),
+                 'ages': {c: sorted(a, reverse=True) for c, a in w.ages['land'].items()},
+                 'classes': ['ocean', 'continent', 'keel']},
         'fields': [field_info(k, w) for k in FIELDS if w.ages[k]],
-        'vectors': [{'id': k, 'group': grp, 'label': label, 'path': 'vectors/' + k, 'depth': has_depth,
-                     'units': 'km/Myr', 'ages': sorted(w.vector_ages[k], reverse=True)}
-                    for k, (grp, label, has_depth) in VECTORS.items() if w.vector_ages[k]],
+        'vectors': [{'id': k, 'group': grp, 'label': label, 'path': 'vectors/' + k, 'depth': depth_set,
+                     'models': list(DEPENDS[k]), 'units': 'km/Myr',
+                     'ages': {c: sorted(a, reverse=True) for c, a in w.vector_ages[k].items()}}
+                    for k, (grp, label, depth_set) in VECTORS.items() if w.vector_ages[k]],
         'arrow_lattice': {'spacing_deg': ARROW_DEG, 'row_lat': [round(float(x), 4) for x in rows],
                           'row_count': [int(n) for n in counts]},
-        'sources': {'mantle': MANTLE, 'layer': LAYER, 'ipv': IPV, 'seafloor_ages': os.path.dirname(AGEGRIDS)},
     }
     with open(os.path.join(OUT, 'run.json'), 'w') as fh:
         json.dump(run, fh, indent=1)

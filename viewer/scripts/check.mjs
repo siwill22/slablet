@@ -37,6 +37,24 @@ for (const [label, fieldText, depths] of depthChecks) {
   }
 }
 for (let i = 0; i <= n; i += 1) { await scrub.fill(String(i)); await page.waitForTimeout(30); visits++; }
+// Every variant of each model run (selects 2 on, in the Model runs folder), with a field from that model; counts
+// views whose field has no data for the chosen run ("none at this age" in the status box).
+const runChecks = ['Shear-velocity anomaly (model)', 'Radial flow', 'Layer thickness', 'Vulnerability (IPV): total'];
+const status = page.locator('.asth-status');
+let missing = 0, runViews = 0;
+for (const [m, fieldText] of runChecks.entries()) {
+  await selects.nth(0).selectOption({ label: fields.find((f) => f.includes(fieldText)) });
+  const variants = await selects.nth(2 + m).locator('option').allTextContents();
+  for (const v of variants) {
+    await selects.nth(2 + m).selectOption({ label: v });
+    for (const i of [1, Math.floor(n / 2), n]) {          // not 300 Ma: the layer starts there, empty
+      await scrub.fill(String(i)); await page.waitForTimeout(120); visits++; runViews++;
+      if ((await status.textContent()).includes('none at this age')) { missing++; console.log(`missing: ${v}, step ${i}`); }
+    }
+  }
+  await selects.nth(2 + m).selectOption({ index: 0 });
+}
 await browser.close();
-console.log(`${fields.length} fields, ${vectors.length} arrow sets, ${visits} views, ${errors.length} errors`);
+console.log(`${fields.length} fields, ${vectors.length} arrow sets, ${visits} views, ${errors.length} errors; `
+  + `${missing} of ${runViews} model-run views without data`);
 if (errors.length) { console.error(errors.join('\n')); process.exit(1); }
