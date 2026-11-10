@@ -24,8 +24,8 @@ node scripts/check.mjs                                        # every field, arr
   effect on seafloor depth; seafloor elevation from age (GDH1); and the three added together.
 - **Lithosphere:** seafloor age (the published Müller 2022 grids); lithosphere thickness as the layer sees it
   (GDH1 under oceans, 150 km under continents, smoothed); IPV's vulnerability and each of its parts (small-scale
-  convection, strain rate, plate speed, edge-driven convection, keel drips, rifting; exactly zero is left blank,
-  which is most continents); IPV's keel remaining.
+  convection, strain rate, plate speed, edge-driven convection, keel drip fronts (Rayleigh-Taylor, "RT"), rifting;
+  exactly zero is left blank, which is most continents); IPV's keel remaining.
 - **Upper mantle:** the layer's thickness, depth-mean speed, how fast it rises along the plate's base, and how far
   the chain direction turns from plate motion (`slablet/asthenosphere_volcanism.py`).
 - **Deep mantle,** at the chosen depth (50-2850 km): the shear-velocity anomaly, radial flow, and the basal pile's
@@ -49,6 +49,10 @@ parameters: `?t=<Ma>` `?field=<id|none>` `?arrows=<id|none>` `?depth=<km>` `?pro
   marks plate boundaries only; its "shear" part is plate speed; its rifting part does not switch on (continents are a
   fixed 120 km thick); and continents are where the age grid has no value. Strain rate, plate speed and rifting are
   divided by fixed references (`vulnerability_normalisation: fixed`), so values compare through time.
+- On Müller 2022, IPV strips almost every keel in its first step: it reads the age of the seafloor beside a margin as
+  the time since break-up, and Müller 2022's seafloor beside Pangea is very old (median 216 Myr at 300 Ma, against
+  85-91 Myr on Merdith 2021). So the keel drip fronts have little to strip and look sparse
+  (PlateDriver `show-me/2026-11-10-keel-drips-comparison/`).
 - The layer starts uniform at 300 Ma, so it shows nothing at 300 Ma. Its first few tens of Myr are spin-up.
 - The published 212 Ma age grid is all zeros (in the download and its zip); IPV uses the 211 Ma grid there
   (`runs_real/cache/ipv/agegrids_muller2022/README.txt`).

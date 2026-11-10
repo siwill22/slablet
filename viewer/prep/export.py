@@ -81,7 +81,7 @@ FIELDS = {
                     'magma'),
     'vuln_shear': ('Lithosphere', 'Vulnerability: plate speed', '', 1, False, 0, 1, 0, 1, 'magma'),
     'vuln_edc': ('Lithosphere', 'Vulnerability: edge-driven convection', '', 1, False, 0, 1, 0, 1, 'magma'),
-    'vuln_rt': ('Lithosphere', 'Vulnerability: keel drips', '', 1, False, 0, 1, 0, 1, 'magma'),
+    'vuln_rt': ('Lithosphere', 'Vulnerability: keel drip fronts (RT)', '', 1, False, 0, 1, 0, 1, 'magma'),
     'vuln_rift': ('Lithosphere', 'Vulnerability: rifting', '', 1, False, 0, 1, 0, 1, 'magma'),
     'keel_fraction': ('Lithosphere', 'Keel remaining (IPV drip fronts)', '', 1, False, 0, 1, 0, 1, 'viridis'),
     'h': ('Upper mantle', 'Layer thickness', 'km', 0.5, False, 0, 600, 0, 500, 'viridis'),
