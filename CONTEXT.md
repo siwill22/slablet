@@ -148,6 +148,11 @@ _Avoid_: root (in prose about the model)
 **Bulldozing**:
 Moving the layer from cells that an advancing keel covers into the open cells ahead of it, so no layer is lost.
 
+**Layer cap**:
+The thickness the layer may not exceed (600 km where used, about the base of the upper mantle below a plate), its
+excess spread over the supplied cells. Without it, bulldozing piles the layer without limit in pockets that keels
+close.
+
 **Starved ridge**:
 A stretch of ridge where the layer is used up (h = 0) and the ridge sink is not met; the shortfall is filled by
 upwelling mesosphere and is recorded as the starved deficit.
@@ -172,3 +177,23 @@ whose weights are fitted against observations.
 **Supply**:
 The influx of asthenosphere from below that balances the sinks (v1: uniform over open cells, reset each step).
 _Avoid_: source (ambiguous with plume source)
+
+### Continental keels in IPV
+
+**Metasomatised keel**:
+The volatile-rich base of continental lithosphere (about 30 km thick in IPV) that drip fronts strip away; full under
+cratons at the start of a run, partial elsewhere.
+_Avoid_: keel barrier (the layer's obstacle, a different thing)
+
+**Drip front**:
+A front of Rayleigh-Taylor drips that starts at a rifting margin and migrates towards the craton, stripping the
+metasomatised keel as it passes (after Gernon et al. 2023, 2025).
+_Avoid_: RT instability (the process), keel drip (in labels)
+
+**Rift point**:
+A point on a diverging plate boundary of the reconstruction at one time, with its opening rate; a keel point within
+reach of one is rifting, and its drip front starts at the rift's onset, before the boundary reaches it.
+
+**Keel material**:
+Stripped keel carried in the mantle beneath the young ocean beside the margin it came from, as a tracer on IPV's
+particles that raises their fertility.

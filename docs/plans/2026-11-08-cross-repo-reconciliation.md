@@ -4,8 +4,9 @@ Recorded on 2026-11-08 from a read-only review of the four repositories, then se
 2026-11-08 and 2026-11-09 whose decisions are in section 8. The architecture, the scoring rule and v1 (the AAD
 region on Müller 2022, built in the stages of decision 20) are decided. Stages 0 and 1 were built on 2026-11-09
 (slablet `2500381`, PlateDriver `50743e0`), stages 2–5 the same day, and a first look at stage 6 (chain directions, no
-observations) on 2026-11-10. The cases deferred from v1 are listed at the end of
-decision 20.
+observations) on 2026-11-10, with the Earth viewer and its alternative model runs. The cases deferred from v1 are
+listed at the end of decision 20. Where all of this stands, what is uncommitted and the known issues are summarised in
+[`../status.md`](../status.md) (12 November 2026, at a pause).
 
 ## 1. Aim
 
@@ -591,6 +592,25 @@ Settled during the grilling, in order:
     diverging-boundary points every Myr; a keel point within 150 km of one is rifting, its front starting 15 Myr
     earlier), on the tracker's ages: keel left 0.62 at 250 Ma, fronts active over 2-8% of continents (2.5-6% on
     Merdith). Figures: PlateDriver `show-me/2026-11-10-keel-drips-comparison/`.
+
+    Alternative model runs in the Earth viewer (2026-11-10). Each changes one choice from the reference, and the viewer
+    picks one run per model (`viewer/README.md`, "Model runs"). The mantle runs sink slabs through the lower mantle
+    at 10 or 20 km/Myr instead of 15. The flow uses the Steinberger & Calderwood (2006) profile or a stiff 100 km lid
+    instead of the two-layer one. The layer runs use half or twice Buck's mobility, a 600 km cap, continents as
+    keels (capped), or supply from deep upwelling. The IPV runs move drip fronts at 14 or 33 km/Myr, or start them
+    from seafloor age. The results:
+    - The viscosity profile hardly changes dynamic topography (r ≥ 0.99, rms within 10%).
+    - Sinking at 10 km/Myr changes the deep field most (r 0.78–0.93 with the reference at 1050–2650 km).
+    - Continents as keels double the layer's seafloor-depth effect (rms 616 against 319 m today) and leave a thick
+      layer under the Pacific and a thin one under the Atlantic.
+
+    Two problems surfaced:
+    - Bulldozing piles the layer without limit into pockets closed by advancing keels. The reference reaches
+      4750 km in 0.011% of cells, and with every continent a keel the run all but stalls. `run_layer`'s cap now
+      also holds after keels move (slablet `a0f30d6`). A 600 km cap barely changes the reference (r 0.96–0.999),
+      which still runs without one.
+    - Dynamic topography reaches 7 km in the reference and 10 km in one alternative, beyond any degree claimed so
+      far. The cause has not been looked into.
 
     Not in v1, each for its own session: continental deformation from defamation (case 9); defamation's trench side and
     IPV's continent definition (case 10); PlateDriver's `contains_xy` fix; the spherical rasterise function in gprm;

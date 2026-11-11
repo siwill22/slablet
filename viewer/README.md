@@ -106,6 +106,14 @@ parameters: `?t=<Ma>` `?field=<id|none>` `?arrows=<id|none>` `?depth=<km>` `?bel
   which the age rule reads as ancient break-up, stripping almost every keel at once
   (PlateDriver `show-me/2026-11-10-keel-drips-comparison/`).
 - The layer starts uniform at 300 Ma, so it shows nothing at 300 Ma. Its first few tens of Myr are spin-up.
+- Dynamic topography is large: rms about 2 km in the reference, up to 7 km there and 10 km with the slowest
+  lower-mantle sinking and the stiff lid. Its cause has not been looked into, and earlier work claims nothing beyond
+  degrees 1-3.
+- The reference layer runs without a cap, so a few cells hold piles far thicker than the upper mantle (up to 4750 km,
+  0.011% of cells); the layer thickness field saturates at 1000 km.
+- There is no point layer yet, so IPV's particles and seamounts and the mantle run's plume sites, which IPV's own
+  viewer (`mantlememory/viewer.py`) draws, are not shown.
+- Other open problems of the models behind these layers are in `../docs/status.md`.
 
 ## Layout
 
