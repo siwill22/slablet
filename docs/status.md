@@ -1,8 +1,9 @@
 # Status: where the work stands
 
-Written 12 November 2026, at a pause of a few days. The work spans four repositories (PlateDriver, slablet, IPV and
-defamation), and its plans, results and open problems are spread over several documents. This page is the entry
-point for picking it up again. It says what exists, what is uncommitted, what is planned next and what is known to be
+Written 12 November 2026, at a pause of a few days; updated 16 November, when the public release of slablet and
+PlateDriver began (PlateDriver `docs/public_release_plan.md`). The work spans four repositories (PlateDriver,
+slablet, IPV and defamation), and its plans, results and open problems are spread over several documents. This page
+is the entry point for picking it up again. It says what exists, what is uncommitted, what is planned next and what is known to be
 wrong, and points to where each is written up in full. Update it when any of these changes.
 
 ## Where the details live
@@ -11,19 +12,20 @@ wrong, and points to where each is written up in full. Update it when any of the
 | --- | --- |
 | [`plans/2026-11-08-cross-repo-reconciliation.md`](plans/2026-11-08-cross-repo-reconciliation.md) | The register: ten conceptual inconsistencies between the repositories, the 20 decisions that settle them, v1 (the AAD region on Müller 2022) in gated stages, and each stage's result (section 8) |
 | [`plans/2026-11-05-buck-asthenosphere-test.md`](plans/2026-11-05-buck-asthenosphere-test.md) | The Buck-type asthenosphere layer: its decisions, the AAD result and stress test, and the list of issues to deal with (section 9, items 0–14, planning only) |
-| [`plans/2026-11-11-s40rts-filter.md`](plans/2026-11-11-s40rts-filter.md) | Replacing the generic tomography blur with S40RTS's resolution operator (stage 0 done, uncommitted) |
+| [`plans/2026-11-11-s40rts-filter.md`](plans/2026-11-11-s40rts-filter.md) | Replacing the generic tomography blur with S40RTS's resolution operator (stage 0, the blur's removal, done) |
 | [`adr/0001-one-package-for-shared-physics-and-real-world-tools.md`](adr/0001-one-package-for-shared-physics-and-real-world-tools.md) | Why the shared physics and the real-world tools are one package |
 | [`../CONTEXT.md`](../CONTEXT.md) | The project's terms |
 | [`../README.md`](../README.md), [`../viewer/README.md`](../viewer/README.md) | What slablet and its Earth viewer do, and how to run them |
 | PlateDriver `README.md`, `docs/force_model_v1_plan.md` to `v3`, `docs/viewer_plan.md` | The synthetic plate model, its force-model phases and its viewer |
+| PlateDriver `docs/public_release_plan.md` | The public release of both repositories: its stages, the decisions taken and a progress section |
 | PlateDriver `show-me/<date>-<topic>/` | Every gate's figures, `make_figures.py` and README (gitignored, so local only); the register names the folder for each result |
 | IPV `mantlememory/README.md`, `mantlememory/docs/OPEN_ISSUES.md` | IPV's model, its viewer, and its open issues |
 | `~/GIT/aspect/gplates-kunanyi/README.md` | GPlates-driven ASPECT runs on kunanyi (separate from this work) |
 
 ## What exists
 
-**slablet** (`~/GIT/slablet`, branch `asthenosphere-layer`, private) holds the shared physics and the real-world
-tools (README, layout table):
+**slablet** (`~/GIT/slablet`, branch `asthenosphere-layer`, with `main` at the same commit; private until the
+release, MIT licence) holds the shared physics and the real-world tools (README, layout table):
 - the kinematic mantle model (slablets, the basal pile, plume sites; reference config `configs/muller2022_refined.yaml`);
 - dynamic topography, geoid and instantaneous flow (Hager & O'Connell, checked against HC to about 1e-5);
 - the plate-history contract and its real-reconstruction driver;
@@ -35,13 +37,14 @@ tools (README, layout table):
 Its Earth viewer (`viewer/`, http://localhost:5180 with `npm run dev`) shows all the layers together on Müller 2022,
 300 Ma to now every 5 Myr, with alternative runs of each model (below).
 
-**PlateDriver** (`~/GIT/PlateDriver`, branch `mantle-extract`, 59 commits ahead of `master`) makes synthetic plate
-histories. Force model v1 (the physical default) and v2 (rifting, collisions, merging) are done. v3 (subduction
-initiation, then back-arc rifting, plume weakening and teaching outputs) has been paused since 5 October 2026, after
-stage S1's first step (passive margins logged as candidates). Since then the work has been on the mantle and the
-asthenosphere. PlateDriver now uses slablet only optionally and hands it its state through the contract
-(`self_driving_plates.plate_step`). Its viewer shows PlateDriver runs at http://localhost:5173. All run outputs, for
-both repositories, are in `PlateDriver/runs_real/` (95 GB, gitignored; slablet's `runs_real` links there).
+**PlateDriver** (`~/GIT/PlateDriver`, branch `mantle-extract`, 78 commits ahead of `master`; public on GitHub as
+OldDriver, to be renamed) makes synthetic plate histories. Force model v1 (the physical default) and v2 (rifting,
+collisions, merging) are done. v3 (subduction initiation, then back-arc rifting, plume weakening and teaching
+outputs) has been paused since 5 October 2026, after stage S1's first step (passive margins logged as candidates).
+Since then the work has been on the mantle and the asthenosphere. PlateDriver now uses slablet only optionally and
+hands it its state through the contract (`self_driving_plates.plate_step`); the release plan makes it a requirement
+once slablet is public. Its viewer shows PlateDriver runs at http://localhost:5173. All run outputs, for both
+repositories, are in `PlateDriver/runs_real/` (95 GB, gitignored; slablet's `runs_real` links there).
 
 **IPV** (`~/GIT/IPV`, branch `main`) is MantleMemory: mantle fertility on particles and lithospheric vulnerability,
 which give intraplate volcanism. It now runs on Müller 2022 (uncommitted, below), and its drip fronts can start where
@@ -67,29 +70,29 @@ Check this first: some of it is someone else's work in progress.
 
 | Repository | What | State |
 | --- | --- | --- |
-| slablet | Stage 0 of the S40RTS plan (11 November): the generic 5°/150 km blur removed; `dVs` is now the unblurred field, and `slablet.core.current_dvs` reads runs made before 11 November; 33 files, including every config, `core.py`, `dyntopo.py`, the viewer exporter (its blurred-field layer removed), the README, and section 9 of the Buck plan | Uncommitted. The plan says to start at its stage 1 |
-| PlateDriver | The same blur removal in `README.md`, `config.yaml` and `configs/current_model.yaml` | Uncommitted, with the slablet change |
 | PlateDriver | The asthenosphere viewer of 7 November (`viewer/asthenosphere.html`, `viewer/src/asthenosphere/`, `viewer/prep/export_asthenosphere.py`, `viewer/scripts/check_asthenosphere.mjs`, and its section of `viewer/README.md`) | Uncommitted; slablet's Earth viewer now shows the same fields and more |
 | IPV | Müller 2022 support (`reconstruction`), fixed normalisation (`vulnerability_normalisation: fixed`), drip fronts from rift points (`keel_front_trigger: rift_points`), `examples/config_muller2022_300Ma.yaml`, and the matching notes in `docs/OPEN_ISSUES.md` and `README.md` | Uncommitted, on `main` |
 | IPV | Simon's own notebook edits (`transforms.ipynb`, `isopolatred.ipynb`, `test_data/test_isochrons.gpml`) | Uncommitted; not to be committed with the above |
 
 ## Planned next
 
-1. **The S40RTS filter**, stage 1 onwards (`plans/2026-11-11-s40rts-filter.md`): pass the model through S40RTS's
+1. **The public release** (PlateDriver `docs/public_release_plan.md`): slablet first, then PlateDriver; then the
+   synthetic-Earth stages D–F of that plan.
+2. **The S40RTS filter**, stage 1 onwards (`plans/2026-11-11-s40rts-filter.md`): pass the model through S40RTS's
    resolution operator and compare like with like.
-2. **v1, the AAD region** (register, decision 20):
+3. **v1, the AAD region** (register, decision 20):
    - Stage 5: a forward run from the best-fitting 80 Ma domain map, and fertility's sources.
    - Stage 6: the observations Simon deferred on 10 November. These are seamount chains from SWOT (no grids on disk
      yet), the orientation test against layer flow, fabric and plate motion, and chains as tracks.
    - Alongside: anisotropy, by asking De Laat et al. for their model, with digitising their Figure 7 as a fallback.
      Not started.
-3. **The asthenosphere issues list** (Buck plan, section 9, items 0–14): planning only, none started.
-4. **Deferred from v1** (register, end of decision 20): continental deformation from defamation; defamation's trench
+4. **The asthenosphere issues list** (Buck plan, section 9, items 0–14): planning only, none started.
+5. **Deferred from v1** (register, end of decision 20): continental deformation from defamation; defamation's trench
    side and IPV's continent definition; PlateDriver's `contains_xy` fix; a spherical rasterise function in gprm; the
    global seamount catalogues; moving the rest of IPV into slablet; the volcanism mixture and the layer in synthetic
    worlds; cratons distinct from continents in synthetic worlds.
-5. **PlateDriver force model v3**, from stage S1, then the teaching outputs (`docs/force_model_v3_plan.md`).
-6. **IPV calibration**: no agreed targets yet (`OPEN_ISSUES.md`, section 1).
+6. **PlateDriver force model v3**, from stage S1, then the teaching outputs (`docs/force_model_v3_plan.md`).
+7. **IPV calibration**: no agreed targets yet (`OPEN_ISSUES.md`, section 1).
 
 ## Known issues
 
@@ -105,8 +108,9 @@ Check this first: some of it is someone else's work in progress.
 - **Stalls do not help globally.** Freely chosen transition-zone stalls fit no better than chance. The one regional
   gain, a delay of NW Pacific slab, is at 1200–1500 km. Young slab fits tomography about 4.5° further east, which
   points at the frame (PlateDriver `show-me/2026-11-06-overnight-summary/`, `2026-11-06-frame-families/`).
-- **The old blur hid structure that tomography keeps.** It removed far more fine structure than tomography loses, and hardly changed the scores
-  (S40RTS plan, section 1).
+- **The field is compared with tomography unfiltered.** The old blur removed far more fine structure than tomography
+  loses and hardly changed the scores, so it was removed (S40RTS plan, section 1). Until the S40RTS resolution
+  operator is built (its stage 1), scores compare the unfiltered field with tomography.
 
 ### Asthenosphere layer
 - **Piles under advancing keels.** Bulldozing piles the layer into enclosed pockets without limit. The reference
@@ -138,6 +142,10 @@ Check this first: some of it is someone else's work in progress.
 
 ### PlateDriver
 - A synthetic world has no cratons distinct from its continents, so keels cannot differ from continents there.
+- Where moved plates overlapped, the lower plate ID kept the cells, whatever the polarity. The current model now gives
+  them to the overriding plate (`overlap: polarity`). The `simple` preset keeps the old rule, because with the new one
+  its undamped speeds ran away further; `simple` suits runs of up to about 200 Myr, and in 3 of 6 runs of 500 Myr the
+  world ended as one plate (PlateDriver `show-me/2026-11-16-overlap_polarity/`, `2026-11-16-simple_overlap/`).
 - The shapely `contains_xy` test for initial seafloor ages remains. Douglas–Peucker simplification in degrees shapes
   the trench samples.
 - v2's known issues: hidden continent lost at a rift, calibration of the stiff contact, and per-segment trench
