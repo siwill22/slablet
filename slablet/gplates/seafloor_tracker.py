@@ -8,7 +8,8 @@ at a time (pygplates TopologicalModel.reconstruct_geometry) and are dropped by p
 (subducted, or consumed at a ridge).  Before the run's start there is no tracked seafloor, so ages are missing (NaN)
 until seafloor made after the start reaches the trenches: allow 200-300 Myr of spin-up.
 
-Written per Myr t to <cache>/<model>/anchor<id>_s<sample_deg>_v2/seafloor_v1/t<t>.npz (beside the trench samples):
+Written per Myr t to <cache>/<model>/anchor<id>_s<sample_deg>_v2/seafloor_v1_from<start>/t<t>.npz (beside the trench
+samples; tracking from different starts gives different ages, so each start has its own folder):
     trench_age     seafloor age (Myr) at each trench sample of that time (same order as the trench-sample cache): the
                    nearest tracked point within PROBE_RADIUS_KM of a point PROBE_KM from the trench on the subducting
                    side (away from the overriding plate; the trench point itself where that side is unknown); NaN: none
@@ -170,19 +171,21 @@ def age_grid(tree, ages):
     return out.reshape(lo.shape).astype(np.float32)
 
 
-def folder_for(cfg, sample_deg=1.0):
+def folder_for(cfg, sample_deg=1.0, start=None):
+    """The trench samples and the seafloor cache folder of a config tracked from start (default: its start_ma)."""
     trenches = CachedTrenchSamples.for_config(cfg, sample_deg)
-    return trenches, os.path.join(trenches.folder, VERSION)
+    start = int(cfg['start_ma'] if start is None else start)
+    return trenches, os.path.join(trenches.folder, '{}_from{}'.format(VERSION, start))
 
 
 def track(cfg, sample_deg=1.0, start=None, end=0, grid_every=GRID_EVERY_MYR, grids_only=None):
     """Track the seafloor from start to end and write the cache.  grids_only: a folder to write only the age grid,
     every grid_every Myr, as <folder>/t<t>.npz (age_grid), leaving the cache untouched."""
-    trenches, out = folder_for(cfg, sample_deg)
+    start = int(cfg['start_ma'] if start is None else start)
+    trenches, out = folder_for(cfg, sample_deg, start)
     if grids_only is not None:
         out = grids_only
     os.makedirs(out, exist_ok=True)
-    start = int(cfg['start_ma'] if start is None else start)
     if trenches._model is None:
         from slablet.gplates.trench_samples import load_model
         trenches._model = load_model(*trenches.files)

@@ -10,7 +10,7 @@ PlatePartitioner).  Oceans take the tracked seafloor age (slablet/gplates/seaflo
     continent  CONTINENT_KM
     craton     CRATON_KM
 These are round Earth-like values for the shape of the field, not fitted.  Cached as
-<seafloor cache>/../lithosphere_v1/t<age>.npz.
+<seafloor cache>/../lithosphere_v1_from<start>/t<age>.npz (the seafloor cache's start).
 """
 import os
 
@@ -18,7 +18,7 @@ import numpy as np
 import pygplates
 
 from slablet.gplates.models import load as load_reconstruction             # noqa: E402
-from slablet.gplates.seafloor_tracker import GRID_EVERY_MYR, SeafloorCache   # noqa: E402
+from slablet.gplates.seafloor_tracker import GRID_EVERY_MYR, VERSION, SeafloorCache   # noqa: E402
 
 OCEAN_KM_PER_SQRT_MYR = 10.0
 OCEAN_MAX_KM = 100.0
@@ -61,7 +61,7 @@ def _masks(cfg, age):
 
 def thickness_km(cfg, age):
     sea = SeafloorCache(cfg)
-    folder = os.path.join(os.path.dirname(sea.folder), 'lithosphere_v1')
+    folder = os.path.join(os.path.dirname(sea.folder), os.path.basename(sea.folder).replace(VERSION, 'lithosphere_v1'))
     path = os.path.join(folder, 't{:04d}.npz'.format(int(round(age))))
     if os.path.exists(path):
         with np.load(path) as f:
