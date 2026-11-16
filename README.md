@@ -100,7 +100,7 @@ writes `dyntopo_<age>Ma.nc` beside each `mantle_temp_<age>Ma.nc`, with:
 
 The flow is Hager & O'Connell's (1981): incompressible, self-gravitating as in HC, with viscosity varying only with
 depth (presets `two_layer` (default), `uniform`, `four_layer`, `steinberger_calderwood2006`, or a table). Density
-comes from `dVs_native` below 300 km, with d ln rho / d ln Vs = 0.25 times PREM density. Settings go in a
+comes from `dVs` below 300 km, with d ln rho / d ln Vs = 0.25 times PREM density. Settings go in a
 `dynamic_topography:` block of the run config (`slablet.dyntopo.DynTopoParams`). `after_run: true` computes it at
 the end of `run_mantle`; it is off by default.
 

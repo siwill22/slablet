@@ -99,7 +99,7 @@ class MantleParams:
     slab_sigma_depth_upper_km: float = -1.0 # >= 0 (with the profile): vertical smoothing above upper_mantle_km
                                             # (< 0: slab_sigma_depth_km everywhere)
     slab_dVs_max: float = 0.0               # > 0: the slab field saturates at this (%): max x tanh(field / max), before
-                                            # the LLSVP, lid and blur are added -- a slab is at most as fast as its
+                                            # the LLSVP and lid are added -- a slab is at most as fast as its
                                             # coldest core, however many slablets share a cell (0: no cap)
     slab_dVs_max_depth_km: float = 1e9      # the cap applies above this depth only (upper_mantle_km: upper mantle)
     # slow mantle wedge and back-arc (needs the dip azimuth; off when wedge_dVs is 0): each upper-mantle slablet
@@ -110,8 +110,6 @@ class MantleParams:
     wedge_top_km: float = 50.0
     wedge_bottom_km: float = 670.0          # slablets deeper than this mark no wedge
     wedge_sigma_deg: float = 1.5            # horizontal smoothing of the wedge field
-    tomo_smooth_horiz_deg: float = 0.0      # optional blur of the final field (0 = off)
-    tomo_smooth_depth_km: float = 0.0
     mantle_field_spacing_deg: float = 0.0   # > 0: draw the dVs field on this finer grid (must divide
                                             # mantle_grid_spacing_deg); the pile and slab load stay on the
                                             # coarse grid and are interpolated up (0: the same grid)
@@ -136,10 +134,9 @@ class MantleParams:
     plume_top_km: float = 200.0             # conduits run from the hot layer up to this depth
     lithosphere_dVs: float = 0.0            # > 0 (with a thickness grid from the caller): a fast lid, +this % at the
                                             # surface falling linearly to 0 at the lithosphere's base (0: none)
-    dvs_save_native: bool = False           # True: also write the field before the tomography blur, as dVs_native
-    dvs_save_components: bool = False       # True: also write each source of that field (slabs, wedge, pile,
+    dvs_save_components: bool = False       # True: also write each source of the dVs field (slabs, wedge, pile,
                                             # pile_halo, cmb_heat, tbl, plumes, lithosphere), each with zero mean
-                                            # per layer, as dVs_native__<source>; they sum to dVs_native
+                                            # per layer, as dVs__<source>; they sum to dVs
     mantle_bin_area_normalise: bool = False  # True: divide each lon/lat cell's binned slab sum by the
                                              # cell's area relative to an equatorial cell, so a slab
                                              # counts the same at every latitude (False: a slab at 60°

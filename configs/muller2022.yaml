@@ -45,8 +45,6 @@ mantle:
   cmb_max_heat: 3.0
   cmb_dVs_scale: -0.5
   cmb_decay_km: 400.0
-  tomo_smooth_horiz_deg: 5.0
-  tomo_smooth_depth_km: 150.0
 
 # Present-day comparison (slablet/analysis/tomography_score.py): shape only, no amplitudes.
 # Each model is scored at the file depth nearest to each of depths_km.

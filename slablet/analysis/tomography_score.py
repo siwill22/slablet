@@ -36,6 +36,7 @@ import pyshtools as pysh
 import xarray as xr
 import yaml
 
+from slablet.core import current_dvs
 from slablet.paths import WORK
 
 
@@ -171,7 +172,7 @@ def score_run(cfg, age=0.0, only=None, write=True, null=True):
         if not models:
             raise SystemExit('no tomography model named ' + only)
     out_dir = os.path.join(WORK, cfg['output_dir'])
-    run = xr.open_dataset(os.path.join(out_dir, 'mantle_temp_{:04.0f}Ma.nc'.format(age)))
+    run = current_dvs(xr.open_dataset(os.path.join(out_dir, 'mantle_temp_{:04.0f}Ma.nc'.format(age))))
     lons_g, lats_g = run.lon.values, run.lat.values
     out = {}
     for tc in models:

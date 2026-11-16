@@ -823,8 +823,7 @@ def dvs_field(slab_tracers, llsvp_state, p, lithosphere_km=None):
     p.upper_mantle_km, widening with depth below it.  With p.mantle_field_spacing_deg the field is drawn
     on that finer grid (float32); the LLSVP state stays on the model grid and is interpolated up, and
     kernels wider than _COARSE_PATH_FRACTION of the model grid are applied on the model grid.  With
-    p.dvs_save_native the field before the tomography blur is also returned, as dVs_native.  With
-    p.dvs_save_components each source of that field is returned too, as dVs_native__<source>.
+    p.dvs_save_components each source of the field is returned too, as dVs__<source>.
 
     Each depth layer has zero area-weighted mean, like tomography models.
     Returns xr.Dataset with variables 'dVs' and 'cmb_heat' (heat) or 'pile_thickness_km'
@@ -1014,16 +1013,9 @@ def dvs_field(slab_tracers, llsvp_state, p, lithosphere_km=None):
         _part('lithosphere', inc)
 
     field = _remove_area_weighted_mean(field, lats_g)
-    native = None
     if parts is not None:
         parts = {k: _remove_area_weighted_mean(np.broadcast_to(v, field.shape).astype(float), lats_g)
                  for k, v in parts.items()}
-
-    if p.tomo_smooth_horiz_deg > 0 or p.tomo_smooth_depth_km > 0:
-        if p.dvs_save_native:
-            native = field.astype(np.float32)
-        field = _smooth(field, p.tomo_smooth_horiz_deg, p.tomo_smooth_depth_km)
-        field = _remove_area_weighted_mean(field, lats_g)
 
     data_vars = {
         'dVs': xr.DataArray(
@@ -1035,16 +1027,11 @@ def dvs_field(slab_tracers, llsvp_state, p, lithosphere_km=None):
                    'thermal_tau_myr': p.slab_thermal_tau_myr,
                    'dVs_per_K': p.slab_dVs_per_K}),
     }
-    if native is not None:
-        data_vars['dVs_native'] = xr.DataArray(
-            native, dims=['depth', 'lat', 'lon'], coords={'depth': depths_g, 'lat': lats_g, 'lon': lons_g},
-            attrs={'units': '%', 'long_name': 'dVs/Vs before the tomography blur (tomo_smooth_*)'})
     for name, part in (parts or {}).items():
-        data_vars['dVs_native__' + name] = xr.DataArray(
+        data_vars['dVs__' + name] = xr.DataArray(
             part.astype(np.float32), dims=['depth', 'lat', 'lon'],
             coords={'depth': depths_g, 'lat': lats_g, 'lon': lons_g},
-            attrs={'units': '%', 'long_name': 'the {} part of the field before the tomography blur'.format(name),
-                   'source': name})
+            attrs={'units': '%', 'long_name': 'the {} part of dVs'.format(name), 'source': name})
     if cmb_heat is not None and cmb_heat.shape == (nlat, nlon):
         data_vars['cmb_heat'] = xr.DataArray(
             cmb_heat, dims=['lat', 'lon'],
@@ -1063,3 +1050,14 @@ def dvs_field(slab_tracers, llsvp_state, p, lithosphere_km=None):
             pile_h, dims=['lat', 'lon'], coords={'lat': lats_g, 'lon': lons_g},
             attrs={'units': 'km', 'long_name': 'thickness of the conserved pile on the CMB (llsvp: pile)'})
     return xr.Dataset(data_vars)
+
+
+def current_dvs(ds):
+    """A run's mantle_temp Dataset with the dVs field (and its parts) under today's names.  Runs written before
+    the tomography blur was removed (11 Nov 2026) hold the field as dVs_native where they saved it, its parts as
+    dVs_native__<source> and the blurred field as dVs: the blurred field is dropped and the rest renamed.  Runs
+    that did not save it hold only the blurred field, which is left as it is."""
+    if 'dVs_native' not in ds:
+        return ds
+    return ds.drop_vars('dVs').rename({v: v.replace('dVs_native', 'dVs', 1)
+                                       for v in ds.data_vars if v.startswith('dVs_native')})

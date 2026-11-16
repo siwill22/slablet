@@ -1,6 +1,6 @@
 """Check slablet.dyntopo against HC (Becker, O'Neill & Steinberger; github.com/geodynamics/hc).
 
-Runs HC and slablet.dyntopo on the same density field (a run's present-day dVs_native, below 300 km, d ln rho /
+Runs HC and slablet.dyntopo on the same density field (a run's present-day dVs, below 300 km, d ln rho /
 d ln Vs = 0.25 scaled with PREM), the same layering and the same viscosity, and compares, degree by degree up to
 lmax = 31: the radial stress at the surface and at the CMB (which give dynamic topography), the geoid, the velocities
 at two layers.  Pass: everything within 1 % per degree for degrees 1-8 (relative to the rms of
@@ -20,6 +20,7 @@ import numpy as np
 import xarray as xr
 
 from slablet import dyntopo
+from slablet.core import current_dvs
 from slablet.sphharm import Grid
 
 LMAX = 31
@@ -88,7 +89,7 @@ def main():
     args = ap.parse_args()
     bin_ = os.path.join(args.hc_home, 'bin')
 
-    ds = xr.load_dataset(args.mantle_file)
+    ds = current_dvs(xr.load_dataset(args.mantle_file))
     dp = dyntopo.DynTopoParams(viscosity=args.viscosity, lmax=LMAX, loading='air', rho_top=4448.8)
     depth = ds['depth'].values.astype(float)
     grid = Grid(ds['lat'].values, ds['lon'].values, LMAX)

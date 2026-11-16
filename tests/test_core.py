@@ -4,7 +4,8 @@
 
 tests/data/mantle_golden.npz was made with the code as it was before it moved out of
 PlateDriver's self_driving_plates.py (update_slab_tracers etc.), on the small problem built
-in _golden_run below; the code must reproduce it exactly.  Its trench samples, from
+in _golden_run below, with the 5 deg / 150 km tomography blur of that code (removed from slablet on
+11 Nov 2026, so _old_tomography_blur applies it here); the code must reproduce it exactly.  Its trench samples, from
 PlateDriver's adapter (self_driving_plates.trench_samples on three trenches and a ridge),
 are saved in tests/data/golden_samples.npz, so this test needs no PlateDriver.
 """
@@ -40,8 +41,7 @@ def _golden_samples(step):
 def _golden_run():
     """Initial slab columns, 10 steps of 2 Myr, then the dVs field, from the saved samples."""
     p = slablet.MantleParams(mantle_grid_spacing_deg=10.0, mantle_depth_interval_km=200.0,
-                             slab_thermal_tau_myr=4.0, tomo_smooth_horiz_deg=5.0,
-                             tomo_smooth_depth_km=150.0, initial_slab_depth_km=700.0)
+                             slab_thermal_tau_myr=4.0, initial_slab_depth_km=700.0)
     slabs = slablet.initial_slab_columns(_golden_samples(0), 2.0, p)
     n_init = len(slabs)
     cmb = slablet.new_cmb_heat(p)
@@ -56,6 +56,14 @@ def _golden_run():
     return n_init, slabs, cmb, ds, z
 
 
+def _old_tomography_blur(ds):
+    """The blur the pre-extraction code put on the golden field: spherical Gaussian 5 deg, then 150 km in depth."""
+    from scipy.ndimage import gaussian_filter1d
+    f = slablet.spherical_gaussian_smooth(ds.dVs.values, ds.lat.values, ds.lon.values, 5.0)
+    f = gaussian_filter1d(f, 150.0 / 200.0, axis=0, mode='nearest')
+    return slablet.core._remove_area_weighted_mean(f, ds.lat.values)
+
+
 def test_reproduces_pre_extraction_code_exactly():
     g = np.load(GOLDEN)
     n_init, slabs, cmb, ds, z = _golden_run()
@@ -63,7 +71,7 @@ def test_reproduces_pre_extraction_code_exactly():
     for col in ('lon', 'lat', 'depth_km', 'weight', 'age'):
         np.testing.assert_array_equal(slabs[col].values.astype(float), g[col], err_msg=col)
     np.testing.assert_array_equal(cmb, g['cmb_heat'])
-    np.testing.assert_array_equal(ds.dVs.values, g['dVs'])
+    np.testing.assert_array_equal(_old_tomography_blur(ds), g['dVs'])
     np.testing.assert_array_equal(z, g['slab_depth'])
 
 
@@ -316,6 +324,18 @@ def test_slab_width_profile_is_narrow_above_660_and_widens_to_the_cmb():
     np.testing.assert_allclose(sig, [0.75, 0.75, 2.0, 2.75, 3.5], atol=0.03)
 
 
+def test_current_dvs_reads_runs_written_with_the_tomography_blur():
+    """Before 11 Nov 2026: dVs blurred, dVs_native the field, dVs_native__<source> its parts."""
+    import xarray as xr
+    a = xr.DataArray(np.zeros((2, 3)), dims=['lat', 'lon'])
+    old = xr.Dataset({'dVs': a + 1, 'dVs_native': a + 2, 'dVs_native__pile': a + 3, 'pile_thickness_km': a})
+    new = slablet.current_dvs(old)
+    assert sorted(new.data_vars) == ['dVs', 'dVs__pile', 'pile_thickness_km']
+    assert float(new.dVs[0, 0]) == 2 and float(new.dVs__pile[0, 0]) == 3
+    current = xr.Dataset({'dVs': a + 2, 'dVs__pile': a + 3})
+    assert slablet.current_dvs(current) is current
+
+
 def test_block_mean_and_upsample_round_trip_a_smooth_field():
     lons_f, lats_f = slablet.mantle_grid(1.0)
     lons_c, lats_c = slablet.mantle_grid(5.0)
@@ -330,18 +350,17 @@ def test_block_mean_and_upsample_round_trip_a_smooth_field():
 def test_fine_field_keeps_the_slab_and_narrows_it_in_the_upper_mantle():
     coarse = slablet.MantleParams(slab_thermal_tau_myr=1e9, mantle_bin_area_normalise=True)
     fine = slablet.MantleParams(slab_thermal_tau_myr=1e9, mantle_bin_area_normalise=True, mantle_field_spacing_deg=1.0,
-                               slab_sigma_deg=0.75, slab_sigma_lower_deg=2.0, slab_sigma_cmb_deg=3.5,
-                               tomo_smooth_horiz_deg=5.0, dvs_save_native=True)
+                               slab_sigma_deg=0.75, slab_sigma_lower_deg=2.0, slab_sigma_cmb_deg=3.5)
     slab = _ns_slab(0.0, depth_km=350.0)
     widths = {}
     for name, p in (('coarse', coarse), ('fine', fine)):
         ds = slablet.dvs_field(slab, None, p)
-        f = ds['dVs_native' if name == 'fine' else 'dVs'].sel(depth=350).values
+        f = ds['dVs'].sel(depth=350).values
         f = f - np.median(f)                                         # undo the zero-mean shift
         eq = f[np.abs(ds.lat.values) < 5].mean(axis=0)
         widths[name] = (eq > 0.5 * eq.max()).sum() * (ds.lon.values[1] - ds.lon.values[0])   # degrees above half max
         if name == 'fine':
-            assert 'dVs' in ds and ds.dVs.shape == ds.dVs_native.shape == (29, 180, 360)
+            assert ds.dVs.shape == (29, 180, 360)
     assert widths['fine'] < 0.5 * widths['coarse']
 
 

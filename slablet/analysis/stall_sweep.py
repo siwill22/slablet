@@ -320,7 +320,7 @@ def main():
     args = ap.parse_args()
     with open(os.path.join(WORK, args.config)) as f:
         base = yaml.safe_load(f)
-    base = merge(base, {'output_every_myr': 1e4, 'mantle': {'dvs_save_native': True},
+    base = merge(base, {'output_every_myr': 1e4,
                         'dynamic_topography': {'after_run': True, 'volume': False}})
     out = os.path.join(WORK, 'runs_real', 'sweeps', args.name)
     os.makedirs(out, exist_ok=True)

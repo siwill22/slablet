@@ -69,8 +69,7 @@ the capped reference is there to compare it with.
   plate's base (25-400 km): the layer's speed, its shear rate, and the upwelling its shear forces (export.py's
   docstring has the profile; near the top this is PlateDriver's shear-forced upwelling, and at 50 km, away from
   keels, the two rank alike, rank correlation 0.97, with this one about 12% smaller from the profile's curvature).
-- **Deep mantle,** at the chosen depth (50-2850 km): the shear-velocity anomaly as modelled and blurred as
-  tomography would see it, radial flow, horizontal flow speed, shear stress on horizontal planes (log10), radial
+- **Deep mantle,** at the chosen depth (50-2850 km): the shear-velocity anomaly as modelled, radial flow, horizontal flow speed, shear stress on horizontal planes (log10), radial
   normal stress, and the geoid at depth; without depth, the basal pile's thickness and core-mantle boundary
   topography.
 - **IPV's mantle:** keel material (keel stripped by the drip fronts and carried under the young ocean beside passive

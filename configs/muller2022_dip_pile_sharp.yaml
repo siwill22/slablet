@@ -4,7 +4,7 @@
 #
 # This copy runs from 1000 Ma with a slab width profile drawn on a 1 deg grid: slabs about 80 km wide (0.75 deg)
 # above 670 km, 2 deg just below it, widening to 3.5 deg at the CMB; 50 km vertical smoothing in the upper mantle.
-# dVs keeps the tomography blur (for scoring); dVs_native is the field before it.
+# (dVs was then also blurred 5 deg / 150 km for scoring, with dVs_native the field before it; removed 11 Nov 2026.)
 #
 #   conda run -n pygmt17 python -m slablet.gplates.run_mantle configs/muller2022_dip_pile_sharp.yaml
 name: muller2022
@@ -27,7 +27,6 @@ mantle:
   slab_sigma_lower_deg: 2.0
   slab_sigma_cmb_deg: 3.5
   slab_sigma_depth_upper_km: 50
-  dvs_save_native: true
   slab_sink_rate_factor: 0.5
   slab_slowing_factor: 3
   slab_max_sink_rate: 400
@@ -45,8 +44,6 @@ mantle:
   cmb_max_heat: 3.0
   cmb_dVs_scale: -0.5
   cmb_decay_km: 400.0
-  tomo_smooth_horiz_deg: 5.0
-  tomo_smooth_depth_km: 150.0
   llsvp: pile
   pile_drive: flow
   pile_slab_head_km: 10000

@@ -35,7 +35,7 @@ import pyshtools as pysh
 import xarray as xr
 
 from slablet.paths import WORK
-from slablet.core import mantle_grid                                 # noqa: E402
+from slablet.core import current_dvs, mantle_grid                    # noqa: E402
 from slablet.analysis import tomography_score as ts                  # noqa: E402
 from slablet.analysis.build_slow_votemap import block_average        # noqa: E402
 
@@ -128,7 +128,7 @@ def degree_power(c):
 
 
 def compare(run_dir, grid, var='dVs'):
-    """Per age and depth comparison of the run's var (dVs, or dVs_native: the field before the tomography blur)
+    """Per age and depth comparison of the run's var (dVs, or one of its parts dVs__<source>)
     with OPT1.  Fields on a finer grid than 5 deg are block-averaged (cos-lat weights) onto it, and runs with
     other layers are interpolated linearly to DEPTHS."""
     from slablet.core import _block_mean
@@ -138,7 +138,7 @@ def compare(run_dir, grid, var='dVs'):
         if not os.path.exists(f):
             continue
         with xr.open_dataset(f) as ds:
-            run = ds[var].transpose('depth', 'lat', 'lon').astype(float)
+            run = current_dvs(ds)[var].transpose('depth', 'lat', 'lon').astype(float)
             if not np.array_equal(run.depth.values, DEPTHS):
                 run = run.interp(depth=DEPTHS)
             lats_r, vals = run.lat.values, run.values
@@ -194,7 +194,7 @@ def spectra(grid, runs, workers):
             for name, d in runs.items():
                 f = os.path.join(d, 'mantle_temp_{:04d}Ma.nc'.format(int(age)))
                 if os.path.exists(f):
-                    m = xr.open_dataset(f).dVs.sel(depth=z).values
+                    m = current_dvs(xr.open_dataset(f)).dVs.sel(depth=z).values
                     pr = degree_power(ts._coeffs(-m, LAT2, LON2, W, LMAX))
                     rows += [{'age_ma': age, 'depth_km': z, 'source': name, 'l': l, 'power': pr[l]}
                              for l in range(1, LMAX + 1)]

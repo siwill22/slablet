@@ -10,7 +10,7 @@ scored alike:
     r_ref_<band>     correlation with the reference variant, mean over ages 0-240 Ma and the depths of the band
                      (upper 50-650 km, mid 1050-1950, deep 2050-2850): near 1 = the same large-scale field
     rms_ref_<band>   rms of the difference from the reference over the reference's rms, the same means
-On the field as drawn (dVs_native when saved, else dVs), at present day:
+On the field (dVs), at present day:
     slab1_frac_<z>   of the fast (dVs > 0) mass within 1500 km of a Slab1.0 node with depth z +- 50 km, the
                      share within 150 km of one, at z = 200, 400, 600 km (sharper and better placed = higher)
 Cost: seconds for the run, peak memory of its process (MB), MB per saved output.
@@ -90,7 +90,7 @@ def to_grid5(run_dir):
 
 def slab1_fractions(run_dir):
     with xr.open_dataset(os.path.join(run_dir, 'mantle_temp_0000Ma.nc')) as ds:
-        da = (ds.dVs_native if 'dVs_native' in ds else ds.dVs).load()
+        da = slablet.current_dvs(ds).dVs.load()
     lon2, lat2 = np.meshgrid(da.lon.values, da.lat.values)
     w = np.cos(np.radians(lat2)).ravel()
     cell_xyz = slablet.lonlat_to_xyz(lon2.ravel(), lat2.ravel())

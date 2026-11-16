@@ -115,7 +115,7 @@ def _dataset(seed=3):
     f[1] += 2.0 * blob(-60.0, 40.0, 10.0)                         # above the cutoff: ignored
     w = np.cos(np.radians(LATS))[:, None]
     f -= ((f * w).sum((1, 2)) / (w.sum() * len(LONS)))[:, None, None]
-    return xr.Dataset({'dVs_native': (('depth', 'lat', 'lon'), f.astype(np.float32))},
+    return xr.Dataset({'dVs': (('depth', 'lat', 'lon'), f.astype(np.float32))},
                       coords={'depth': depth, 'lat': LATS, 'lon': LONS})
 
 
@@ -127,7 +127,7 @@ def test_compute_gives_a_low_over_a_dense_slab_and_ignores_shallow_anomalies():
     assert float(topo.sel(lat=10.5, lon=140.5)) < 0                 # over the dense (fast) blob
     assert float(topo.sel(lat=-10.5, lon=0.5)) > 0                  # over the light (slow) blob near the CMB
     ds2 = ds.copy(deep=True)
-    ds2['dVs_native'][1] = 0.0                                     # remove the shallow blob
+    ds2['dVs'][1] = 0.0                                     # remove the shallow blob
     res2 = dyntopo.compute(ds2, dp)
     assert np.allclose(res['dyn_topo_coeffs'], res2['dyn_topo_coeffs'])
 
@@ -150,10 +150,9 @@ def test_volume_velocities_are_consistent_with_incompressibility():
 
 
 def test_source_components_sum_to_the_field_and_change_nothing():
-    """dvs_save_components writes each source; they add up to dVs_native, and the field is unchanged."""
+    """dvs_save_components writes each source; they add up to dVs, and the field is unchanged."""
     p = dict(mantle_grid_spacing_deg=10.0, mantle_depth_interval_km=200.0, slab_thermal_tau_myr=4.0,
-             tomo_smooth_horiz_deg=5.0, tomo_smooth_depth_km=150.0, initial_slab_depth_km=700.0,
-             dvs_save_native=True, llsvp='pile', pile_halo_km=300.0, pile_halo_dVs=-1.0, pile_dVs=-3.0)
+             initial_slab_depth_km=700.0, llsvp='pile', pile_halo_km=300.0, pile_halo_dVs=-1.0, pile_dVs=-3.0)
     samples = {'lon': np.array([140.0, 141.0, -70.0]), 'lat': np.array([30.0, 31.0, -20.0]),
                'convergence_km_per_myr': np.array([50.0, 50.0, 40.0])}
     out = []
@@ -167,9 +166,8 @@ def test_source_components_sum_to_the_field_and_change_nothing():
         out.append(slablet.dvs_field(slabs, state, mp))
     plain, split = out
     assert np.array_equal(plain['dVs'].values, split['dVs'].values)
-    assert np.array_equal(plain['dVs_native'].values, split['dVs_native'].values)
-    names = [v for v in split.data_vars if v.startswith('dVs_native__')]
-    assert {'dVs_native__slabs', 'dVs_native__pile', 'dVs_native__pile_halo'} <= set(names)
+    names = [v for v in split.data_vars if v.startswith('dVs__')]
+    assert {'dVs__slabs', 'dVs__pile', 'dVs__pile_halo'} <= set(names)
     total = sum(split[v].values.astype(float) for v in names)
-    assert np.abs(total - split['dVs_native'].values).max() < 1e-5
-    assert not any(v.startswith('dVs_native__') for v in plain.data_vars)
+    assert np.abs(total - split['dVs'].values).max() < 1e-5
+    assert not any(v.startswith('dVs__') for v in plain.data_vars)

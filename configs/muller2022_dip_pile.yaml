@@ -35,8 +35,6 @@ mantle:
   cmb_max_heat: 3.0
   cmb_dVs_scale: -0.5
   cmb_decay_km: 400.0
-  tomo_smooth_horiz_deg: 5.0
-  tomo_smooth_depth_km: 150.0
   llsvp: pile
   pile_drive: flow
   pile_slab_head_km: 10000

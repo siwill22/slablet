@@ -104,11 +104,12 @@ def _link(src, dst):
     dst.symlink_to(Path(src).resolve())
 
 
-def export_run(cfg, variable='dVs_native', compare=('reveal', 'semucb'), opt1=False, archive_dir=None,
+def export_run(cfg, variable=None, compare=('reveal', 'semucb'), opt1=False, archive_dir=None,
                coastline_age_step=1.0, clip=3.0):
     """Turn a finished run (its config dict) into a Geode Archive; returns (archive folder, model id).
 
-    variable  'dVs_native' (before the tomography blur, at the field's own resolution) or 'dVs'.
+    variable  the field to show (None: the run's dVs, which runs before 11 Nov 2026 hold as dVs_native where they
+              saved it; see slablet.core.current_dvs).
     compare   Geode models to link in for comparison (present-day tomography from Geode's archive).
     opt1      also link Muller 2022 OPT1 (only meaningful for a run in Muller 2022's optimised frame).
     """
@@ -121,8 +122,10 @@ def export_run(cfg, variable='dVs_native', compare=('reveal', 'semucb'), opt1=Fa
     if not files:
         raise SystemExit('no mantle_temp_*Ma.nc in {}: run the model first'.format(run_dir))
     with xr.open_dataset(files[0]) as ds:
+        if variable is None:
+            variable = 'dVs_native' if 'dVs_native' in ds else 'dVs'
         if variable not in ds:
-            raise SystemExit('{} has no {} (dVs_native needs a fine field or dvs_save_native)'.format(files[0], variable))
+            raise SystemExit('{} has no {}'.format(files[0], variable))
         nlon, nlat, ndepth = ds.sizes['lon'], ds.sizes['lat'], ds.sizes['depth']
     ages = [float(re.search(r'_(\d+)Ma', f.name).group(1)) for f in files]
     age_min, age_max = min(ages), max(ages)

@@ -70,6 +70,7 @@ from slablet import cooling                                  # noqa: E402
 from slablet import sphere_mesh as SM                        # noqa: E402
 from slablet.asthenosphere_plates import forcing_from_step   # noqa: E402
 from slablet.gplates.models import load as load_reconstruction   # noqa: E402
+from slablet.core import current_dvs                         # noqa: E402
 from slablet.sphere import lonlat_to_xyz                     # noqa: E402
 
 RUNS = os.path.join(SLABLET, 'runs_real')
@@ -131,8 +132,6 @@ FIELDS = {
                       'viridis'),
     'shear_z': ('Upper mantle', 'Shear rate, below the plate', 'per Myr', 0.5, 'layer', 0, 5, 0, 2, 'viridis'),
     'dvs': ('Deep mantle', 'Shear-velocity anomaly (model)', '%', 1, 'mantle', -8, 12, -2, 2, 'seis'),
-    'dvs_tomo': ('Deep mantle', 'Shear-velocity anomaly (blurred as tomography sees it)', '%', 1, 'mantle', -8, 12,
-                 -2, 2, 'seis'),
     'ur': ('Deep mantle', 'Radial flow (up +)', 'cm/yr', 1, 'mantle', -40, 40, -5, 5, 'polar'),
     'uh': ('Deep mantle', 'Horizontal flow speed', 'cm/yr', 1, 'mantle', 0, 50, 0, 15, 'viridis'),
     'tau': ('Deep mantle', 'Shear stress on horizontal planes (log10)', 'log10 MPa', 1, 'mantle', -1.5, 3, -0.5, 2.5,
@@ -182,7 +181,7 @@ MODELS = {
 FLOW = ('mantle', 'viscosity')
 # The models each field, arrow set and the land mask come from (none: shared by every run).
 DEPENDS = {'age': (), 'age_depth': (), 'plate': (), 'total_depth': ('layer',) + FLOW,
-           'dvs': ('mantle',), 'dvs_tomo': ('mantle',), 'pile': ('mantle',),
+           'dvs': ('mantle',), 'pile': ('mantle',),
            'dyntopo': FLOW, 'geoid': FLOW, 'cmb_topo': FLOW, 'ur': FLOW, 'uh': FLOW, 'tau': FLOW, 's_rr': FLOW,
            'geoid_z': FLOW, 'deep': FLOW}
 DEPENDS.update({k: ('ipv',) for k in FIELDS
@@ -212,7 +211,7 @@ def combo(models, chosen):
 # range, from these ages (Writer.levels); FIXED_COLOUR keep their one colour range (the seismic convention, +-2%).
 # The log stress keeps one range for all depths.
 PER_DEPTH = [k for k, v in FIELDS.items() if v[4] and k != 'tau']
-FIXED_COLOUR = ('dvs', 'dvs_tomo')
+FIXED_COLOUR = ('dvs',)
 SAMPLE_AGES = (0, 100, 200, 300)
 IPV_FIELDS = {'vuln': 'vulnerability', 'vuln_ssc': 'vulnerability_ssc', 'vuln_stress': 'vulnerability_stress',
               'vuln_shear': 'vulnerability_shear', 'vuln_edc': 'vulnerability_edc', 'vuln_rt': 'vulnerability_rt',
@@ -592,9 +591,9 @@ def export_age(ctx, age, w):
             notes.append('no mantle ' + mv)
             continue
         with xr.open_dataset(mt) as ds:
+            ds = current_dvs(ds)                                # runs before 11 Nov 2026
             assert [float(d) for d in ds['depth'].values] == ctx.depths
-            w.field('dvs', age, cells_to_nodes(ds['dVs_native'].values, 1.0), {'mantle': mv})
-            w.field('dvs_tomo', age, cells_to_nodes(ds['dVs'].values, 1.0), {'mantle': mv})
+            w.field('dvs', age, cells_to_nodes(ds['dVs'].values, 1.0), {'mantle': mv})
             w.field('pile', age, cells_to_nodes(ds['pile_thickness_km'].values, 1.0), {'mantle': mv})
         for vv in MODELS['viscosity'][1]:
             chosen = {'mantle': mv, 'viscosity': vv}

@@ -9,7 +9,7 @@ and scripts/check_against_hc.py compares the whole solution with HC.
 
 Density (stage 1, see CONTEXT.md):
     drho = dlnrho_dlnvs x dVs / 100 x rho_PREM(depth)            (HC's -ds, with its default PREM scaling)
-from the field `density_variable` (dVs_native: before slablet's tomography blur), set to zero above cutoff_km.
+from the field `density_variable` (dVs), set to zero above cutoff_km.
 The pile is treated like any slow region, i.e. as hot.  Each depth layer of the field is a thin sheet at its
 depth carrying the mass of the slab of mantle between the midpoints to its neighbours (the top one up to the
 surface, the bottom one down to the core-mantle boundary), as in HC.
@@ -53,6 +53,7 @@ from dataclasses import dataclass, fields, asdict
 import numpy as np
 import xarray as xr
 
+from .core import current_dvs
 from .sphharm import Grid
 
 SECONDS_PER_YEAR = 3.1556926e7
@@ -124,7 +125,7 @@ def prem_density(depth_km, radius_km=6371.0):
 @dataclass
 class DynTopoParams:
     """The `dynamic_topography:` block of a run config.  Defaults are stage 1 (CONTEXT.md)."""
-    density_variable: str = 'dVs_native'    # the field drives the flow; dVs_native is before the tomography blur
+    density_variable: str = 'dVs'           # the field that drives the flow
     cutoff_km: float = 300.0                # no density anomalies above this depth (deep dynamic topography)
     dlnrho_dlnvs: float = 0.25              # d ln rho / d ln Vs, constant with depth
     scale_with_prem: bool = True            # drho = ... x PREM density at the depth (False: x rho_mantle)
@@ -445,6 +446,7 @@ def run(cfg, ages=None, log=print):
     written = []
     for f in files:
         with xr.open_dataset(f) as ds:
+            ds = current_dvs(ds)                                # runs before 11 Nov 2026
             if dp.density_variable not in ds:
                 raise SystemExit('{} has no {}'.format(f, dp.density_variable))
             res = compute(ds.load(), dp)

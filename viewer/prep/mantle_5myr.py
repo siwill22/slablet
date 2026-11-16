@@ -30,6 +30,7 @@ SLABLET = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
 os.environ.setdefault('SLABLET_WORK', SLABLET)
 
 from slablet import dyntopo                              # noqa: E402
+from slablet.core import current_dvs                     # noqa: E402
 from slablet.gplates import run_mantle                   # noqa: E402
 
 OLDEST_MA = 300
@@ -78,8 +79,8 @@ if __name__ == '__main__':
         print('mantle run: {:.0f} s'.format(time.time() - t0), flush=True)
         if args.variant == 'ref':
             out = os.path.join(SLABLET, cfg['output_dir'])
-            a = xr.open_dataset(os.path.join(out, 'mantle_temp_0000Ma.nc'))['dVs_native'].values
-            b = xr.open_dataset(os.path.join(ref_dir, 'mantle_temp_0000Ma.nc'))['dVs_native'].values
+            a = current_dvs(xr.open_dataset(os.path.join(out, 'mantle_temp_0000Ma.nc')))['dVs'].values
+            b = current_dvs(xr.open_dataset(os.path.join(ref_dir, 'mantle_temp_0000Ma.nc')))['dVs'].values
             print('0 Ma dVs against the reference run: largest difference {:.2e}'.format(np.nanmax(np.abs(a - b))),
                   flush=True)
     t0 = time.time()
