@@ -130,6 +130,11 @@ Check this first: some of it is someone else's work in progress.
   beside a margin as time since break-up is misled by it.
 - **The published Müller 2022 212 Ma age grid is all zeros**; the tracker's grids replace the published ones.
 - **The tracker's ages inside continents** reach 200 Myr and more; consumers mask them with the continent query.
+- **The seafloor cache does not record where tracking started.** A cache built by tracking from 250 Ma and one
+  built from 1000 Ma share a key (`<model>-<hash>/anchor0_s1_v2/seafloor_v1`) but hold different ages, so a run's
+  50-km lithosphere lid depends on which config built the cache first: `muller2022_refined_250` from a fresh cache
+  differs from the same run on the 1000-Ma cache by up to 3% dVs at 50 km, and is bit-identical everywhere below
+  (17 November 2026).
 - **Not built:** the Crosby thermal-boundary-layer cooling law (its definition is unknown) and Grose & Afonso (2013)
   as a law of its own.
 
