@@ -304,6 +304,11 @@ Planning only: none of these is started. Each would be its own gated stage.
      of it), so ridge-parallel shear east of the AAD from refill alone, and plate-parallel (N–S) shear at the
      meeting point. To check against the run before claiming: direction and depth (top and base of the layer
      versus mid-layer), and whether a westward-flow signal shows west of the AAD.
+   - What anisotropy cannot test (2026-11-10). In Stotz (2025, Fig. 13) the direction misfit stays at 25–33° from
+     10¹⁸ to 10²¹ Pa s along the post-glacial rebound trade-off, because the direction pattern hardly changes with
+     viscosity. In his model anisotropy therefore cannot constrain the layer, and it says nothing about pressure
+     amplitude, which is what dynamic topography needs (issue 12). In ours the pattern does change with mobility
+     (the AAD low needs ×0.5–1 of Buck's), so this test may separate values that his cannot.
 4. **Geographic mesosphere** (2026-11-06). Let the supply depend on the deep mantle beneath each cell, using slablet's
    refined mantle model (dVs every 10 Myr): less refill above slabs (e.g. under the AAD at 30 Ma, +0.6 % at
    1200–2000 km), more above hot upwellings (EPR, about −1 % at 700–2000 km). Keep the global total balancing the
@@ -361,6 +366,9 @@ mapping it onto present-day crust by age.
      depth rather than mean flow direction.
    - Also Stotz et al. (2021): with our layer, compute the drive on the Australian plate through time (basal drag
      plus layer pressure on keel edges) and compare with their no-continent case for the Eocene separation.
+   - His random null (44–45°) is what any random axial angle gives, so it carries no information. Plate motion alone
+     (18°) is the null that matters, and his full model (25° with equal plumes, smooth model) does not beat it.
+     (2026-11-10)
 10. **Keels from Aus22.** de Laat et al. (2023, Fig. 15) map cratonic (dVs > 5 % at 110–150 km), intermediate and
     Phanerozoic lithosphere beneath Australia. The southern margins of the Yilgarn and Gawler cratons, the keel
     edges facing the AAD, lack a cratonic root, possibly eroded during Australia–Antarctica rifting. Rerun with this
@@ -393,3 +401,93 @@ mapping it onto present-day crust by age.
          the strongest) instead of equal shares, and see whether Iceland then sets the North Atlantic pattern;
       4. note that hotspots are fixed at present positions in the mantle frame for 150 Myr (matters for the Greenland
          and Labrador opening history, not for present-day flow).
+    - Catalogue notes (from Stotz 2025, 2026-11-10). King & Adam (2014) derive plume flux partly from plate speed, so
+      plumes under fast plates come out strongest (Hawaii first); for a layer driven by plate motions that is
+      circular. Hoggard et al. (2020) use swell volume, independent of plate speed (Iceland first, Hawaii
+      comparable), so they are the better choice for step 3. Stotz's supplement merges both into 25 hotspots with
+      scale factors (tables S1–S2). His table S3 and fig. S17 give a plume on/off history for 0–120 Ma from large
+      igneous province ages, an alternative to the fixed hotspots of step 4.
+12. **Dynamic topography from upper-mantle flow** (2026-11-10). Vilacís et al. (2022, Proc. R. Soc. A 478:
+    20210764) and Stotz (2025) rest on a sound idea. In a thin channel beneath a rigid plate, the channel pressure p
+    sets the topography the plate holds up, the pressure-driven flux q = −(D³/12μ)∇p, and the traction on the plate
+    base τ = (D/2)|∇p|. The traction does not depend on viscosity, and integrated along a flow line it gives (D/2) ×
+    the pressure drop, so the force on a plate depends only on the dynamic topography amplitude and the channel
+    thickness D. Viscosity sets how fast the layer moves, not how hard it pushes. Their execution does not compute
+    topography from flow:
+    - Topography is an input. Every plume gets 1.4 km (Δp = ρgh with ρ = 3300 kg/m³, about 45 MPa), and velocity
+      follows from it. The only topography–flow comparison is the area where pressure flow beats plate drag by
+      0.5 cm/yr, which grows under slow plates by construction.
+    - Δp/Δx with Δx the distance from the plume is not the gradient of any pressure field. The resulting v ∝ 1/r has
+      no balancing sink; on a closed sphere sources and sinks must balance, and 25 plumes plus slab points do not.
+    - Mean speed × 2πrD implies about 20 km³/yr (2 × 10⁷ km³/Myr) from each plume: about twice Hawaii's (Sleep, at
+      30 kg/m³) and 20 × the Iceland supply in our plume run (issue 11). Iceland, Afar and Tristan get the same.
+    - Their plate force, 2.25 × 10¹² N/m, is close to (D/2)Δp = 55 km × 45 MPa ≈ 2.5 × 10¹² N/m. The viscosity and
+      the 5 cm/yr cancel, so it restates the assumed 1.4 km.
+    - Flow is recomputed from each snapshot (no memory), the channel is uniform (no keels), and the plate-drag part
+      depends on the absolute frame (their 133 Ma Tristan area changes about threefold between frames, Fig. 11).
+
+    Ways to compute it:
+    - A, the evolving layer (what we have: Buck eq. 8 from h, with plume fraction). Plume topography follows from a
+      chosen flux, the right direction of cause, and history is kept. Before a global map:
+      - pile-ups: cap_km now exists but is a numerical limit, so dynamic topography near piles reads the cap value;
+      - trench walls pile the layer against trenches, possibly the wrong sign there (compare trench_mode 'sink');
+      - continents: an empty layer under a keel reads as a fixed low of 1.3 km (0.9 km air-loaded), an artefact.
+        Present continental elevation already includes whatever layer lies beneath, so on continents only change
+        through time and keel-edge effects carry meaning (this suits issue 14). Continents are air-loaded, not
+        water-loaded;
+      - lithosphere made from layer subsides, which the cooling law (`slablet/cooling.py`) may already count; avoid
+        counting it twice;
+      - the mobility conflict with post-glacial rebound (issue 13).
+    - B, a no-memory pressure solve (their idea done properly). At each time solve the channel's mass balance on the
+      sphere, ∇·[(D³/12μ)∇p] = ∇·(D ū_drag) + sinks − sources, with D varying (keels D → 0) and mean p = 0;
+      dynamic topography = p/(Δρ g). Plate drag makes pressure at ridges, trenches and moving keel edges (rigid
+      rotation is divergence-free on the sphere, so inside a plate only u_p·∇D acts). Sources must balance sinks.
+      One sparse solve on the existing mesh. At 0 Ma it is the failed steady-state fit; run at every step it is the
+      no-memory control for A, and where A and B differ is where history matters.
+    - C, full Stokes with radial viscosity (extend `slablet/dyntopo.py`): a low-viscosity channel in the viscosity
+      profile (the presets have none; two_layer is 10²¹ / 3 × 10²² Pa s), the layer's density as sheets at
+      100–400 km, and imposed plate velocities at the surface instead of free slip (Hager & O'Connell 1981). It has
+      no keels, but it checks A's local isostasy (for a shallow load at long wavelength the kernel should be near 1)
+      and fixes the overlap: deep dynamic topography is cut off at 300 km while the layer spans 100–400 km, so
+      300–400 km is in both and the layer's own density is in neither solve.
+    - D, coupling to the deep flow. Use the deep flow's horizontal velocity at about 400 km as the layer's base
+      velocity (fixed at zero now; stage 4 already uses u_r there for supply). In the thin-channel limit, surface
+      dynamic topography ≈ deep normal stress passed through the channel + the channel's own pressure, so the two
+      add.
+    - E, what needs a numerical solver: keels with lateral viscosity changes, and non-Newtonian plug flow (Semple &
+      Lenardic 2018), in which dynamic topography stops growing at high flux. ASPECT on kunanyi could test A–C as
+      approximations, not test the Earth.
+    - Outputs, whatever the method: dynamic topography and its rate of change, split by cause (layer thickness,
+      plume fraction, plate-driven pressure, deep load), and the traction (D/2)∇p on each plate, so a plate-motion
+      check comes for free (issue 9, Stotz et al. 2021).
+    - Order: B and C's isostasy check first. Both are cheap and show which of A's choices move the result.
+      Validation is a separate step; Simon has ideas to explore later.
+13. **Post-glacial rebound and layer mobility** (2026-11-10). Post-glacial rebound constrains roughly h³/μ of a
+    channel (Paulson & Richards 2009, as plotted in Stotz 2025, Fig. 13A). Scaling Stotz's point (110 km,
+    5 × 10¹⁹ Pa s) to 300 km gives about 10²¹ Pa s, a channel roughly 30–80 × less mobile than Buck's (300 km,
+    1.3 × 10¹⁹ Pa s). The AAD low needs ×0.5–1 of Buck's, and the Iaffaldano-like layer (about ×0.01) starved every
+    ridge. The rebound data sample the mantle beneath former ice sheets (cratons), at a different stress and
+    timescale, so the conflict is not decisive. Two readings, to weigh before relying on the AAD result or on issue
+    12: (1) the oceanic channel is much weaker than the mantle under cratons (hotter, wetter, thinner plate,
+    non-Newtonian), or (2) ridges are fed mostly from below, and lateral layer flow, with the dynamic topography it
+    carries, is regional rather than plate-scale. Read the band from Paulson & Richards (2009) directly before
+    quoting the factor; the 30–80 × here comes from reading Stotz's figure.
+14. **Continental vertical motion from hiatus maps** (2026-11-10; Vilacís et al. 2022, read 2026-11-10). Hiatus maps
+    (Hayek et al. 2020, Proc. R. Soc. A 476: 20200390; correction 2021) record, for each geological series since the
+    Late Jurassic, where the Americas, Europe, Africa and Australia stood high (missing record) or low. They are
+    smoothed to spherical-harmonic degree 15 and say nothing about amplitude. Our list tests vertical motion only on
+    the seafloor (issue 6), so these are the continental counterpart.
+    - AAD region (Vilacís Fig. 7, proxy elevation curves): eastern Australia high in the Late Cretaceous, during Lord
+      Howe Rise (Tasman Sea) spreading; in the Paleocene western Australia (west of 129°E) rises and eastern
+      Australia falls, before fast Australia–Antarctica spreading in the Eocene; near continent-wide hiatus at the
+      base of the Miocene; mostly none at the base of the Pliocene.
+    - Our prediction: the change in depth anomaly through time under non-keel Australia, and keel-edge effects
+      (issue 12, A). Sign, not amplitude. Only the baseline (cratons as keels) has layer under continent; the
+      all-continents-as-keels runs have none.
+    - Their horizontal claim (uplift precedes a spreading-rate change by one series) is not directly testable, since
+      plate motions are our input; it becomes a check on the Australian-plate drive in issue 9.
+    - Weaknesses: correlations judged by eye on a handful of events, with no null; misses absorbed by "except where
+      plate-boundary forces matter"; every region peaks in the Oligocene, which they partly put down to glacial
+      sea-level fall; Cretaceous series are about 40 Myr long, so a lag of "one series" means 10–40 Myr; a hiatus
+      also records erosion, sea level and tectonics, not only dynamic topography. A qualitative pattern to check
+      against, not something to fit.
