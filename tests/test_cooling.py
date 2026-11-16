@@ -5,6 +5,8 @@ import pytest
 
 from slablet import cooling
 
+trapezoid = getattr(np, 'trapezoid', None) or np.trapz     # np.trapz is gone from numpy 2.4 on
+
 T = np.array([0.5, 1, 5, 10, 19.9, 20, 30, 55, 56, 80, 100, 150, 200, 300.0])
 ANALYTIC = ('half_space', 'gdh1', 'ps77', 'crosby2007')
 
@@ -45,7 +47,7 @@ def test_depth_and_heat_flow_come_from_the_temperature_field(name):
     for t in (0.3, 3.0, 30.0, 120.0):
         temp = cooling.temperature_c(law, t, z)
         tm = law.mantle_temperature_c
-        d = law.ridge_depth_m + cooling._amplitude_m(law) / tm * np.trapz(tm - temp, z * 1e3)
+        d = law.ridge_depth_m + cooling._amplitude_m(law) / tm * trapezoid(tm - temp, z * 1e3)
         if law.crosby_bump:
             d = d - cooling._crosby_bump_m(t)
         assert abs(d - cooling.depth_m(law, t)) < 0.05
