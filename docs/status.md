@@ -70,7 +70,7 @@ Check this first: some of it is someone else's work in progress.
 
 | Repository | What | State |
 | --- | --- | --- |
-| PlateDriver | The asthenosphere viewer of 7 November (`viewer/asthenosphere.html`, `viewer/src/asthenosphere/`, `viewer/prep/export_asthenosphere.py`, `viewer/scripts/check_asthenosphere.mjs`, and its section of `viewer/README.md`) | Uncommitted; slablet's Earth viewer now shows the same fields and more |
+| PlateDriver | The asthenosphere viewer of 7 November (`viewer/asthenosphere.html`, `viewer/src/asthenosphere/`, `viewer/prep/export_asthenosphere.py`, `viewer/scripts/check_asthenosphere.mjs`, and its section of `viewer/README.md`) | Stashed in PlateDriver on 17 November (`git stash list`: "Asthenosphere viewer of 7-10 Nov"); slablet's Earth viewer shows the same fields and more |
 | IPV | Müller 2022 support (`reconstruction`), fixed normalisation (`vulnerability_normalisation: fixed`), drip fronts from rift points (`keel_front_trigger: rift_points`), `examples/config_muller2022_300Ma.yaml`, and the matching notes in `docs/OPEN_ISSUES.md` and `README.md` | Uncommitted, on `main` |
 | IPV | Simon's own notebook edits (`transforms.ipynb`, `isopolatred.ipynb`, `test_data/test_isochrons.gpml`) | Uncommitted; not to be committed with the above |
 
