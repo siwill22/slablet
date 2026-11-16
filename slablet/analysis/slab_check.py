@@ -29,8 +29,9 @@ from slablet.paths import WORK
 
 from slablet.sphere import lonlat_to_xyz                          # noqa: E402
 from slablet.gplates.trench_samples import CachedTrenchSamples   # noqa: E402
+from slablet.paths import DATA
 
-SLAB1_FILE = os.path.expanduser('~/Data/allslabs/Slab1.0_allslabs_0p25deg.nc')
+SLAB1_FILE = os.path.join(DATA, 'allslabs', 'Slab1.0_allslabs_0p25deg.nc')
 BANDS_KM = [(50, 150), (150, 250), (250, 350), (350, 450), (450, 550), (550, 660)]
 REGION_DEG = 3.0
 R_KM = 6371.0

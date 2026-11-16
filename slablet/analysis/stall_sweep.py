@@ -53,6 +53,7 @@ import yaml                                         # noqa: E402
 
 from slablet.paths import WORK                      # noqa: E402
 from slablet.analysis.sweep import merge            # noqa: E402
+from slablet.paths import DATA
 
 TZ_DEPTHS_KM = [600, 700, 800, 900]
 LM_SCORES = ['slow_iou', 'fast_iou', 'r_2_3', 'r_1_L']
@@ -74,7 +75,7 @@ SLAB1_REGIONS = {'izu_bonin_marianas': (135, 150, 10, 35), 'japan_kuriles': (138
 
 
 # Tomography for the depth profiles (profile_scores): two S and two P models, fast regions every PROFILE_DEPTHS.
-_TOMO_DIR = os.path.join(os.environ.get('SLABLET_DATA', os.path.expanduser('~/Data')), 'SeismicTomography',
+_TOMO_DIR = os.path.join(DATA, 'SeismicTomography',
                          'Schouten_Supplementary_material', 'Models')
 PROFILE_MODELS = {'REVEAL': ('REVEAL_anomaly.nc', 'vs_anomaly'), 'SEMUCB': ('SEMUCB_WM1_anomaly.nc', 'vs_anomaly'),
                   'GAPP4': ('GAP_P4_anomaly.nc', 'vp_anomaly'), 'UUP07': ('UU-P07_anomaly.nc', 'vp_anomaly')}

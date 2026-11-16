@@ -24,8 +24,9 @@ import xarray as xr
 from slablet.paths import WORK
 from slablet.core import mantle_grid                          # noqa: E402
 from slablet.analysis import tomography_score as ts            # noqa: E402
+from slablet.paths import DATA
 
-SRC = os.path.expanduser('~/Data/SeismicTomography')
+SRC = os.path.join(DATA, 'SeismicTomography')
 DEPTHS = np.arange(1000.0, 2801.0, 100.0)
 SLOW_FRACTION = 0.3
 SPACING = 5.0

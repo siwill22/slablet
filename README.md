@@ -37,7 +37,10 @@ source: synthetic plate models (PlateDriver) or real GPlates reconstructions (`s
     conda run -n pygmt17 python -m slablet.gplates.run_mantle configs/muller2022_refined.yaml
 
 Relative paths in configs (`output_dir`, `cache_dir`) resolve against the current folder, or
-`$SLABLET_WORK` if set. Each run writes `run_info.yaml` with the full parameters, the files the
+`$SLABLET_WORK` if set. Data that cannot be downloaded (tomography models, OPT1, Slab1.0, residual-depth grids,
+cooling models) live under `$SLABLET_DATA` (default `~/Data`), and paths in configs may start with `$SLABLET_DATA`,
+or with `$GPRM_CACHE` for gprm's download folder (`slablet/paths.py`). The model and the real-reconstruction driver
+need nothing there; the scoring and comparison tools say which files they read. Each run writes `run_info.yaml` with the full parameters, the files the
 reconstruction resolved to, and slablet's version and commit.
 
 ### Choosing the reconstruction

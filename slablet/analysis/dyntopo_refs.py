@@ -28,7 +28,7 @@ import xarray as xr
 
 from slablet.sphharm import Grid
 
-DATA = os.environ.get('SLABLET_DATA', os.path.expanduser('~/Data'))
+from slablet.paths import DATA
 HC_HOME = os.environ.get('HC_HOME', os.path.expanduser('~/GIT/hc'))
 LATS = np.arange(-89.5, 90, 1.0)
 LONS = np.arange(-179.5, 180, 1.0)

@@ -41,7 +41,8 @@ WATER_DENSITY = 1030.0
 
 
 def data_root():
-    return os.environ.get('SLABLET_DATA', os.path.expanduser('~/Data'))
+    from slablet.paths import DATA
+    return DATA
 
 
 def _paths():

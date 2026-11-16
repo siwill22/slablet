@@ -5,7 +5,7 @@
 # Frame: slablets sink vertically in the frame of anchor_plate_id, so it must be a mantle
 # frame.  Plate 0 of this model has not been checked for that yet.
 name: muller2019
-model_dir: /Users/simon/Library/Caches/gprm/Muller2019/Muller_etal_2019_PlateMotionModel_v2.0_Tectonics
+model_dir: $GPRM_CACHE/Muller2019/Muller_etal_2019_PlateMotionModel_v2.0_Tectonics
 rotation_files: ["*.rot"]        # relative to model_dir; top level only (skips __MACOSX)
 topology_files: ["*.gpml"]
 anchor_plate_id: 0
@@ -43,14 +43,14 @@ mantle:
 # Each model is scored at the file depth nearest to each of depths_km.
 tomography:
   - name: REVEAL
-    file: /Users/simon/Data/SeismicTomography/Schouten_Supplementary_material/Models/REVEAL_downsampled_anomaly.nc
+    file: $SLABLET_DATA/SeismicTomography/Schouten_Supplementary_material/Models/REVEAL_downsampled_anomaly.nc
     variable: vs_anomaly
     depths_km: [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300, 2400, 2500, 2600, 2700, 2800]
     slow_fraction: 0.3    # area share of the sphere called slow in each field, per depth
     fast_fraction: 0.2
     lmax: 8
   - name: SEMUCB-WM1
-    file: /Users/simon/Data/SeismicTomography/Schouten_Supplementary_material/Models/SEMUCB_WM1_anomaly.nc
+    file: $SLABLET_DATA/SeismicTomography/Schouten_Supplementary_material/Models/SEMUCB_WM1_anomaly.nc
     variable: vs_anomaly
     depths_km: [1000, 1100, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2300, 2400, 2500, 2600, 2700, 2800]
     slow_fraction: 0.3

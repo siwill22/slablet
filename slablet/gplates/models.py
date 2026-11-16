@@ -38,6 +38,7 @@ sequence, or a sequence switches at a boundary age, the order can decide which r
 import dataclasses
 import glob
 import os
+from slablet.paths import data_path
 
 SOURCES = ('files', 'gprm', 'plate_model_manager')
 PMM_DATA_DIR = os.path.join('~', '.cache', 'slablet', 'plate_model_manager')
@@ -137,7 +138,7 @@ def _apply_overrides(r, b):
 
 
 def _from_files(b, anchor):
-    d = os.path.expanduser(b['model_dir'])
+    d = data_path(b['model_dir'])
     polys = {}
     for k, default in DEFAULT_POLYGONS.items():
         pats = b.get(k, default)

@@ -73,7 +73,7 @@ mantle:
   resolution_independent: true
 tomography:
 - name: REVEAL
-  file: /Users/simon/Data/SeismicTomography/Schouten_Supplementary_material/Models/REVEAL_downsampled_anomaly.nc
+  file: $SLABLET_DATA/SeismicTomography/Schouten_Supplementary_material/Models/REVEAL_downsampled_anomaly.nc
   variable: vs_anomaly
   depths_km:
   - 1000
@@ -99,7 +99,7 @@ tomography:
   fast_fraction: 0.2
   lmax: 8
 - name: SEMUCB-WM1
-  file: /Users/simon/Data/SeismicTomography/Schouten_Supplementary_material/Models/SEMUCB_WM1_anomaly.nc
+  file: $SLABLET_DATA/SeismicTomography/Schouten_Supplementary_material/Models/SEMUCB_WM1_anomaly.nc
   variable: vs_anomaly
   depths_km:
   - 1000

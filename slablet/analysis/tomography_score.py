@@ -38,6 +38,7 @@ import yaml
 
 from slablet.core import current_dvs
 from slablet.paths import WORK
+from slablet.paths import data_path
 
 
 def _coord(ds, *names):
@@ -51,7 +52,7 @@ def tomography_on_grid(path, variable, lons_g, lats_g, depths=None):
     """Tomography block-averaged (cos-lat weights) into the cells centred on lons_g x lats_g.
     NaN nodes are skipped; a cell with no finite node is NaN.
     Returns (field[depth, lat, lon], depths)."""
-    ds = xr.open_dataset(path)
+    ds = xr.open_dataset(data_path(path))
     la, lo, de = _coord(ds, 'latitude', 'lat'), _coord(ds, 'longitude', 'lon'), _coord(ds, 'depth')
     da = ds[variable]
     if depths is not None:
@@ -114,7 +115,7 @@ def score_one(m, t_slow, t_fast, ct, w, lat2, lon2, slow_fraction, fast_fraction
 def tomography_depths(tc):
     """The file depths to score: nearest to each of tc['depths_km'], or all between
     min_depth_km and max_depth_km."""
-    ds = xr.open_dataset(tc['file'])
+    ds = xr.open_dataset(data_path(tc['file']))
     d = ds[_coord(ds, 'depth')].values.astype(float)
     if 'depths_km' in tc:
         return np.array([d[np.argmin(np.abs(d - z))] for z in tc['depths_km']])

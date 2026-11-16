@@ -17,7 +17,8 @@ import numpy as np
 import xarray as xr
 
 from slablet.paths import WORK
-SRC = os.path.expanduser('~/Data/SeismicTomography')
+from slablet.paths import DATA
+SRC = os.path.join(DATA, 'SeismicTomography')
 FOLDERS = ['votemaps', 'votemaps_allP_20220809']
 
 

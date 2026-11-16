@@ -3,7 +3,7 @@
 #
 #   conda run -n pygmt17 python -m slablet.gplates.run_mantle configs/muller2022_pmag_dip_pile.yaml
 name: muller2022_pmag
-model_dir: /Users/simon/Library/Caches/gprm/Muller2022
+model_dir: $GPRM_CACHE/Muller2022
 rotation_files:
 - Rotations/1000_0_rotfile.rot
 topology_files:
@@ -50,7 +50,7 @@ mantle:
   slab_dip_shallow_km: 100
 tomography:
 - name: REVEAL
-  file: /Users/simon/Data/SeismicTomography/Schouten_Supplementary_material/Models/REVEAL_downsampled_anomaly.nc
+  file: $SLABLET_DATA/SeismicTomography/Schouten_Supplementary_material/Models/REVEAL_downsampled_anomaly.nc
   variable: vs_anomaly
   depths_km:
   - 1000
@@ -76,7 +76,7 @@ tomography:
   fast_fraction: 0.2
   lmax: 8
 - name: SEMUCB-WM1
-  file: /Users/simon/Data/SeismicTomography/Schouten_Supplementary_material/Models/SEMUCB_WM1_anomaly.nc
+  file: $SLABLET_DATA/SeismicTomography/Schouten_Supplementary_material/Models/SEMUCB_WM1_anomaly.nc
   variable: vs_anomaly
   depths_km:
   - 1000

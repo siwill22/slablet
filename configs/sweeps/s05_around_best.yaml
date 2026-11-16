@@ -41,7 +41,7 @@ variants:
   frame_nnr: {name: muller2022_nnr, rotation_files: [optimisation/no_net_rotation_model.rot]}
   frame_palaeomag: {name: muller2022_pmag, rotation_files: [Rotations/1000_0_rotfile.rot]}
   # another reconstruction at the optimum
-  muller2019: {name: muller2019, model_dir: /Users/simon/Library/Caches/gprm/Muller2019/Muller_etal_2019_PlateMotionModel_v2.0_Tectonics,
+  muller2019: {name: muller2019, model_dir: $GPRM_CACHE/Muller2019/Muller_etal_2019_PlateMotionModel_v2.0_Tectonics,
                rotation_files: ['*.rot'], topology_files: ['*.gpml']}
   # LLSVP alternatives at the optimum
   heat_coupling0: {mantle: {llsvp: heat, cmb_surface_coupling: 0.0}}

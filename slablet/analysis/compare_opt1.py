@@ -38,8 +38,9 @@ from slablet.paths import WORK
 from slablet.core import current_dvs, mantle_grid                    # noqa: E402
 from slablet.analysis import tomography_score as ts                  # noqa: E402
 from slablet.analysis.build_slow_votemap import block_average        # noqa: E402
+from slablet.paths import DATA
 
-SRC = os.path.expanduser('~/Data/zenodo/OPT1_temperature_anomaly_grids_dimensional')
+SRC = os.path.join(DATA, 'zenodo', 'OPT1_temperature_anomaly_grids_dimensional')
 OUT = os.path.join(WORK, 'runs_real', 'opt1')
 AGES = np.arange(0, 1001, 20)
 DEPTHS = np.arange(50.0, 2851.0, 100.0)                            # the run depths

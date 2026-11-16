@@ -196,7 +196,8 @@ def _thickness_table(law, fraction):
 # ---- rhcw18: the authors' own output ----------------------------------------------------------------------------
 
 def data_dir():
-    return os.path.join(os.environ.get('SLABLET_DATA', os.path.expanduser('~/Data')), 'CoolingModels',
+    from slablet.paths import DATA
+    return os.path.join(DATA, 'CoolingModels',
                         'RHCW18_Plate_Model')
 
 
