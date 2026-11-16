@@ -39,7 +39,7 @@ def spherical_gaussian_smooth(field, lats, lons, sigma_deg):
     """
     if sigma_deg is None or sigma_deg <= 0:
         return field
-    K = _spherical_kernel(tuple(np.round(lats, 6)), tuple(np.round(lons, 6)), float(sigma_deg))
+    K = spherical_kernel(tuple(np.round(lats, 6)), tuple(np.round(lons, 6)), float(sigma_deg))
     shape = field.shape
     flat = field.reshape(-1, shape[-2] * shape[-1])
     out = (K @ flat.T).T
@@ -49,7 +49,9 @@ def spherical_gaussian_smooth(field, lats, lons, sigma_deg):
 _KERNEL_CACHE = {}
 
 
-def _spherical_kernel(lats, lons, sigma_deg):
+def spherical_kernel(lats, lons, sigma_deg):
+    """Row-normalised sparse Gaussian kernel on a lon/lat grid (great-circle distances, cell-area
+    weights), cached per grid and sigma.  lats and lons are tuples, so they can be the cache key."""
     key = (lats, lons, sigma_deg)
     if key in _KERNEL_CACHE:
         return _KERNEL_CACHE[key]
