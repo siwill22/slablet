@@ -1,7 +1,7 @@
 # Status: where the work stands
 
 Written 12 November 2026, at a pause of a few days; updated 16 November, when the public release of slablet and
-PlateDriver began (PlateDriver `docs/public_release_plan.md`). The work spans four repositories (PlateDriver,
+PlateDriver began (PlateDriver `docs/public_release_plan.md`), and 17 November, when both were released. The work spans four repositories (PlateDriver,
 slablet, IPV and defamation), and its plans, results and open problems are spread over several documents. This page
 is the entry point for picking it up again. It says what exists, what is uncommitted, what is planned next and what is known to be
 wrong, and points to where each is written up in full. Update it when any of these changes.
@@ -24,8 +24,8 @@ wrong, and points to where each is written up in full. Update it when any of the
 
 ## What exists
 
-**slablet** (`~/GIT/slablet`, branch `asthenosphere-layer`, with `main` at the same commit; private until the
-release, MIT licence) holds the shared physics and the real-world tools (README, layout table):
+**slablet** (`~/GIT/slablet`, branch `asthenosphere-layer`, with `main` at the same commit; public on GitHub since
+17 November 2026, release `v0.1.0`, MIT licence) holds the shared physics and the real-world tools (README, layout table):
 - the kinematic mantle model (slablets, the basal pile, plume sites; reference config `configs/muller2022_refined.yaml`);
 - dynamic topography, geoid and instantaneous flow (Hager & O'Connell, checked against HC to about 1e-5);
 - the plate-history contract and its real-reconstruction driver;
@@ -37,13 +37,12 @@ release, MIT licence) holds the shared physics and the real-world tools (README,
 Its Earth viewer (`viewer/`, http://localhost:5180 with `npm run dev`) shows all the layers together on Müller 2022,
 300 Ma to now every 5 Myr, with alternative runs of each model (below).
 
-**PlateDriver** (`~/GIT/PlateDriver`, branch `mantle-extract`, 78 commits ahead of `master`; public on GitHub as
-OldDriver, to be renamed) makes synthetic plate histories. Force model v1 (the physical default) and v2 (rifting,
+**PlateDriver** (`~/GIT/PlateDriver`, branch `mantle-extract`, merged into `master` at the release; public on GitHub
+as PlateDriver, renamed from OldDriver on 17 November 2026) makes synthetic plate histories. Force model v1 (the physical default) and v2 (rifting,
 collisions, merging) are done. v3 (subduction initiation, then back-arc rifting, plume weakening and teaching
 outputs) has been paused since 5 October 2026, after stage S1's first step (passive margins logged as candidates).
-Since then the work has been on the mantle and the asthenosphere. PlateDriver now uses slablet only optionally and
-hands it its state through the contract (`self_driving_plates.plate_step`); the release plan makes it a requirement
-once slablet is public. Its viewer shows PlateDriver runs at http://localhost:5173. All run outputs, for both
+Since then the work has been on the mantle and the asthenosphere. PlateDriver requires slablet (`v0.1.0`, from GitHub)
+and hands it its state through the contract (`self_driving_plates.plate_step`). Its viewer shows PlateDriver runs at http://localhost:5173. All run outputs, for both
 repositories, are in `PlateDriver/runs_real/` (95 GB, gitignored; slablet's `runs_real` links there).
 
 **IPV** (`~/GIT/IPV`, branch `main`) is MantleMemory: mantle fertility on particles and lithospheric vulnerability,
@@ -76,8 +75,8 @@ Check this first: some of it is someone else's work in progress.
 
 ## Planned next
 
-1. **The public release** (PlateDriver `docs/public_release_plan.md`): slablet first, then PlateDriver; then the
-   synthetic-Earth stages D–F of that plan.
+1. **After the public release** (done 17 November; PlateDriver `docs/public_release_plan.md`): the synthetic-Earth
+   stages D–F of that plan.
 2. **The S40RTS filter**, stage 1 onwards (`plans/2026-11-11-s40rts-filter.md`): pass the model through S40RTS's
    resolution operator and compare like with like.
 3. **v1, the AAD region** (register, decision 20):
