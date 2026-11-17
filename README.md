@@ -1,5 +1,11 @@
 # slablet
 
+...Human summary...
+
+This started as an extension of the code [https://github.com/siwill22/PlateDriver] used to develop teaching exercises for OUC students studying plate tectonics and Earth evolution. The purpose here is to add a 'deep Earth' component to the synthetic surface plate tectonic realizations, in a way that is quick to calculate and close enough to what a more sophisticated model would give. AI-generated text from here onwards......
+
+.....
+
 A simplified, kinematic mantle model driven by subduction history. Slab pieces ("slablets")
 are seeded at trenches, sink through the upper and lower mantle, push a basal pile on the
 core-mantle boundary, and are turned into a synthetic shear-velocity anomaly field (dVs) that
